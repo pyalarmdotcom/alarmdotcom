@@ -1,0 +1,8 @@
+{
+  "domain": "alarmdotcomajax",
+  "name": "Alarm.com",
+  "documentation": "https://www.github.com/uvjustin/alarmdotcomajax",
+  "requirements": ["pyalarmdotcomajax==0.1.1"],
+  "dependencies": [],
+  "codeowners": [@uvjustin]
+}
