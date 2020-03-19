@@ -3,6 +3,11 @@
 # What This Is:
 This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. Please note that Alarm.com may remove access at any time.
 
+## Requirements
+
+Install the pyalarmdotcomajax library from PyPI:
+`pip3 install pyalarmdotcomajax`
+
 ## Configuration
 
 To enable this, download the contents of custom_components/ into the config/custom_components/ folder in your HA installation. Add the following lines to your `configuration.yaml`:
