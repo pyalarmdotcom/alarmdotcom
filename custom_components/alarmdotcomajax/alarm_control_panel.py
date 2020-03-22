@@ -91,13 +91,13 @@ class AlarmDotCom(alarm.AlarmControlPanel):
         self._websession = async_get_clientsession(self._hass)
         self._state = None
         no_entry_delay = (
-            "away" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
+            "stay" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
         )
         force_bypass = (
-            "away" if force_bypass.lower() == "home" else force_bypass.lower()
+            "stay" if force_bypass.lower() == "home" else force_bypass.lower()
         )
         silent_arming = (
-            "away" if silent_arming.lower() == "home" else silent_arming.lower()
+            "stay" if silent_arming.lower() == "home" else silent_arming.lower()
         )
         self._alarm = Alarmdotcom(
             username,
