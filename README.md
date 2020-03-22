@@ -3,11 +3,6 @@
 # What This Is:
 This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. Please note that Alarm.com may remove access at any time.
 
-## Requirements
-
-Install the pyalarmdotcomajax library from PyPI:
-`pip3 install pyalarmdotcomajax`
-
 ## Configuration
 
 To enable this, download the contents of custom_components/ into the config/custom_components/ folder in your HA installation. Add the following lines to your `configuration.yaml`:
@@ -18,6 +13,8 @@ alarm_control_panel:
   platform: alarmdotcomajax
   username: YOUR_USERNAME
   password: YOUR_PASSWORD
+  force_bypass: true
+  no_entry_delay: home
 ```
 
 ## Description of configuration parameters
@@ -43,13 +40,19 @@ alarm_control_panel:
       type: integer
 
     force_bypass:
-      description: Specifies whether to use the force_bypass setting when arming.
+      description: Specifies when to use the "force bypass" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
       required: false
       default: false
-      type: boolean
+      type: string
 
     no_entry_delay:
-      description: Specifies whether to use the no_entry_delay setting when arming.
+      description: Specifies when to use the "no entry delay" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
       required: false
       default: false
-      type: boolean
+      type: string
+
+    silent_arming:
+      description: Specifies when to use the "silent arming" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
+      required: false
+      default: false
+      type: string

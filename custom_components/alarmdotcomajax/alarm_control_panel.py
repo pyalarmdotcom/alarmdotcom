@@ -28,6 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = "Alarm.com"
 CONF_FORCE_BYPASS = "force_bypass"
 CONF_NO_ENTRY_DELAY = "no_entry_delay"
+CONF_SILENT_ARMING = "silent_arming"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -35,8 +36,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_USERNAME): cv.string,
         vol.Optional(CONF_CODE): cv.positive_int,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_FORCE_BYPASS, default=False): cv.boolean,
-        vol.Optional(CONF_NO_ENTRY_DELAY, default=False): cv.boolean,
+        vol.Optional(CONF_FORCE_BYPASS, default="false"): cv.string,
+        vol.Optional(CONF_NO_ENTRY_DELAY, default="false"): cv.string,
+        vol.Optional(CONF_SILENT_ARMING, default="false"): cv.string,
     }
 )
 
@@ -49,8 +51,16 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     password = config.get(CONF_PASSWORD)
     force_bypass = config.get(CONF_FORCE_BYPASS)
     no_entry_delay = config.get(CONF_NO_ENTRY_DELAY)
+    silent_arming = config.get(CONF_SILENT_ARMING)
     alarmdotcom = AlarmDotCom(
-        hass, name, code, username, password, force_bypass, no_entry_delay
+        hass,
+        name,
+        code,
+        username,
+        password,
+        force_bypass,
+        no_entry_delay,
+        silent_arming,
     )
     await alarmdotcom.async_login()
     async_add_entities([alarmdotcom])
@@ -60,7 +70,15 @@ class AlarmDotCom(alarm.AlarmControlPanel):
     """Representation of an Alarm.com status."""
 
     def __init__(
-        self, hass, name, code, username, password, force_bypass, no_entry_delay
+        self,
+        hass,
+        name,
+        code,
+        username,
+        password,
+        force_bypass,
+        no_entry_delay,
+        silent_arming,
     ):
         """Initialize the Alarm.com status."""
 
@@ -72,13 +90,22 @@ class AlarmDotCom(alarm.AlarmControlPanel):
         self._password = password
         self._websession = async_get_clientsession(self._hass)
         self._state = None
+        no_entry_delay = (
+            "away" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
+        )
+        force_bypass = (
+            "away" if force_bypass.lower() == "home" else force_bypass.lower()
+        )
+        silent_arming = (
+            "away" if silent_arming.lower() == "home" else silent_arming.lower()
+        )
         self._alarm = Alarmdotcom(
             username,
             password,
             self._websession,
-            hass.loop,
             force_bypass,
             no_entry_delay,
+            silent_arming,
         )
 
     async def async_login(self):
@@ -131,9 +158,9 @@ class AlarmDotCom(alarm.AlarmControlPanel):
             await self._alarm.async_alarm_disarm()
 
     async def async_alarm_arm_home(self, code=None):
-        """Send arm home command."""
+        """Send arm home (alarm stay in adc) command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_arm_home()
+            await self._alarm.async_alarm_arm_stay()
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
