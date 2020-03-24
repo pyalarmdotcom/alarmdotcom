@@ -34,7 +34,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Required(CONF_USERNAME): cv.string,
-        vol.Optional(CONF_CODE): cv.positive_int,
+        vol.Optional(CONF_CODE): cv.string,
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Optional(CONF_FORCE_BYPASS, default="false"): cv.string,
         vol.Optional(CONF_NO_ENTRY_DELAY, default="false"): cv.string,
@@ -85,7 +85,7 @@ class AlarmDotCom(alarm.AlarmControlPanel):
         _LOGGER.debug("Setting up Alarm.com...")
         self._hass = hass
         self._name = name
-        self._code = str(code) if code else None
+        self._code = code if code else None
         self._username = username
         self._password = password
         self._websession = async_get_clientsession(self._hass)
