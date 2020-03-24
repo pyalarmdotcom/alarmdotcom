@@ -22,9 +22,10 @@ alarm_control_panel:
   - platform: alarmdotcomajax
     username: YOUR_USERNAME
     password: YOUR_PASSWORD
-    force_bypass:   "true"
+    code: "01234"
+    force_bypass: "true"
     no_entry_delay: "home"
-    silent_arming:  "false"
+    silent_arming: "false"
 ```
 
 <b>NOTE: It is recommended that you use !secret to specify credentials and codes.</b>
@@ -49,7 +50,7 @@ alarm_control_panel:
     code:
       description: Specifies a code to enable or disable the alarm in the frontend.
       required: false
-      type: integer
+      type: string
 
     force_bypass:
       description: Specifies when to use the "force bypass" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
