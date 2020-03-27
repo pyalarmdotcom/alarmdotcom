@@ -20,7 +20,10 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_DISARMED,
 )
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import (
+    async_create_clientsession,
+    async_get_clientsession,
+)
 import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,6 +32,7 @@ DEFAULT_NAME = "Alarm.com"
 CONF_FORCE_BYPASS = "force_bypass"
 CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_SILENT_ARMING = "silent_arming"
+DOMAIN = "alarmdotcomajax"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -52,6 +56,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     force_bypass = config.get(CONF_FORCE_BYPASS)
     no_entry_delay = config.get(CONF_NO_ENTRY_DELAY)
     silent_arming = config.get(CONF_SILENT_ARMING)
+    use_new_websession = hass.data.get(DOMAIN)
+    if not use_new_websession:
+        hass.data[DOMAIN] = True
+        use_new_websession = False
     alarmdotcom = AlarmDotCom(
         hass,
         name,
@@ -61,6 +69,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         force_bypass,
         no_entry_delay,
         silent_arming,
+        use_new_websession,
     )
     await alarmdotcom.async_login()
     async_add_entities([alarmdotcom])
@@ -79,16 +88,19 @@ class AlarmDotCom(alarm.AlarmControlPanel):
         force_bypass,
         no_entry_delay,
         silent_arming,
+        use_new_websession,
     ):
         """Initialize the Alarm.com status."""
 
         _LOGGER.debug("Setting up Alarm.com...")
-        self._hass = hass
         self._name = name
         self._code = code if code else None
-        self._username = username
-        self._password = password
-        self._websession = async_get_clientsession(self._hass)
+        if use_new_websession:
+            websession = async_create_clientsession(hass)
+            _LOGGER.debug("Using new websession.")
+        else:
+            websession = async_get_clientsession(hass)
+            _LOGGER.debug("Using hass websession.")
         self._state = None
         no_entry_delay = (
             "stay" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
@@ -100,12 +112,7 @@ class AlarmDotCom(alarm.AlarmControlPanel):
             "stay" if silent_arming.lower() == "home" else silent_arming.lower()
         )
         self._alarm = Alarmdotcom(
-            username,
-            password,
-            self._websession,
-            force_bypass,
-            no_entry_delay,
-            silent_arming,
+            username, password, websession, force_bypass, no_entry_delay, silent_arming,
         )
 
     async def async_login(self):
