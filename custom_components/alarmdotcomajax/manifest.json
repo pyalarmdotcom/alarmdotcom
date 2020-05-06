@@ -3,7 +3,7 @@
   "name": "Alarm.com",
   "documentation": "https://www.github.com/uvjustin/alarmdotcomajax",
   "requirements": [
-    "beautifulsoup4==4.9.0",
+    "beautifulsoup4",
     "pyalarmdotcomajax==0.1.2"
   ],
   "dependencies": [],
