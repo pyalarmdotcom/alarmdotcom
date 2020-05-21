@@ -75,7 +75,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     async_add_entities([alarmdotcom])
 
 
-class AlarmDotCom(alarm.AlarmControlPanel):
+class AlarmDotCom(alarm.AlarmControlPanelEntity):
     """Representation of an Alarm.com status."""
 
     def __init__(
