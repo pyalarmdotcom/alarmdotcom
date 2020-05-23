@@ -6,6 +6,10 @@ from pyalarmdotcomajax import Alarmdotcom
 import voluptuous as vol
 
 import homeassistant.components.alarm_control_panel as alarm
+try:
+    from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
+except ImportError:
+    from homeassistant.components.alarm_control_panel import AlarmControlPanel as AlarmControlPanelEntity
 from homeassistant.components.alarm_control_panel import PLATFORM_SCHEMA
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
@@ -75,7 +79,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     async_add_entities([alarmdotcom])
 
 
-class AlarmDotCom(alarm.AlarmControlPanelEntity):
+class AlarmDotCom(AlarmControlPanelEntity):
     """Representation of an Alarm.com status."""
 
     def __init__(
