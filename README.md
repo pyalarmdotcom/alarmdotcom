@@ -8,7 +8,7 @@ This is a custom component to allow Home Assistant to interface with the [Alarm.
 
 1. Download this project as a zip file using GitHub's Clone or Download button at the top-right corner of the main project page.
 2. Extract the contents locally.
-3. Copy directory alarmdotcomajax to config/custom_components/alarmdotcomajax on your HA installation.
+3. Copy the directory alarmdotcomajax to config/custom_components/alarmdotcomajax on your HA installation.
 4. Add an alarm_control_panel section to your HA configuration.yaml similar as documented in the configuration section below.
 
 
@@ -28,7 +28,7 @@ alarm_control_panel:
     silent_arming: "false"
 ```
 
-<b>NOTE: It is recommended that you use !secret to specify credentials and codes.</b>
+<b>NOTE: It is recommended that you use !secret to specify credentials and codes. For more information on using secrets in HA click [here](https://www.home-assistant.io/docs/configuration/secrets/).</b>
 
 ## Description of configuration parameters
     username:
@@ -73,7 +73,7 @@ alarm_control_panel:
 
 ## Additional Features
 
-Aside from control and alarm status information (disarmed/armed home/armed away) the plugin also publishes the status of individual sensors (contact/motion/glass break) as a comma-separated string within variable sensor_status.  This information can be parsed into individual binary sensors within the Home Assistant configuration.yaml as follows:
+Aside from control and alarm status information (disarmed/armed home/armed away), the plugin also publishes the status of individual sensors (contact/motion/glass break) as a comma-separated string within variable sensor_status.  This information can be parsed into individual binary sensors within the Home Assistant configuration.yaml as follows:
 
 ```yaml
 # Example configuration.yaml entry for Binary Sensors
@@ -97,7 +97,7 @@ Aside from control and alarm status information (disarmed/armed home/armed away)
 
 ## Multiple Alarm.com Installations
 
-This module will not function directly with an Alarm.com account that is associated with multiple alarm systems.  In the event that your account is associated to multiple alarm systems it is recommended that you create one new sub-account per alarm system, and only provide access to a single system to each sub-account.  The sub-account credentials can then be used within multiple alarmdotcomajax sections in the configuration.yaml.
+This module will not function directly with an Alarm.com account that is associated with multiple alarm systems.  In the event that your account is associated to multiple alarm systems it is recommended that you create one new sub-account per alarm system and only provide access to a single system to each sub-account.  The sub-account credentials can then be used within multiple alarmdotcomajax sections in the configuration.yaml.
 
 For example:
 
