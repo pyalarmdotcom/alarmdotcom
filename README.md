@@ -26,6 +26,7 @@ alarm_control_panel:
     force_bypass: "true"
     no_entry_delay: "home"
     silent_arming: "false"
+    adt: false
 ```
 
 <b>NOTE: It is recommended that you use !secret to specify credentials and codes. For more information on using secrets in HA click [here](https://www.home-assistant.io/docs/configuration/secrets/).</b>
@@ -69,6 +70,12 @@ alarm_control_panel:
       required: false
       default: false
       type: string
+
+    adt:
+      description: Specifies whether or not to use the ADT login method to work around problems logging in to ADT accounts.
+      required: false
+      default: false
+      type: boolean
       
 
 ## Additional Features

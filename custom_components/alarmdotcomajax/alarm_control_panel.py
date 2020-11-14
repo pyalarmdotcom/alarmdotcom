@@ -2,14 +2,17 @@
 import logging
 import re
 
-from pyalarmdotcomajax import Alarmdotcom
+from pyalarmdotcomajax import Alarmdotcom, AlarmdotcomADT
 import voluptuous as vol
 
 import homeassistant.components.alarm_control_panel as alarm
+
 try:
     from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 except ImportError:
-    from homeassistant.components.alarm_control_panel import AlarmControlPanel as AlarmControlPanelEntity
+    from homeassistant.components.alarm_control_panel import (
+        AlarmControlPanel as AlarmControlPanelEntity,
+    )
 from homeassistant.components.alarm_control_panel import PLATFORM_SCHEMA
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
@@ -36,6 +39,7 @@ DEFAULT_NAME = "Alarm.com"
 CONF_FORCE_BYPASS = "force_bypass"
 CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_SILENT_ARMING = "silent_arming"
+CONF_ADT = "adt"
 DOMAIN = "alarmdotcomajax"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -47,6 +51,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_FORCE_BYPASS, default="false"): cv.string,
         vol.Optional(CONF_NO_ENTRY_DELAY, default="false"): cv.string,
         vol.Optional(CONF_SILENT_ARMING, default="false"): cv.string,
+        vol.Optional(CONF_ADT, default=False): cv.boolean,
     }
 )
 
@@ -61,6 +66,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     no_entry_delay = config.get(CONF_NO_ENTRY_DELAY)
     silent_arming = config.get(CONF_SILENT_ARMING)
     use_new_websession = hass.data.get(DOMAIN)
+    adt = config.get(CONF_ADT)
     if not use_new_websession:
         hass.data[DOMAIN] = True
         use_new_websession = False
@@ -74,6 +80,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         no_entry_delay,
         silent_arming,
         use_new_websession,
+        adt,
     )
     await alarmdotcom.async_login()
     async_add_entities([alarmdotcom])
@@ -93,6 +100,7 @@ class AlarmDotCom(AlarmControlPanelEntity):
         no_entry_delay,
         silent_arming,
         use_new_websession,
+        adt,
     ):
         """Initialize the Alarm.com status."""
 
@@ -115,8 +123,9 @@ class AlarmDotCom(AlarmControlPanelEntity):
         silent_arming = (
             "stay" if silent_arming.lower() == "home" else silent_arming.lower()
         )
-        self._alarm = Alarmdotcom(
-            username, password, websession, force_bypass, no_entry_delay, silent_arming,
+        adc_class = AlarmdotcomADT if adt else Alarmdotcom
+        self._alarm = adc_class(
+            username, password, websession, force_bypass, no_entry_delay, silent_arming
         )
 
     async def async_login(self):
