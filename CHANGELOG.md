@@ -1,3 +1,4 @@
+v0.1.5, 2020-11-16 -- Use version 0.1.6 of the pyalarmdotcomajax library: add thermostat status
 v0.1.4, 2020-11-14 -- Use version 0.1.4 of the pyalarmdotcomajax library: add workaround for ADT logins
 v0.1.3, 2020-09-02 -- Use version 0.1.3 of the pyalarmdotcomajax library: omit arming parameters when false and only relogin on 403 error.
 v0.1.2, 2020-05-21 -- Change AlarmControlPanel to AlarmControlPanelEntity
