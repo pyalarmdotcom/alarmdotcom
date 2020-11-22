@@ -40,7 +40,7 @@ CONF_FORCE_BYPASS = "force_bypass"
 CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_SILENT_ARMING = "silent_arming"
 CONF_ADT = "adt"
-DOMAIN = "alarmdotcomajax"
+DOMAIN = "alarmdotcom"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
