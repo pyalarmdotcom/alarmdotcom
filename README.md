@@ -76,6 +76,12 @@ alarm_control_panel:
       required: false
       default: false
       type: boolean
+
+    protection1:
+      description: Specifies whether or not to use the Protection1 login method to work around problems logging in to Protection1 accounts.
+      required: false
+      default: false
+      type: boolean
       
 
 ## Additional Features
