@@ -41,6 +41,7 @@ CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_SILENT_ARMING = "silent_arming"
 CONF_ADT = "adt"
 CONF_PROTECTION1 = "protection1"
+CONF_TWO_FACTOR_COOKIE = "two_factor_cookie"
 DOMAIN = "alarmdotcom"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -54,6 +55,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_SILENT_ARMING, default="false"): cv.string,
         vol.Optional(CONF_ADT, default=False): cv.boolean,
         vol.Optional(CONF_PROTECTION1, default=False): cv.boolean,
+        vol.Optional(CONF_TWO_FACTOR_COOKIE): cv.string,
     }
 )
 
@@ -67,6 +69,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     force_bypass = config.get(CONF_FORCE_BYPASS)
     no_entry_delay = config.get(CONF_NO_ENTRY_DELAY)
     silent_arming = config.get(CONF_SILENT_ARMING)
+    two_factor_cookie = config.get(CONF_TWO_FACTOR_COOKIE)
     use_new_websession = hass.data.get(DOMAIN)
     adt_or_protection1 = 0
     if config.get(CONF_ADT):
@@ -87,6 +90,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         silent_arming,
         use_new_websession,
         adt_or_protection1,
+        two_factor_cookie,
     )
     await alarmdotcom.async_login()
     async_add_entities([alarmdotcom])
@@ -107,6 +111,7 @@ class AlarmDotCom(AlarmControlPanelEntity):
         silent_arming,
         use_new_websession,
         adt_or_protection1,
+        two_factor_cookie,
     ):
         """Initialize the Alarm.com status."""
 
@@ -136,7 +141,13 @@ class AlarmDotCom(AlarmControlPanelEntity):
         else:
             adc_class = Alarmdotcom
         self._alarm = adc_class(
-            username, password, websession, force_bypass, no_entry_delay, silent_arming
+            username,
+            password,
+            websession,
+            force_bypass,
+            no_entry_delay,
+            silent_arming,
+            two_factor_cookie,
         )
 
     async def async_login(self):

@@ -26,7 +26,7 @@ alarm_control_panel:
     force_bypass: "true"
     no_entry_delay: "home"
     silent_arming: "false"
-    adt: false
+    two_factor_cookie: "0000111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFF0000"
 ```
 
 <b>NOTE: It is recommended that you use !secret to specify credentials and codes. For more information on using secrets in HA click [here](https://www.home-assistant.io/docs/configuration/secrets/).</b>
@@ -71,6 +71,11 @@ alarm_control_panel:
       default: false
       type: string
 
+    two_factor_cookie:
+      description: Two factor authentication cookie used to bypass 2FA nag screens.
+      required: false
+      type: string
+
     adt:
       description: Specifies whether or not to use the ADT login method to work around problems logging in to ADT accounts.
       required: false
@@ -83,6 +88,11 @@ alarm_control_panel:
       default: false
       type: boolean
       
+
+## Two Factor Authentication
+
+Some providers (ADT and Protection1) are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
+
 
 ## Additional Features
 

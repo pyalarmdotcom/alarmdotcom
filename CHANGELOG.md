@@ -1,3 +1,4 @@
+v0.1.8, 2020-12-15 -- Use version 0.1.8 of the pyalarmdotcomajax library: add 2FA cookie
 v0.1.7, 2020-12-13 -- Use version 0.1.7 of the pyalarmdotcomajax library: add workaround for Protection1 and add garage status
 v0.1.6, 2020-11-22 -- Rename component to alarmdotcom
 v0.1.5, 2020-11-16 -- Use version 0.1.6 of the pyalarmdotcomajax library: add thermostat status
