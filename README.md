@@ -76,6 +76,8 @@ alarm_control_panel:
       required: false
       type: string
 
+    #  The two parameters below are deprecated and will be removed in a future version.
+
     adt:
       description: Specifies whether or not to use the ADT login method to work around problems logging in to ADT accounts.
       required: false
@@ -92,6 +94,16 @@ alarm_control_panel:
 ## Two Factor Authentication
 
 Some providers (ADT and Protection1) are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
+
+Simple steps to get the cookie:
+
+    1) Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup.
+    2) Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
+    3) You may be asked to enable Two Factor Authentication. Click Skip.
+    4) Even after skipping the prior step, you will be asked for a one-time 2FA to register your device. Complete the 2FA process with your phone or email address. Note: For some reason, you may be required to complete this 2FA process twice.
+    5) Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the twoFactorAuthenticationId cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
+    6) Copy the cookie string into your config under the `two_factor_cookie` parameter.
+    7) Re-add the alarmdotcom config to your configuration.yaml and restart Home Assistant.
 
 
 ## Additional Features
