@@ -22,10 +22,13 @@ alarm_control_panel:
   - platform: alarmdotcom
     username: YOUR_USERNAME
     password: YOUR_PASSWORD
+    # The below parameters are optional
     code: "01234"
+    # force_bypass, no_entry_delay, and silent_arming are not supported on all systems/providers. See the description section below.
     force_bypass: "true"
     no_entry_delay: "home"
     silent_arming: "false"
+    # two_factor_cookie is only used if your portal is forcing 2FA
     two_factor_cookie: "0000111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFF0000"
 ```
 
@@ -53,6 +56,8 @@ alarm_control_panel:
       required: false
       type: string
 
+    #  The three options below are not available on all systems/providers. Check your web portal to see which options are available during arming, and leave the parameter out or set it to "false" if it is not available.
+
     force_bypass:
       description: Specifies when to use the "force bypass" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
       required: false
@@ -70,6 +75,8 @@ alarm_control_panel:
       required: false
       default: false
       type: string
+
+    #  The two_factor_cookie parameter below is for use with two factor authentication. See the Two Factor Authentication section.
 
     two_factor_cookie:
       description: Two factor authentication cookie used to bypass 2FA nag screens.
