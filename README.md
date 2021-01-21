@@ -56,7 +56,7 @@ alarm_control_panel:
       required: false
       type: string
 
-    #  The three options below are not available on all systems/providers. Check your web portal to see which options are available during arming, and leave the parameter out or set it to "false" if it is not available.
+    #  The three options below are not available on all systems/providers. Also, some combinations of these options are incompatible. If arming does not work with some options, please check that you are able to arm via the web portal using those same options.
 
     force_bypass:
       description: Specifies when to use the "force bypass" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
