@@ -1,8 +1,9 @@
-[Alarm.com Custom Component](https://github.com/uvjustin/alarmdotcom) for homeassistant
+[Alarm.com Custom Component](https://github.com/uvjustin/alarmdotcom) for Home Assistant
 
 # What This Is:
 This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. This component is designed to integrate the Alarm.com security system functionality only - it requires an Alarm.com package which includes security system support, and it does not integrate any Alarm.com home automation functionality. Please note that Alarm.com may remove access at any time.
 
+* Note that some providers are now requiring 2FA. If you have problem signing in and your web portal keeps nagging you to setup 2FA, please follow the instructions in the Two Factor Authentication section below.
 
 ## Installation / Usage with Home Assistant
 
