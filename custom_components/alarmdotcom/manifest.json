@@ -7,5 +7,6 @@
     "pyalarmdotcomajax==0.1.10"
   ],
   "dependencies": [],
+  "version": "0.1.9",
   "codeowners": ["@uvjustin"]
 }
