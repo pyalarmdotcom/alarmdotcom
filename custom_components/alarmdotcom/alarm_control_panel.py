@@ -25,6 +25,7 @@ from homeassistant.const import (
     CONF_USERNAME,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
+    STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
 )
 from homeassistant.helpers.aiohttp_client import (
@@ -182,6 +183,8 @@ class AlarmDotCom(AlarmControlPanelEntity):
             return STATE_ALARM_ARMED_HOME
         if self._alarm.state.lower() == "armed away":
             return STATE_ALARM_ARMED_AWAY
+        if self._alarm.state.lower() == "armed night":
+            return STATE_ALARM_ARMED_NIGHT
         return None
 
     @property
