@@ -4,9 +4,9 @@
   "documentation": "https://www.github.com/uvjustin/alarmdotcom",
   "requirements": [
     "beautifulsoup4==4.9.3",
-    "pyalarmdotcomajax==0.1.10"
+    "pyalarmdotcomajax==0.1.11"
   ],
   "dependencies": [],
-  "version": "0.1.9",
+  "version": "0.1.10",
   "codeowners": ["@uvjustin"]
 }

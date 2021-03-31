@@ -1,3 +1,4 @@
+v0.1.10, 2021-03-31 -- Use version 0.1.11 of the pyalarmdotcomajax library: add armed night state
 v0.1.9, 2020-12-22 -- Use version 0.1.10 of the pyalarmdotcomajax library: fix login problem from 0.1.7 refactoring
 v0.1.8, 2020-12-15 -- Use version 0.1.8 of the pyalarmdotcomajax library: add 2FA cookie
 v0.1.7, 2020-12-13 -- Use version 0.1.7 of the pyalarmdotcomajax library: add workaround for Protection1 and add garage status

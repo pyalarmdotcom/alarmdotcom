@@ -117,7 +117,7 @@ Simple steps to get the cookie:
 
 ## Additional Features
 
-Aside from control and alarm status information (disarmed/armed home/armed away), the plugin also publishes the status of individual sensors (contact/motion/glass break) as a comma-separated string within variable sensor_status.  This information can be parsed into individual binary sensors within the Home Assistant configuration.yaml as follows:
+Aside from control and alarm status information (disarmed/armed home/armed away/armed night), the plugin also publishes the status of individual sensors (contact/motion/glass break) as a comma-separated string within variable sensor_status.  This information can be parsed into individual binary sensors within the Home Assistant configuration.yaml as follows:
 
 ```yaml
 # Example configuration.yaml entry for Binary Sensors
