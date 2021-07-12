@@ -128,12 +128,12 @@ Aside from control and alarm status information (disarmed/armed home/armed away/
             alarm_front_door:
               friendly_name: "Front Door"
               device_class: door
-              value_template: "{{ state_attr('alarm_control_panel.alarm_com', 'sensor_status')|regex_search('Front Door is Open', ignorecase=TRUE) }}"
+              value_template: "{{ state_attr('alarm_control_panel.alarm_com', 'sensor_status')|regex_search('Front Door is Open', ignorecase=True) }}"
           # Motion Sensor
             alarm_front_door_motion_detector:
               friendly_name: "Front Door Motion"
               device_class: motion
-              value_template: "{{ state_attr('alarm_control_panel.alarm_com', 'sensor_status')|regex_search('Front Door Motion Detector is Activated', ignorecase=TRUE) }}"
+              value_template: "{{ state_attr('alarm_control_panel.alarm_com', 'sensor_status')|regex_search('Front Door Motion Detector is Activated', ignorecase=True) }}"
 ```
 
 <b>NOTE: The regex_search string must match the sensor status string exactly.  This information can be gleaned directly from the HA user interface by examining the value of the sensor_status variable using Developer Tools->States after the custom component has been configured</b>
