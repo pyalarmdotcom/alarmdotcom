@@ -109,9 +109,9 @@ Simple steps to get the cookie:
     1) Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup)
     2) Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
     3) Enable Two Factor Authentication
-    5) Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
-    6) Copy the cookie string into your config under the `two_factor_cookie` parameter.
-    7) Re-add the alarmdotcom config to your configuration.yaml and restart Home Assistant.
+    4) Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
+    5) Copy the cookie string into your config under the `two_factor_cookie` parameter.
+    6) Re-add the alarmdotcom config to your configuration.yaml and restart Home Assistant.
 
 
 ## Additional Features
