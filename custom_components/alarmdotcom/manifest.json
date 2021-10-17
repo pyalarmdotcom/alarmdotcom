@@ -2,7 +2,7 @@
   "domain": "alarmdotcom",
   "name": "Alarm.com",
   "documentation": "https://www.github.com/uvjustin/alarmdotcom",
-  "issue_tracker": "https://github.com/uvjustin/alarmdotcom/issues",
+  "issue_tracker": "https://www.github.com/uvjustin/alarmdotcom/issues",
   "requirements": [
     "beautifulsoup4==4.9.3",
     "pyalarmdotcomajax==0.1.11"
