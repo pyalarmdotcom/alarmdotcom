@@ -9,5 +9,6 @@
   ],
   "dependencies": [],
   "version": "0.1.10",
-  "codeowners": ["@uvjustin"]
+  "codeowners": ["@uvjustin"],
+  "iot_class": "cloud_polling"
 }
