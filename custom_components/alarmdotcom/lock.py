@@ -2,7 +2,7 @@
 import logging
 import re
 
-from pyalarmdotcomajaxtest import Alarmdotcom, AlarmdotcomADT, AlarmdotcomProtection1
+from pyalarmdotcomajax import Alarmdotcom, AlarmdotcomADT, AlarmdotcomProtection1
 import voluptuous as vol
 
 import homeassistant.components.lock as lock
@@ -136,7 +136,7 @@ class AlarmDotComLock(LockEntity):
 
     async def async_update(self):
         """Fetch the latest state."""
-        await self._lock.async_update_lock()
+        await self._lock.async_update("lock")
         return self._lock.state
 
     @property
@@ -145,8 +145,13 @@ class AlarmDotComLock(LockEntity):
         return self._name
 
     @property
-    def code_format(self):
-       return "number"
+    def code_format(self):                         
+        """Return one or more digits/characters."""
+        if self._code is None:        
+            return None                                                          
+        if isinstance(self._code, str) and re.search("^\\d+$", self._code):
+            return "number"
+        return "text" 
 
     @property
     def state(self):

@@ -157,7 +157,7 @@ class AlarmDotCom(AlarmControlPanelEntity):
 
     async def async_update(self):
         """Fetch the latest state."""
-        await self._alarm.async_update()
+        await self._alarm.async_update("alarm")
         return self._alarm.state
 
     @property
