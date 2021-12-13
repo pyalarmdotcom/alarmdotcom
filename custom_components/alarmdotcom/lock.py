@@ -21,13 +21,11 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
-    
     STATE_JAMMED,
     STATE_LOCKED,
     STATE_LOCKING,
     STATE_UNLOCKED,
     STATE_UNLOCKING,
-
 )
 from homeassistant.helpers.aiohttp_client import (
     async_create_clientsession,
@@ -54,8 +52,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_TWO_FACTOR_COOKIE): cv.string,
     }
 )
-
-
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -145,13 +141,13 @@ class AlarmDotComLock(LockEntity):
         return self._name
 
     @property
-    def code_format(self):                         
+    def code_format(self):
         """Return one or more digits/characters."""
-        if self._code is None:        
-            return None                                                          
+        if self._code is None:
+            return None
         if isinstance(self._code, str) and re.search("^\\d+$", self._code):
             return "number"
-        return "text" 
+        return "text"
 
     @property
     def state(self):
@@ -167,12 +163,12 @@ class AlarmDotComLock(LockEntity):
         """Return the state attributes."""
         return {"sensor_status": self._lock.sensor_status}
 
-    async def async_lock(self,code=None):
+    async def async_lock(self, code=None):
         """Send lock command."""
         if self._validate_code(code):
             await self._lock.async_lock()
 
-    async def async_unlock(self,code=None):
+    async def async_unlock(self, code=None):
         """Send unlock command."""
         if self._validate_code(code):
             await self._lock.async_unlock()
