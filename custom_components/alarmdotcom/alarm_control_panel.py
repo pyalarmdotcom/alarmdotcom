@@ -193,7 +193,7 @@ class AlarmDotCom(AlarmControlPanelEntity):
         return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         return {"sensor_status": self._alarm.sensor_status}
 
