@@ -1,3 +1,5 @@
+v0.1.11, 2021-12-13 -- Use version 0.1.12 of the pyalarmdotcomajax library: sensor json field rename
+                       Use extra_state_attributes instead of deprecated device_state_attributes
 v0.1.10, 2021-03-31 -- Use version 0.1.11 of the pyalarmdotcomajax library: add armed night state
 v0.1.9, 2020-12-22 -- Use version 0.1.10 of the pyalarmdotcomajax library: fix login problem from 0.1.7 refactoring
 v0.1.8, 2020-12-15 -- Use version 0.1.8 of the pyalarmdotcomajax library: add 2FA cookie
