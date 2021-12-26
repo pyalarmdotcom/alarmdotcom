@@ -19,6 +19,16 @@ To enable this, download the contents of custom_components/ into the config/cust
 
 ```yaml
 # Example configuration.yaml entry
+
+lock:
+  - platform: alarmdotcom
+    username: YOUR_USERNAME
+    password: YOUR_PASSWORD
+    # The below parameters are optional
+    code: "01234"
+    # two_factor_cookie is only used if your portal is forcing 2FA
+    two_factor_cookie: "0000111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFF0000"
+
 alarm_control_panel:
   - platform: alarmdotcom
     username: YOUR_USERNAME
