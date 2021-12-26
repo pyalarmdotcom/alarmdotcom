@@ -1,3 +1,4 @@
+v0.1.12, 2021-12-26 -- Add lock support
 v0.1.11, 2021-12-13 -- Use version 0.1.12 of the pyalarmdotcomajax library: sensor json field rename
                        Use extra_state_attributes instead of deprecated device_state_attributes
 v0.1.10, 2021-03-31 -- Use version 0.1.11 of the pyalarmdotcomajax library: add armed night state
