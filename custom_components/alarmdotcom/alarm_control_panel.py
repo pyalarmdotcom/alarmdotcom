@@ -28,6 +28,13 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
 )
+from homeassistant import core
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
+
 from homeassistant.helpers.aiohttp_client import (
     async_create_clientsession,
     async_get_clientsession,
@@ -36,32 +43,13 @@ import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = "Alarm.com"
-CONF_FORCE_BYPASS = "force_bypass"
-CONF_NO_ENTRY_DELAY = "no_entry_delay"
-CONF_SILENT_ARMING = "silent_arming"
-CONF_ADT = "adt"
-CONF_PROTECTION1 = "protection1"
-CONF_TWO_FACTOR_COOKIE = "two_factor_cookie"
-DOMAIN = "alarmdotcom"
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Optional(CONF_CODE): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_FORCE_BYPASS, default="false"): cv.string,
-        vol.Optional(CONF_NO_ENTRY_DELAY, default="false"): cv.string,
-        vol.Optional(CONF_SILENT_ARMING, default="false"): cv.string,
-        vol.Optional(CONF_ADT, default=False): cv.boolean,
-        vol.Optional(CONF_PROTECTION1, default=False): cv.boolean,
-        vol.Optional(CONF_TWO_FACTOR_COOKIE): cv.string,
-    }
-)
-
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass: core.HomeAssistant,
+    config: ConfigEntry,
+    async_add_entities,
+    discovery_info=None,
+):
     """Set up a Alarm.com control panel."""
     name = config.get(CONF_NAME)
     code = config.get(CONF_CODE)

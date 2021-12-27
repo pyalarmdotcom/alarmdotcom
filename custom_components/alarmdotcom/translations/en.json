@@ -1,0 +1,32 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+        },
+        "error": {"cannot_connect": "Failed to connect"},
+        "step": {
+            "user": {
+                "data": {
+                    "provider": "Provider",
+                    "system_name": "Alarm Name",
+                    "username": "Username",
+                    "password": "Password",
+                    "two_factor": "Two Factor Auth Key"
+                },
+                "title": "Configure Alarm.com"
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "force_bypass": "Force Bypass",
+                    "no_entry_delay": "No Entry Delay",
+                    "silent_arming": "Silent Arming",
+                    "arm_code": "Arm Code"
+                }
+            }
+        }
+    }
+}
