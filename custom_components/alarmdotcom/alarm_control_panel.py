@@ -27,6 +27,7 @@ from homeassistant.const import (
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
+    STATE_UNAVAILABLE,
 )
 from homeassistant.helpers.aiohttp_client import (
     async_create_clientsession,
@@ -80,90 +81,77 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if not use_new_websession:
         hass.data[DOMAIN] = True
         use_new_websession = False
-    alarmdotcom = AlarmDotCom(
-        hass,
-        name,
-        code,
+
+    if use_new_websession:
+        websession = async_create_clientsession(hass)
+        _LOGGER.debug("Using new websession.")
+    else:
+        websession = async_get_clientsession(hass)
+        _LOGGER.debug("Using hass websession.")
+    no_entry_delay = (
+        "stay" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
+    )
+    force_bypass = (
+        "stay" if force_bypass.lower() == "home" else force_bypass.lower()
+    )
+    silent_arming = (
+        "stay" if silent_arming.lower() == "home" else silent_arming.lower()
+    )
+    if adt_or_protection1 == 1:
+        adc_class = AlarmdotcomADT
+    elif adt_or_protection1 == 2:
+        adc_class = AlarmdotcomProtection1
+    else:
+        adc_class = Alarmdotcom
+    alarmdotcom = adc_class(
         username,
         password,
+        websession,
         force_bypass,
         no_entry_delay,
         silent_arming,
-        use_new_websession,
-        adt_or_protection1,
         two_factor_cookie,
     )
+
     await alarmdotcom.async_login()
-    async_add_entities([alarmdotcom])
 
+    async_add_entities([AlarmDotComPanel(
+        name,
+        code,
+        alarmdotcom
+    )])
 
-class AlarmDotCom(AlarmControlPanelEntity):
+class AlarmDotComPanel(AlarmControlPanelEntity):
     """Representation of an Alarm.com status."""
 
     def __init__(
         self,
-        hass,
         name,
         code,
-        username,
-        password,
-        force_bypass,
-        no_entry_delay,
-        silent_arming,
-        use_new_websession,
-        adt_or_protection1,
-        two_factor_cookie,
+        alarmdotcom
     ):
         """Initialize the Alarm.com status."""
 
         _LOGGER.debug("Setting up Alarm.com...")
         self._name = name
         self._code = code if code else None
-        if use_new_websession:
-            websession = async_create_clientsession(hass)
-            _LOGGER.debug("Using new websession.")
-        else:
-            websession = async_get_clientsession(hass)
-            _LOGGER.debug("Using hass websession.")
+        self._alarmdotcom = alarmdotcom
         self._state = None
-        no_entry_delay = (
-            "stay" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
-        )
-        force_bypass = (
-            "stay" if force_bypass.lower() == "home" else force_bypass.lower()
-        )
-        silent_arming = (
-            "stay" if silent_arming.lower() == "home" else silent_arming.lower()
-        )
-        if adt_or_protection1 == 1:
-            adc_class = AlarmdotcomADT
-        elif adt_or_protection1 == 2:
-            adc_class = AlarmdotcomProtection1
-        else:
-            adc_class = Alarmdotcom
-        self._alarm = adc_class(
-            username,
-            password,
-            websession,
-            force_bypass,
-            no_entry_delay,
-            silent_arming,
-            two_factor_cookie,
-        )
-
-    async def async_login(self):
-        """Login to Alarm.com."""
-        await self._alarm.async_login()
 
     async def async_update(self):
         """Fetch the latest state."""
-        await self._alarm.async_update("alarm")
-        return self._alarm.state
+        await self._alarmdotcom.async_update("alarm")
+        return self._alarmdotcom.state[self._alarmdotcom.partitionid]
 
     @property
     def name(self):
         """Return the name of the alarm."""
         return self._name
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique ID of the sensor."""
+        return self._alarmdotcom.partitionid
 
     @property
     def code_format(self):
@@ -177,15 +165,20 @@ class AlarmDotCom(AlarmControlPanelEntity):
     @property
     def state(self):
         """Return the state of the device."""
-        if self._alarm.state.lower() == "disarmed":
+        try:
+            panel_state = self._alarmdotcom.state[self._alarmdotcom.partitionid]
+        except KeyError:
+            return STATE_UNAVAILABLE
+
+        if panel_state.lower() == "disarmed":
             return STATE_ALARM_DISARMED
-        if self._alarm.state.lower() == "armed stay":
+        if panel_state.lower() == "armed stay":
             return STATE_ALARM_ARMED_HOME
-        if self._alarm.state.lower() == "armed away":
+        if panel_state.lower() == "armed away":
             return STATE_ALARM_ARMED_AWAY
-        if self._alarm.state.lower() == "armed night":
+        if panel_state.lower() == "armed night":
             return STATE_ALARM_ARMED_NIGHT
-        return None
+        return STATE_UNAVAILABLE 
 
     @property
     def supported_features(self) -> int:
@@ -195,22 +188,22 @@ class AlarmDotCom(AlarmControlPanelEntity):
     @property
     def extra_state_attributes(self):
         """Return the state attributes."""
-        return {"sensor_status": self._alarm.sensor_status}
+        return {"sensor_status": self._alarmdotcom.sensor_status}
 
     async def async_alarm_disarm(self, code=None):
         """Send disarm command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_disarm()
+            await self._alarmdotcom.async_alarm_disarm()
 
     async def async_alarm_arm_home(self, code=None):
         """Send arm home (alarm stay in adc) command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_arm_stay()
+            await self._alarmdotcom.async_alarm_arm_stay()
 
     async def async_alarm_arm_away(self, code=None):
         """Send arm away command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_arm_away()
+            await self._alarmdotcom.async_alarm_arm_away()
 
     def _validate_code(self, code):
         """Validate given code."""
