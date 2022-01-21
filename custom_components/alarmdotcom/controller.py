@@ -230,7 +230,7 @@ class ADCIController:
             entity_data[dest_batt["unique_id"]] = dest_batt
             low_battery_ids.add(dest_batt["unique_id"])
 
-        # Process "virtual" malfunction sensors for sensors and locks.
+        # Process "virtual" malfunction sensors for sensors, locks, and partitions.
         for parent_id in sensor_ids.union(lock_ids, partition_ids):
 
             malfunction_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCIPartitionData = entity_data[

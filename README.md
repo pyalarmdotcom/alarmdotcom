@@ -6,12 +6,6 @@ This is a custom component to allow Home Assistant to interface with the [Alarm.
 
 Please note that Alarm.com may remove access at any time.
 
----
-
-Some providers are now requiring 2FA. If you have problem signing in and your web portal keeps nagging you to setup 2FA, please follow the instructions in the Two Factor Authentication section below.
-
----
-
 ## Safety Warnings
 
 This integration is great for casual use within Home Assistant but... **do not rely on this integration to keep you safe.**
@@ -23,16 +17,14 @@ This integration is great for casual use within Home Assistant but... **do not r
 
 ## Supported Devices
 
-| Device Type  | Actions                               |
-| ------------ | ------------------------------------- |
-| Alarm System | arm away, arm stay, arm night, disarm |
-| Sensors      | (none)                                |
-| Locks        | lock, unlock                          |
-| Garage Door  | open, close                           |
+| Device Type  | Actions                               | View Status | Low Battery Sub-Sensor | Malfunction Sub-Sensor |
+| ------------ | ------------------------------------- | ----------- | ---------------------- | ---------------------- |
+| Alarm System | arm away, arm stay, arm night, disarm | ✔           |                        | ✔                      |
+| Sensors      | _(none)_                              | ✔           | ✔                      | ✔                      |
+| Locks        | lock, unlock                          | ✔           | ✔                      | ✔                      |
+| Garage Door  | open, close                           | ✔           |                        |                        |
 
-- All devices show basic status information (open/closed, locked/unlocked, etc.)
-- All devices have three entities: device itself, low battery sensor, and a malfunction sensor.
-- As of v0.2.0, multiples of all of the above devices are supported.
+As of v0.2.0, multiples of all of the above devices are supported.
 
 ## Supported Sensors
 
@@ -60,20 +52,20 @@ You'll be prompted to enter these parameters when configuring the integration.
 
 ### Two Factor Authentication Cookie
 
-Some providers (ADT and Protection1) are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
+Some providers are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
 
-Simple steps to get the cookie:
+<details>
+  <summary><b>Getting a Two Factor Authentication Cookie</b></summary>
+    1. Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup)
+    2. Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
+    3. Enable Two Factor Authentication
+    4. Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
+    5. Copy the cookie string into your config under the `Two Factor Cookie` parameter.
+</details>
 
-1. Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup)
-2. Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
-3. Enable Two Factor Authentication
-4. Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
-5. Copy the cookie string into your config under the `two_factor_cookie` parameter.
-6. Re-add the alarmdotcom config to your configuration.yaml and restart Home Assistant.
+### Additional Options
 
-### Options
-
-You can set these options using the "Configure" button on the Alarm.com card on Home Assistant's Integrations page.
+These options can be set using the "Configure" button on the Alarm.com card on Home Assistant's Integrations page.
 
 | Parameter      | Description                                                                                         |
 | -------------- | --------------------------------------------------------------------------------------------------- |
