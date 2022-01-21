@@ -1,5 +1,7 @@
 # Alarm.com Custom Component for [Home Assistant](https://www.home-assistant.io/)
 
+![image](https://user-images.githubusercontent.com/466460/150609027-55be3eba-8364-4508-ad8d-835407e8782e.png)
+
 ## Intro
 
 This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. This component is designed to integrate the Alarm.com security system functionality only - it requires an Alarm.com package which includes security system support.
@@ -26,13 +28,24 @@ This integration is great for casual use within Home Assistant but... **do not r
 
 As of v0.2.0, multiples of all of the above devices are supported.
 
-## Supported Sensors
+## Supported Sensor Types
 
 1. Contact Sensor
 2. Smoke Detector
 3. CO Detector
 4. Panic Button
 5. Glass Break Detector
+
+### Subsensors
+
+<details>
+<summary><b>What are subsensors?</b></summary>
+Each sensor in your system is created as both a device and as an entity within Home Assistant. Each sensor and lock has an associated low battery sensor that activates when the device's battery is low. Each sensor, lock, and control panel has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
+  
+![image](https://user-images.githubusercontent.com/466460/150608118-ac6fa640-48c0-41ca-8cbf-4cbc4b142b91.png)
+</details>
+
+
 
 ## Installation
 
@@ -65,7 +78,9 @@ Some providers are starting to require 2FA for logins. This can be worked around
 
 ### Additional Options
 
-These options can be set using the "Configure" button on the Alarm.com card on Home Assistant's Integrations page.
+These options can be set using the "Configure" button on the Alarm.com card on Home Assistant's Integrations page:
+
+![image](https://user-images.githubusercontent.com/466460/150607393-e057d445-a882-4fbd-a455-acf155083327.png)
 
 | Parameter      | Description                                                                                         |
 | -------------- | --------------------------------------------------------------------------------------------------- |
