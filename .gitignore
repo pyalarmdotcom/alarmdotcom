@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# MonkeyType
+monkeytype.sqlite3
+
+custom_components/alarmdotcom/pyalarmdotcomajax/
+test.py
+*.ignore.*

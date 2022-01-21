@@ -1,0 +1,2 @@
+pre-commit==2.16.0
+monkeytype==21.5.0

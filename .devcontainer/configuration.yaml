@@ -1,12 +1,10 @@
-
-
 default_config:
 
 logger:
-  default: info
+  default: warn
   logs:
     custom_components.alarmdotcom: debug
-    alarmdotcom: debug
+    pyalarmdotcomajax: info
 
 # If you need to debug uncomment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:

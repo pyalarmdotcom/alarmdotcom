@@ -3,12 +3,10 @@
   "name": "Alarm.com",
   "documentation": "https://www.github.com/uvjustin/alarmdotcom",
   "issue_tracker": "https://www.github.com/uvjustin/alarmdotcom/issues",
-  "requirements": [
-    "beautifulsoup4==4.10.0"
-  ],
+  "requirements": ["beautifulsoup4==4.10.0", "pyalarmdotcomajax==0.2.0b0"],
   "dependencies": [],
-  "version": "0.1.11",
-  "codeowners": ["@uvjustin"],
+  "version": "0.2.0-beta",
+  "codeowners": ["@uvjustin", "@elahd"],
   "iot_class": "cloud_polling",
   "config_flow": true
 }
