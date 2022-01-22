@@ -1,5 +1,5 @@
 ---
-name: Requesting support for new devices
+name: Request support for a new device
 about: Help us support new Alarm.com devices
 title: "[NEW DEVICE] "
 labels: new device
