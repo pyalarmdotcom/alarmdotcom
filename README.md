@@ -84,9 +84,9 @@ These options can be set using the "Configure" button on the Alarm.com card on H
 
 | Parameter      | Description                                                                                         |
 | -------------- | --------------------------------------------------------------------------------------------------- |
-| Code           | Specifies a code to arm/disarm your alarm or lock/unlock your locks in the Home Assistant frontend. |
-| Force Bypass   | Specifies when to use the "force bypass" setting when arming.                                       |
-| No Entry Delay | Specifies when to use the "no entry delay" setting when arming.                                     |
-| Silent Arming  | Specifies when to use the "silent arming" setting when arming.                                      |
+| Code           | Specifies a code to arm/disarm your alarm or lock/unlock your locks in the Home Assistant frontend. This is not necessarily the code you use to arm/disarm your panel. This is a separate code that Home Assistant in [alarm panel card](https://www.home-assistant.io/lovelace/alarm-panel/). |
+| Force Bypass   | Specifies when to use the "force bypass" setting when arming. Can be set to `always`, `never`, `armed home`, and `armed away`.|
+| No Entry Delay | Specifies when to use the "no entry delay" setting when arming. Same options as above. |
+| Silent Arming  | Specifies when to use the "silent arming" setting when arming. Same options as above. |
 
 _The three arming options are not available on all systems/providers. Also, some combinations of these options are incompatible. If arming does not work with a combination of options, please check that you are able to arm via the web portal using those same options._
