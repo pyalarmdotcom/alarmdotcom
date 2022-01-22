@@ -1,176 +1,92 @@
-[Alarm.com Custom Component](https://github.com/uvjustin/alarmdotcom) for Home Assistant
+# Alarm.com Custom Component for [Home Assistant](https://www.home-assistant.io/)
 
-# What This Is:
-This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. This component is designed to integrate the Alarm.com security system functionality only - it requires an Alarm.com package which includes security system support, and it does not integrate any Alarm.com home automation functionality. Please note that Alarm.com may remove access at any time.
+![image](https://user-images.githubusercontent.com/466460/150609027-55be3eba-8364-4508-ad8d-835407e8782e.png)
 
-* Note that some providers are now requiring 2FA. If you have problem signing in and your web portal keeps nagging you to setup 2FA, please follow the instructions in the Two Factor Authentication section below.
+## Intro
 
-## Installation / Usage with Home Assistant
+This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. This component is designed to integrate the Alarm.com security system functionality only - it requires an Alarm.com package which includes security system support.
 
-1. Download this project as a zip file using GitHub's Clone or Download button at the top-right corner of the main project page.
-2. Extract the contents locally.
-3. Copy the directory alarmdotcom to config/custom_components/alarmdotcom on your HA installation.
-4. Add an alarm_control_panel section to your HA configuration.yaml similar as documented in the configuration section below.
+Please note that Alarm.com may remove access at any time.
 
+## Safety Warnings
+
+This integration is great for casual use within Home Assistant but... **do not rely on this integration to keep you safe.**
+
+1. This integration communicates with Alarm.com over an unofficial channel that can be broken or shut down at any time.
+2. It may take several minutes for this device to receive a status update from Alarm.com's servers.
+3. Your automations may be buggy.
+4. This code may be buggy.
+
+You should use Alarm.com's official apps, devices, and services for notifications of all kind related to safety, break-ins, property damage (i.e.: freeze sensors), etc.
+
+## Supported Devices
+
+| Device Type  | Actions                               | View Status | Low Battery Sub-Sensor | Malfunction Sub-Sensor |
+| ------------ | ------------------------------------- | ----------- | ---------------------- | ---------------------- |
+| Alarm System | arm away, arm stay, arm night, disarm | ✔           |                        | ✔                      |
+| Sensors      | _(none)_                              | ✔           | ✔                      | ✔                      |
+| Locks        | lock, unlock                          | ✔           | ✔                      | ✔                      |
+| Garage Door  | open, close                           | ✔           |                        |                        |
+
+As of v0.2.0, multiples of all of the above devices are supported.
+
+## Supported Sensor Types
+
+1. Contact Sensor
+2. Smoke Detector
+3. CO Detector
+4. Panic Button
+5. Glass Break Detector
+
+### Subsensors
+
+<details>
+<summary><b>What are subsensors?</b></summary>
+Each sensor in your system is created as both a device and as an entity within Home Assistant. Each sensor and lock has an associated low battery sensor that activates when the device's battery is low. Each sensor, lock, and control panel has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
+  
+![image](https://user-images.githubusercontent.com/466460/150608118-ac6fa640-48c0-41ca-8cbf-4cbc4b142b91.png)
+</details>
+
+## Installation
+
+1. Use [HACS](https://hacs.xyz/) to download this integration.
+2. Configure the integration via Home Assistant's Integrations page. (Configuration -> Add Integration -> Alarm.com)
+3. When prompted, enter your Alarm.com username, password, and two-factor authentication cookie (more info on this below).
 
 ## Configuration
 
-To enable this, download the contents of custom_components/ into the config/custom_components/ folder in your HA installation. Add the following lines to your `configuration.yaml`:
+You'll be prompted to enter these parameters when configuring the integration.
 
-```yaml
-# Example configuration.yaml entry
+| Parameter         | Required | Description                                                                   |
+| ----------------- | -------- | ----------------------------------------------------------------------------- |
+| Username          | Yes      | Username for your Alarm.com account.                                          |
+| Password          | Yes      | Password for your Alarm.com account.                                          |
+| Two Factor Cookie | Maybe    | Required for accounts with two-factor authentication enabled. See note below. |
 
-lock:
-  - platform: alarmdotcom
-    username: YOUR_USERNAME
-    password: YOUR_PASSWORD
-    # The below parameters are optional
-    code: "01234"
-    # two_factor_cookie is only used if your portal is forcing 2FA
-    two_factor_cookie: "0000111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFF0000"
+### Two Factor Authentication Cookie
 
-alarm_control_panel:
-  - platform: alarmdotcom
-    username: YOUR_USERNAME
-    password: YOUR_PASSWORD
-    # The below parameters are optional
-    code: "01234"
-    # force_bypass, no_entry_delay, and silent_arming are not supported on all systems/providers. See the description section below.
-    force_bypass: "true"
-    no_entry_delay: "home"
-    silent_arming: "false"
-    # two_factor_cookie is only used if your portal is forcing 2FA
-    two_factor_cookie: "0000111122223333444455556666777788889999AAAABBBBCCCCDDDDEEEEFFFF0000"
-```
+Some providers are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
 
-<b>NOTE: It is recommended that you use !secret to specify credentials and codes. For more information on using secrets in HA click [here](https://www.home-assistant.io/docs/configuration/secrets/).</b>
+<details>
+  <summary><b>Getting a Two Factor Authentication Cookie</b></summary>
+    1. Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup)
+    2. Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
+    3. Enable Two Factor Authentication
+    4. Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
+    5. Copy the cookie string into your config under the `Two Factor Cookie` parameter.
+</details>
 
-## Description of configuration parameters
-    username:
-      description: Username for the Alarm.com account.
-      required: true
-      type: string
+### Additional Options
 
-    password:
-      description: Password for the Alarm.com account.
-      required: true
-      type: string
+These options can be set using the "Configure" button on the Alarm.com card on Home Assistant's Integrations page:
 
-    name:
-      description: The name of the alarm.
-      required: false
-      default: Alarm.com
-      type: string
-    
-    code:
-      description: Specifies a code to enable or disable the alarm in the frontend.
-      required: false
-      type: string
+![image](https://user-images.githubusercontent.com/466460/150607393-e057d445-a882-4fbd-a455-acf155083327.png)
 
-    #  The three options below are not available on all systems/providers. Also, some combinations of these options are incompatible.
-    #  If arming does not work with a combination of options, please check that you are able to arm via the web portal using those same options.
+| Parameter      | Description                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| Code           | Specifies a code to arm/disarm your alarm or lock/unlock your locks in the Home Assistant frontend. This is not necessarily the code you use to arm/disarm your panel. This is a separate code that Home Assistant in [alarm panel card](https://www.home-assistant.io/lovelace/alarm-panel/). |
+| Force Bypass   | Specifies when to use the "force bypass" setting when arming. Can be set to `always`, `never`, `armed home`, and `armed away`.|
+| No Entry Delay | Specifies when to use the "no entry delay" setting when arming. Same options as above. |
+| Silent Arming  | Specifies when to use the "silent arming" setting when arming. Same options as above. |
 
-    force_bypass:
-      description: Specifies when to use the "force bypass" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
-      required: false
-      default: false
-      type: string
-
-    no_entry_delay:
-      description: Specifies when to use the "no entry delay" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
-      required: false
-      default: false
-      type: string
-
-    silent_arming:
-      description: Specifies when to use the "silent arming" setting when arming. Accepted values are "home", "away", "false" (never), "true" (always).
-      required: false
-      default: false
-      type: string
-
-    #  The two_factor_cookie parameter below is for use with two factor authentication. See the Two Factor Authentication section.
-
-    two_factor_cookie:
-      description: Two factor authentication cookie used to bypass 2FA nag screens.
-      required: false
-      type: string
-
-    #  The two parameters below are deprecated and will be removed in a future version.
-
-    adt:
-      description: Specifies whether or not to use the ADT login method to work around problems logging in to ADT accounts.
-      required: false
-      default: false
-      type: boolean
-
-    protection1:
-      description: Specifies whether or not to use the Protection1 login method to work around problems logging in to Protection1 accounts.
-      required: false
-      default: false
-      type: boolean
-      
-
-## Two Factor Authentication
-
-Some providers (ADT and Protection1) are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
-
-Simple steps to get the cookie:
-
-    1) Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup)
-    2) Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
-    3) Enable Two Factor Authentication
-    4) Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
-    5) Copy the cookie string into your config under the `two_factor_cookie` parameter.
-    6) Re-add the alarmdotcom config to your configuration.yaml and restart Home Assistant.
-
-
-## Additional Features
-
-Aside from control and alarm status information (disarmed/armed home/armed away/armed night), the plugin also publishes the status of individual sensors (contact/motion/glass break) as a comma-separated string within variable sensor_status.  This information can be parsed into individual binary sensors within the Home Assistant configuration.yaml as follows:
-
-```yaml
-# Example configuration.yaml entry for Binary Sensors
-    binary_sensor:
-      - platform: template
-        sensors:
-          # Contact Sensor
-            alarm_front_door:
-              friendly_name: "Front Door"
-              device_class: door
-              value_template: "{{ state_attr('alarm_control_panel.alarm_com', 'sensor_status')|regex_search('Front Door is Open', ignorecase=True) }}"
-          # Motion Sensor
-            alarm_front_door_motion_detector:
-              friendly_name: "Front Door Motion"
-              device_class: motion
-              value_template: "{{ state_attr('alarm_control_panel.alarm_com', 'sensor_status')|regex_search('Front Door Motion Detector is Activated', ignorecase=True) }}"
-```
-
-<b>NOTE: The regex_search string must match the sensor status string exactly.  This information can be gleaned directly from the HA user interface by examining the value of the sensor_status variable using Developer Tools->States after the custom component has been configured</b>
-
-
-## Multiple Alarm.com Installations
-
-This module will not function directly with an Alarm.com account that is associated with multiple alarm systems.  In the event that your account is associated to multiple alarm systems it is recommended that you create one new sub-account per alarm system and only provide access to a single system to each sub-account.  The sub-account credentials can then be used within multiple alarmdotcom sections in the configuration.yaml.
-
-For example:
-
-```yaml
-# Example configuration.yaml entry
-alarm_control_panel:
-  - platform: alarmdotcom
-    name: work
-    username: YOUR_WORK_ACCOUNT_USERNAME
-    password: YOUR_WORK_ACCOUNT_PASSWORD
-    force_bypass: "true"
-    no_entry_delay: "home"
-    silent_arming: "false"
-  - platform: alarmdotcom
-    name: home
-    username: YOUR_HOME_ACCOUNT_USERNAME
-    password: YOUR_HOME_ACCOUNT_PASSWORD
-    force_bypass: "true"
-    no_entry_delay: "home"
-    silent_arming: "false"
-```
-
-<b>NOTE: It is recommended that you use !secret to specify credentials and codes.</b>
+_The three arming options are not available on all systems/providers. Also, some combinations of these options are incompatible. If arming does not work with a combination of options, please check that you are able to arm via the web portal using those same options._

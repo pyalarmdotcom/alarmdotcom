@@ -1,0 +1,34 @@
+{
+  "image": "ludeeus/container:integration-debian",
+  "name": "alarmdotcom",
+  "appPort": ["8123:8123"],
+  "postCreateCommand": [
+    "container install",
+    "pip install -r requirements-dev.txt",
+    "pre-commit install"
+  ],
+  "extensions": [
+    "ms-python.vscode-pylance",
+    "esbenp.prettier-vscode",
+    "github.vscode-pull-request-github",
+    "ryanluker.vscode-coverage-gutters",
+    "bungcip.better-toml",
+    "donjayamanne.python-extension-pack",
+    "marklarah.pre-commit-vscode",
+    "davidanson.vscode-markdownlint"
+  ],
+  "settings": {
+    "files.eol": "\n",
+    "editor.tabSize": 4,
+    "python.pythonPath": "/usr/local/bin/python",
+    "python.analysis.autoSearchPaths": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.pylintArgs": ["--disable", "import-error"],
+    "python.formatting.provider": "black",
+    "editor.formatOnPaste": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "files.trimTrailingWhitespace": true
+  }
+}

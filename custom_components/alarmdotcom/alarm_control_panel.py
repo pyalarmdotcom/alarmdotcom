@@ -1,220 +1,194 @@
 """Interfaces with Alarm.com alarm control panels."""
+from __future__ import annotations
+
 import logging
 import re
 
-from pyalarmdotcomajax import Alarmdotcom, AlarmdotcomADT, AlarmdotcomProtection1
-import voluptuous as vol
+from homeassistant.components import alarm_control_panel
 
-import homeassistant.components.alarm_control_panel as alarm
+from custom_components.alarmdotcom.const import ADCIPartitionData
+from pyalarmdotcomajax.entities import ADCPartition, ADCPartitionCommand
 
+# Needed for backward compatibility because of https://github.com/home-assistant/core/commit/6f7f5b4034bc55246a8fa170dd330b1edec9ea57.
+# AlarmControlPanel renamed AlarmControlPanelEntity in April 2020.
 try:
     from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 except ImportError:
     from homeassistant.components.alarm_control_panel import (
         AlarmControlPanel as AlarmControlPanelEntity,
     )
-from homeassistant.components.alarm_control_panel import PLATFORM_SCHEMA
+
+from homeassistant import config_entries, core
+from homeassistant.components import persistent_notification
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
     SUPPORT_ALARM_ARM_HOME,
+    SUPPORT_ALARM_ARM_NIGHT,
 )
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONF_CODE,
-    CONF_NAME,
-    CONF_PASSWORD,
-    CONF_USERNAME,
     STATE_ALARM_ARMED_AWAY,
     STATE_ALARM_ARMED_HOME,
     STATE_ALARM_ARMED_NIGHT,
     STATE_ALARM_DISARMED,
 )
-from homeassistant.helpers.aiohttp_client import (
-    async_create_clientsession,
-    async_get_clientsession,
-)
-import homeassistant.helpers.config_validation as cv
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
 
-_LOGGER = logging.getLogger(__name__)
+from . import ADCIEntity, const as adci
+from .controller import ADCIController
 
-DEFAULT_NAME = "Alarm.com"
-CONF_FORCE_BYPASS = "force_bypass"
-CONF_NO_ENTRY_DELAY = "no_entry_delay"
-CONF_SILENT_ARMING = "silent_arming"
-CONF_ADT = "adt"
-CONF_PROTECTION1 = "protection1"
-CONF_TWO_FACTOR_COOKIE = "two_factor_cookie"
-DOMAIN = "alarmdotcom"
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Optional(CONF_CODE): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_FORCE_BYPASS, default="false"): cv.string,
-        vol.Optional(CONF_NO_ENTRY_DELAY, default="false"): cv.string,
-        vol.Optional(CONF_SILENT_ARMING, default="false"): cv.string,
-        vol.Optional(CONF_ADT, default=False): cv.boolean,
-        vol.Optional(CONF_PROTECTION1, default=False): cv.boolean,
-        vol.Optional(CONF_TWO_FACTOR_COOKIE): cv.string,
-    }
-)
+log = logging.getLogger(__name__)
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up a Alarm.com control panel."""
-    name = config.get(CONF_NAME)
-    code = config.get(CONF_CODE)
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
-    force_bypass = config.get(CONF_FORCE_BYPASS)
-    no_entry_delay = config.get(CONF_NO_ENTRY_DELAY)
-    silent_arming = config.get(CONF_SILENT_ARMING)
-    two_factor_cookie = config.get(CONF_TWO_FACTOR_COOKIE)
-    use_new_websession = hass.data.get(DOMAIN)
-    adt_or_protection1 = 0
-    if config.get(CONF_ADT):
-        adt_or_protection1 = 1
-    elif config.get(CONF_PROTECTION1):
-        adt_or_protection1 = 2
-    if not use_new_websession:
-        hass.data[DOMAIN] = True
-        use_new_websession = False
-    alarmdotcom = AlarmDotCom(
-        hass,
-        name,
-        code,
-        username,
-        password,
-        force_bypass,
-        no_entry_delay,
-        silent_arming,
-        use_new_websession,
-        adt_or_protection1,
-        two_factor_cookie,
+async def async_setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
+    """Set up the legacy platform."""
+    log.warning(
+        "Configuration of Alarm.com via configuration.yaml is deprecated and will be"
+        " removed in a future release. Your existing configuration has been migrated to"
+        " the integrations page successfully and can be removed from your"
+        " configuration.yaml file."
     )
-    await alarmdotcom.async_login()
-    async_add_entities([alarmdotcom])
 
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            adci.DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
+        )
+    )
 
-class AlarmDotCom(AlarmControlPanelEntity):
-    """Representation of an Alarm.com status."""
+    error_msg = (
+        "The Alarm.com custom integration can now only be configured via Home"
+        " Assistant's integration's page. Please delete the Alarm.com entry from"
+        " configuration.yaml. Your settings have already been migrated. "
+    )
 
-    def __init__(
-        self,
+    persistent_notification.async_create(
         hass,
-        name,
-        code,
-        username,
-        password,
-        force_bypass,
-        no_entry_delay,
-        silent_arming,
-        use_new_websession,
-        adt_or_protection1,
-        two_factor_cookie,
-    ):
-        """Initialize the Alarm.com status."""
+        error_msg,
+        title="Alarm.com Updated",
+        notification_id="alarmdotcom_migration",
+    )
 
-        _LOGGER.debug("Setting up Alarm.com...")
-        self._name = name
-        self._code = code if code else None
-        if use_new_websession:
-            websession = async_create_clientsession(hass)
-            _LOGGER.debug("Using new websession.")
-        else:
-            websession = async_get_clientsession(hass)
-            _LOGGER.debug("Using hass websession.")
-        self._state = None
-        no_entry_delay = (
-            "stay" if no_entry_delay.lower() == "home" else no_entry_delay.lower()
-        )
-        force_bypass = (
-            "stay" if force_bypass.lower() == "home" else force_bypass.lower()
-        )
-        silent_arming = (
-            "stay" if silent_arming.lower() == "home" else silent_arming.lower()
-        )
-        if adt_or_protection1 == 1:
-            adc_class = AlarmdotcomADT
-        elif adt_or_protection1 == 2:
-            adc_class = AlarmdotcomProtection1
-        else:
-            adc_class = Alarmdotcom
-        self._alarm = adc_class(
-            username,
-            password,
-            websession,
-            force_bypass,
-            no_entry_delay,
-            silent_arming,
-            two_factor_cookie,
-        )
 
-    async def async_login(self):
-        """Login to Alarm.com."""
-        await self._alarm.async_login()
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
+    """Set up the sensor platform and create a master device."""
 
-    async def async_update(self):
-        """Fetch the latest state."""
-        await self._alarm.async_update("alarm")
-        return self._alarm.state
+    controller: ADCIController = hass.data[adci.DOMAIN][config_entry.entry_id]
+
+    async_add_entities(
+        ADCIControlPanel(
+            controller, controller.devices.get("entity_data", {}).get(partition_id)
+        )
+        for partition_id in controller.devices.get("partition_ids", [])
+    )
+
+
+class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
+    """Alarm.com Alarm Control Panel entity."""
+
+    def __init__(self, controller: ADCIController, device_data: ADCIPartitionData):
+        """Pass coordinator to CoordinatorEntity."""
+        log.debug("%s: Initializing Alarm.com control panel entity.", __name__)
+        super().__init__(controller, device_data)
+
+        self._arm_code: str | None = self._controller.config_entry.options.get(
+            "arm_code"
+        )
+        self._device: ADCIPartitionData = device_data
 
     @property
-    def name(self):
-        """Return the name of the alarm."""
-        return self._name
-
-    @property
-    def code_format(self):
+    def code_format(
+        self,
+    ) -> alarm_control_panel.FORMAT_NUMBER | alarm_control_panel.FORMAT_TEXT | None:
         """Return one or more digits/characters."""
-        if self._code is None:
+        if self._arm_code is None:
             return None
-        if isinstance(self._code, str) and re.search("^\\d+$", self._code):
-            return alarm.FORMAT_NUMBER
-        return alarm.FORMAT_TEXT
+        if isinstance(self._arm_code, str) and re.search("^\\d+$", self._arm_code):
+            return alarm_control_panel.FORMAT_NUMBER
+        return alarm_control_panel.FORMAT_TEXT
 
     @property
-    def state(self):
+    def state(self) -> str:
         """Return the state of the device."""
-        if self._alarm.state.lower() == "disarmed":
-            return STATE_ALARM_DISARMED
-        if self._alarm.state.lower() == "armed stay":
-            return STATE_ALARM_ARMED_HOME
-        if self._alarm.state.lower() == "armed away":
-            return STATE_ALARM_ARMED_AWAY
-        if self._alarm.state.lower() == "armed night":
-            return STATE_ALARM_ARMED_NIGHT
-        return None
+
+        if self._device.get("state") is None or self._device.get("mismatched_states"):
+            return adci.STATE_MALFUNCTION
+
+        if self._device.get("state") == ADCPartition.DeviceState.DISARMED:
+            return str(STATE_ALARM_DISARMED)
+        elif self._device["state"] == ADCPartition.DeviceState.ARMED_STAY:
+            return str(STATE_ALARM_ARMED_HOME)
+        elif self._device["state"] == ADCPartition.DeviceState.ARMED_AWAY:
+            return str(STATE_ALARM_ARMED_AWAY)
+        elif self._device["state"] == ADCPartition.DeviceState.ARMED_NIGHT:
+            return str(STATE_ALARM_ARMED_NIGHT)
+        else:
+            return str(adci.STATE_MALFUNCTION)
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return entity specific state attributes."""
+
+        return dict(
+            (super().extra_state_attributes or {})
+            | {
+                "mismatched_states": self._device.get("mismatched_states"),
+                "desired_state": self._device.get("desired_state").name.title(),
+                "uncleared_issues": self._device.get("uncleared_issues"),
+            }
+        )
 
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        return SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY
+        return (
+            int(SUPPORT_ALARM_ARM_HOME)
+            | int(SUPPORT_ALARM_ARM_AWAY)
+            | int(SUPPORT_ALARM_ARM_NIGHT)
+        )
 
-    @property
-    def extra_state_attributes(self):
-        """Return the state attributes."""
-        return {"sensor_status": self._alarm.sensor_status}
-
-    async def async_alarm_disarm(self, code=None):
+    async def async_alarm_arm_night(self, code: str | None = None) -> None:
         """Send disarm command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_disarm()
+            await self._controller.async_partition_action(
+                self.unique_id, ADCPartitionCommand.ARM_NIGHT
+            )
 
-    async def async_alarm_arm_home(self, code=None):
+    async def async_alarm_disarm(self, code: str | None = None) -> None:
+        """Send disarm command."""
+        if self._validate_code(code):
+            await self._controller.async_partition_action(
+                self.unique_id, ADCPartitionCommand.DISARM
+            )
+
+    async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home (alarm stay in adc) command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_arm_stay()
+            await self._controller.async_partition_action(
+                self.unique_id, ADCPartitionCommand.ARM_STAY
+            )
 
-    async def async_alarm_arm_away(self, code=None):
+    async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
         if self._validate_code(code):
-            await self._alarm.async_alarm_arm_away()
+            await self._controller.async_partition_action(
+                self.unique_id, ADCPartitionCommand.ARM_AWAY
+            )
 
-    def _validate_code(self, code):
+    def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check = self._code is None or code == self._code
+        check: bool | str = self._arm_code is None or code == self._arm_code
         if not check:
-            _LOGGER.warning("Wrong code entered")
+            log.warning("Wrong code entered")
         return check

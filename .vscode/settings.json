@@ -1,0 +1,16 @@
+{
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.enabled": true,
+  "python.analysis.extraPaths": ["/usr/local/lib/python3.9/site-packages"],
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  },
+  "python.linting.banditEnabled": true,
+  "terminal.integrated.profiles.linux": {
+    "Bash": {
+      "path": "/bin/bash"
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "Bash"
+}

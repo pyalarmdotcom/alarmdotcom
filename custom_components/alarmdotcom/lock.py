@@ -1,181 +1,114 @@
-"""Interfaces with Alarm.com alarm control panels."""
+"""Alarmdotcom implementation of an HA lock."""
+from __future__ import annotations
+
 import logging
 import re
+from typing import Any
 
-from pyalarmdotcomajax import Alarmdotcom, AlarmdotcomADT, AlarmdotcomProtection1
-import voluptuous as vol
+from homeassistant import core
+from homeassistant.components import lock
+from homeassistant.components.lock import LockEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_JAMMED, STATE_LOCKED, STATE_UNLOCKED
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 
-import homeassistant.components.lock as lock
+from pyalarmdotcomajax.const import ADCLockCommand
+from pyalarmdotcomajax.entities import ADCLock
 
-try:
-    from homeassistant.components.lock import LockEntity
-except ImportError:
-    from homeassistant.components.lock import (
-        Lock as LockEntity,
+from . import ADCIEntity, const as adci
+from .controller import ADCIController
+
+log = logging.getLogger(__name__)
+
+
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
+    """Set up the sensor platform."""
+
+    controller: ADCIController = hass.data[adci.DOMAIN][config_entry.entry_id]
+
+    async_add_entities(
+        ADCILock(controller, controller.devices.get("entity_data", {}).get(lock_id))  # type: ignore
+        for lock_id in controller.devices.get("lock_ids", [])
     )
 
-from homeassistant.components.lock import PLATFORM_SCHEMA
 
-from homeassistant.const import (
-    CONF_CODE,
-    CONF_NAME,
-    CONF_PASSWORD,
-    CONF_USERNAME,
-    STATE_JAMMED,
-    STATE_LOCKED,
-    STATE_LOCKING,
-    STATE_UNLOCKED,
-    STATE_UNLOCKING,
-)
-from homeassistant.helpers.aiohttp_client import (
-    async_create_clientsession,
-    async_get_clientsession,
-)
-import homeassistant.helpers.config_validation as cv
+class ADCILock(ADCIEntity, LockEntity):  # type: ignore
+    """Integration Lock Entity."""
 
-_LOGGER = logging.getLogger(__name__)
+    def __init__(self, controller: ADCIController, device_data: adci.ADCILockData):
+        """Pass coordinator to CoordinatorEntity."""
+        super().__init__(controller, device_data)
 
-DEFAULT_NAME = "Alarm.com"
-CONF_ADT = "adt"
-CONF_PROTECTION1 = "protection1"
-CONF_TWO_FACTOR_COOKIE = "two_factor_cookie"
-DOMAIN = "alarmdotcom"
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Optional(CONF_CODE): cv.string,
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Optional(CONF_ADT, default=False): cv.boolean,
-        vol.Optional(CONF_PROTECTION1, default=False): cv.boolean,
-        vol.Optional(CONF_TWO_FACTOR_COOKIE): cv.string,
-    }
-)
-
-
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up a Alarm.com control panel."""
-    name = config.get(CONF_NAME)
-    code = config.get(CONF_CODE)
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
-    two_factor_cookie = config.get(CONF_TWO_FACTOR_COOKIE)
-    use_new_websession = hass.data.get(DOMAIN)
-    adt_or_protection1 = 0
-    if config.get(CONF_ADT):
-        adt_or_protection1 = 1
-    elif config.get(CONF_PROTECTION1):
-        adt_or_protection1 = 2
-    if not use_new_websession:
-        hass.data[DOMAIN] = True
-        use_new_websession = False
-    alarmdotcom = AlarmDotComLock(
-        hass,
-        name,
-        code,
-        username,
-        password,
-        use_new_websession,
-        adt_or_protection1,
-        two_factor_cookie,
-    )
-    await alarmdotcom.async_login()
-    async_add_entities([alarmdotcom])
-
-
-class AlarmDotComLock(LockEntity):
-    """Representation of an Alarm.com status."""
-
-    def __init__(
-        self,
-        hass,
-        name,
-        code,
-        username,
-        password,
-        use_new_websession,
-        adt_or_protection1,
-        two_factor_cookie,
-    ):
-        """Initialize the Alarm.com status."""
-
-        _LOGGER.debug("Setting up Alarm.com...")
-        self._name = name
-        self._code = code if code else None
-        if use_new_websession:
-            websession = async_create_clientsession(hass)
-            _LOGGER.debug("Using new websession.")
-        else:
-            websession = async_get_clientsession(hass)
-            _LOGGER.debug("Using hass websession.")
-        self._state = None
-        if adt_or_protection1 == 1:
-            adc_class = AlarmdotcomADT
-        elif adt_or_protection1 == 2:
-            adc_class = AlarmdotcomProtection1
-        else:
-            adc_class = Alarmdotcom
-        self._lock = adc_class(
-            username,
-            password,
-            websession,
-            False,
-            False,
-            False,
-            two_factor_cookie,
+        self._device: adci.ADCILockData = device_data
+        self._arm_code: str | None = self._controller.config_entry.options.get(
+            "lock_code"
         )
 
-    async def async_login(self):
-        """Login to Alarm.com."""
-        await self._lock.async_login()
-
-    async def async_update(self):
-        """Fetch the latest state."""
-        await self._lock.async_update("lock")
-        return self._lock.state
-
     @property
-    def name(self):
-        """Return the name of the alarm."""
-        return self._name
-
-    @property
-    def code_format(self):
+    def code_format(self) -> str | None:
         """Return one or more digits/characters."""
-        if self._code is None:
+        if self._arm_code is None:
             return None
-        if isinstance(self._code, str) and re.search("^\\d+$", self._code):
-            return "number"
-        return "text"
+        if isinstance(self._arm_code, str) and re.search("^\\d+$", self._arm_code):
+            return str(lock.ATTR_CODE_FORMAT)
+        return str(lock.ATTR_CODE_FORMAT)
 
     @property
-    def state(self):
-        """Return the state of the device."""
-        if self._lock.state.lower() == "open":
-            return STATE_UNLOCKED
-        if self._lock.state.lower() == "locked":
-            return STATE_LOCKED
+    def extra_state_attributes(self) -> dict | None:
+        """Return entity specific state attributes."""
+
+        return (super().extra_state_attributes or {}) | {
+            "mismatched_states": self._device.get("mismatched_states"),
+            "desired_state": self._device.get("desired_state"),
+        }
+
+    @property
+    def state(self) -> str | STATE_LOCKED | STATE_UNLOCKED | STATE_JAMMED | None:
+        """Return the state of the sensor."""
+
+        if self.is_locked is not None:
+            return self.is_locked
+
+        return str(adci.STATE_MALFUNCTION)
+
+    @property
+    def is_locked(self) -> STATE_LOCKED | STATE_UNLOCKED | STATE_JAMMED | None:
+        """Return true if the lock is locked."""
+
+        if not self._device.get("malfunction"):
+            if self._device.get("state") == ADCLock.DeviceState.LOCKED:
+                return STATE_LOCKED
+
+            if self._device.get("state") == ADCLock.DeviceState.UNLOCKED:
+                return STATE_UNLOCKED
+
+            if self._device.get("state") == ADCLock.DeviceState.FAILED:
+                return STATE_JAMMED
+
         return None
 
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        return {"sensor_status": self._lock.sensor_status}
+    async def async_lock(self, **kwargs: Any) -> None:
+        """Lock the lock."""
+        if self._validate_code(kwargs.get("code")):
+            await self._controller.async_lock_action(
+                self.unique_id, ADCLockCommand.LOCK
+            )
 
-    async def async_lock(self, code=None):
-        """Send lock command."""
-        if self._validate_code(code):
-            await self._lock.async_lock()
+    async def async_unlock(self, **kwargs: Any) -> None:
+        """Unlock the lock."""
+        if self._validate_code(kwargs.get("code")):
+            await self._controller.async_lock_action(
+                self.unique_id, ADCLockCommand.UNLOCK
+            )
 
-    async def async_unlock(self, code=None):
-        """Send unlock command."""
-        if self._validate_code(code):
-            await self._lock.async_unlock()
-
-    def _validate_code(self, code):
+    def _validate_code(self, code: str | None) -> bool:
         """Validate given code."""
-        check = self._code is None or code == self._code
+        check: bool = self._arm_code is None or code == self._arm_code
         if not check:
-            _LOGGER.warning("Wrong code entered")
+            log.warning("Wrong code entered")
         return check
