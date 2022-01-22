@@ -1,0 +1,42 @@
+---
+name: Requesting support for new devices
+about: Help us support new Alarm.com devices
+title: "[NEW DEVICE] "
+labels: new device
+assignees: ''
+
+---
+
+The alarmdotcom maintainers don't have direct access to all Alarm.com devices. We need your help to support new devices.
+
+Please open one issue per device.
+
+__Which device would you like us to support?__
+Provide the device name and a link to a page with device details.
+(E.g.: Intelligent Thermostat: https://suretyhome.com/product/intelligent-thermostat/)
+
+__Where does this device appear in the Alarm.com mobile app?__
+Security System, Images, Locks, Garage Doors, etc.
+
+__What types of actions does this device support?__
+E.g.: Garage doors support opening and closing. Alarm systems support arming (home, away, and night modes) and disarming.
+
+__Which provider do you use?__
+E.g.: Alarm Net, ADT, Surety Home, etc.
+
+__Include pyalarmdotcomajax Server Output__
+This is an important step. It's helpful for us to see how this device is represented on the Alarm.com server. We have a tool for dumping this data via the command line.
+
+1. Install [Python >= 3.9](https://www.python.org/downloads/).
+2. Install [pyalarmdotcomajax](https://github.com/uvjustin/pyalarmdotcomajax) v0.2.0-beta via pip: `pip install pyalarmdotcomajax==0.2.0b0`. 
+3. Run `adc -u YOUR_USERNAME -p YOUR_PASSWORD -c YOUR_2FA_COOKIE -vx`
+4. The above command dumps server data for all devices that are known to ADC developers, including a few devices that are currently unsupported. __Heads Up!__ This command may leak sensitive information. It does _not_ dump your email address, address, or any other account information, but it may output coordinates from GPS devices (like an Alarm.com car sensor) and names of family members (e.g.: Michael's Room Window Sensor). Be sure to review the data before posting to scrub anything that you're not comfortable posting online.
+
+__Include Action Endpoints__
+This is a more technical than the last step, but in order to support actions for devices we need you to use a tool like [Wireshark](https://www.wireshark.org/) of [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) to tell use which endpoints the Alarm.com app uses to control these devices. For example, for a garage door, we would need the following information:
+
+>Base URL: `https://www.alarm.com/web/api/devices/garageDoors/`
+>Open Suffix: `open`
+>Close Suffix: `close`
+
+(Opening a garage door requires submitting a request to `https://www.alarm.com/web/api/devices/garageDoors/open`.)
