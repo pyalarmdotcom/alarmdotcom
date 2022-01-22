@@ -1,5 +1,7 @@
 {
   "name": "Alarmdotcom",
   "render_readme": true,
-  "homeassistant": "0.105.0"
+  "content_in_root": false,
+  "domains": ["binary_sensor", "lock", "cover", "alarm_control_panel"],
+  "country": ["US"]
 }
