@@ -3,6 +3,8 @@ name: HACS Action
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "0 0 * * *"
 
 jobs:
   hacs:
@@ -14,4 +16,3 @@ jobs:
         uses: "hacs/action@main"
         with:
           category: "integration"
-          ignore: "topics"

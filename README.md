@@ -43,8 +43,9 @@ As of v0.2.0, multiples of all of the above devices are supported.
 <details>
 <summary><b>What are subsensors?</b></summary>
 Each sensor in your system is created as both a device and as an entity within Home Assistant. Each sensor and lock has an associated low battery sensor that activates when the device's battery is low. Each sensor, lock, and control panel has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
-  
+
 ![image](https://user-images.githubusercontent.com/466460/150608118-ac6fa640-48c0-41ca-8cbf-4cbc4b142b91.png)
+
 </details>
 
 ## Installation
@@ -82,11 +83,11 @@ These options can be set using the "Configure" button on the Alarm.com card on H
 
 ![image](https://user-images.githubusercontent.com/466460/150607393-e057d445-a882-4fbd-a455-acf155083327.png)
 
-| Parameter      | Description                                                                                         |
-| -------------- | --------------------------------------------------------------------------------------------------- |
+| Parameter      | Description                                                                                                                                                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Code           | Specifies a code to arm/disarm your alarm or lock/unlock your locks in the Home Assistant frontend. This is not necessarily the code you use to arm/disarm your panel. This is a separate code that Home Assistant in [alarm panel card](https://www.home-assistant.io/lovelace/alarm-panel/). |
-| Force Bypass   | Specifies when to use the "force bypass" setting when arming. Can be set to `always`, `never`, `armed home`, and `armed away`.|
-| No Entry Delay | Specifies when to use the "no entry delay" setting when arming. Same options as above. |
-| Silent Arming  | Specifies when to use the "silent arming" setting when arming. Same options as above. |
+| Force Bypass   | Specifies when to use the "force bypass" setting when arming. Can be set to `always`, `never`, `armed home`, and `armed away`.                                                                                                                                                                 |
+| No Entry Delay | Specifies when to use the "no entry delay" setting when arming. Same options as above.                                                                                                                                                                                                         |
+| Silent Arming  | Specifies when to use the "silent arming" setting when arming. Same options as above.                                                                                                                                                                                                          |
 
 _The three arming options are not available on all systems/providers. Also, some combinations of these options are incompatible. If arming does not work with a combination of options, please check that you are able to arm via the web portal using those same options._
