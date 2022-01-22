@@ -17,6 +17,8 @@ This integration is great for casual use within Home Assistant but... **do not r
 3. Your automations may be buggy.
 4. This code may be buggy.
 
+You should use Alarm.com's official apps, devices, and services for notifications of all kind related to safety, break-ins, property damage (i.e.: freeze sensors), etc.
+
 ## Supported Devices
 
 | Device Type  | Actions                               | View Status | Low Battery Sub-Sensor | Malfunction Sub-Sensor |
@@ -44,8 +46,6 @@ Each sensor in your system is created as both a device and as an entity within H
   
 ![image](https://user-images.githubusercontent.com/466460/150608118-ac6fa640-48c0-41ca-8cbf-4cbc4b142b91.png)
 </details>
-
-
 
 ## Installation
 
