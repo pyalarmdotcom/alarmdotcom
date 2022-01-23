@@ -101,7 +101,11 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         elif self._device_subtype_raw == ADCSensorSubtype.SMOKE_DETECTOR:
             return bsdc.SMOKE
         elif self._device_subtype_raw == ADCSensorSubtype.CO_DETECTOR:
-            return bsdc.CO
+            # CO will be released in ~2022-01. Need to use GAS until then.
+            try:
+                return bsdc.CO
+            except AttributeError:
+                return bsdc.GAS
         elif self._device_subtype_raw == ADCSensorSubtype.PANIC_BUTTON:
             return bsdc.SAFETY
         elif self._device_subtype_raw == ADCSensorSubtype.GLASS_BREAK_DETECTOR:
