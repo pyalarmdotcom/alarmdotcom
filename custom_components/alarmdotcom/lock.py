@@ -5,12 +5,14 @@ import logging
 import re
 from typing import Any
 
-from homeassistant import core
+from homeassistant import config_entries, core
 from homeassistant.components import lock
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_JAMMED, STATE_LOCKED, STATE_UNLOCKED
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
 
 from pyalarmdotcomajax.const import ADCLockCommand
 from pyalarmdotcomajax.entities import ADCLock
@@ -19,6 +21,31 @@ from . import ADCIEntity, const as adci
 from .controller import ADCIController
 
 log = logging.getLogger(__name__)
+
+
+async def async_setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
+    """Set up the legacy platform."""
+    log.debug(
+        "Alarmdotcom: Detected legacy lock config entry. Converting to Home Assistant"
+        " config flow."
+    )
+    log.warning(
+        "Configuration of Alarm.com via configuration.yaml is deprecated and will be"
+        " removed in a future release. Your existing configuration has been migrated to"
+        " the integrations page successfully and can be removed from your"
+        " configuration.yaml file."
+    )
+
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            adci.DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
+        )
+    )
 
 
 async def async_setup_entry(
@@ -44,9 +71,16 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 
-        self._device: adci.ADCILockData = device_data
         self._arm_code: str | None = self._controller.config_entry.options.get(
             "lock_code"
+        )
+
+        self._device: adci.ADCILockData = device_data
+
+        log.debug(
+            "%s: Initializing Alarm.com lock entity for lock %s.",
+            __name__,
+            self.unique_id,
         )
 
     @property

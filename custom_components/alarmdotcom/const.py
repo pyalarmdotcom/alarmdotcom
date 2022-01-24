@@ -192,7 +192,6 @@ class ADCISensorData(ADCIBaseEntity):
 
     make_and_model: NotRequired[dict]
     device_subtype: NotRequired[Enum]
-    # system_id: NotRequired[str]
     partition_id: NotRequired[str]
     raw_state_text: NotRequired[str]
     state: ADCISensorState | bool | None
@@ -206,8 +205,6 @@ class ADCILockData(ADCIBaseEntity):
     mismatched_states: bool
     desired_state: Enum
     raw_state_text: str
-    # system_id: str
-    # partition_id: str
     state: ADCILockState
     parent_id: str
 
@@ -222,8 +219,6 @@ class ADCIGarageDoorData(ADCIBaseEntity):
     mismatched_states: bool
     desired_state: Enum
     raw_state_text: str
-    # system_id: str
-    # partition_id: str
     state: ADCIGarageDoorState
     async_open_callback: FunctionType
     async_close_callback: FunctionType

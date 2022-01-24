@@ -67,14 +67,14 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 self._config_title = f"{api.provider_name}: {api.user_email}"
 
             except ConnectionError as err:
-                log.debug(
+                log.error(
                     "%s: get_controller failed with CannotConnect exception: %s",
                     __name__,
                     err,
                 )
                 errors["base"] = "invalid_auth"
             except AuthenticationFailed as err:
-                log.debug(
+                log.error(
                     "%s: get_controller failed with InvalidAuth exception: %s",
                     __name__,
                     err,
@@ -101,6 +101,10 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         """Create configuration entry using entered data."""
 
         if self._existing_entry:
+            log.debug(
+                "Existing config entry found. Updating entry, then aborting config"
+                " flow."
+            )
             self.hass.config_entries.async_update_entry(
                 self._existing_entry, data=user_input
             )
@@ -126,6 +130,8 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self.config = _convert_imported_configuration(import_config)
         self._imported_options = _convert_imported_options(import_config)
 
+        log.debug("%s: Done importing config options.", __name__)
+
         self._async_abort_entries_match({**self.config})
 
         return await self.async_step_final()
@@ -138,6 +144,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Perform reauth upon an API authentication error."""
+        log.debug("Reauthenticating.")
         return await self.async_step_reauth_confirm(user_input)
 
     async def async_step_reauth_confirm(
