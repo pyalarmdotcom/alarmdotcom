@@ -63,6 +63,12 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         self._device_subtype_raw: Enum | None = self._device.get("device_subtype")
         self._device: adci.ADCISensorData = device_data
 
+        log.debug(
+            "%s: Initializing Alarm.com sensor entity for sensor %s.",
+            __name__,
+            self.unique_id,
+        )
+
         # Try to determine whether contact sensor is for a window or door by matching strings.
         # Do this in __init__ because it's expensive.
         # We don't want to run this logic on every update.

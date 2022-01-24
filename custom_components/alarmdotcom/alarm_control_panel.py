@@ -49,6 +49,12 @@ async def async_setup_platform(
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the legacy platform."""
+
+    log.debug(
+        "Alarmdotcom: Detected legacy platform config entry. Converting to Home"
+        " Assistant config flow."
+    )
+
     log.warning(
         "Configuration of Alarm.com via configuration.yaml is deprecated and will be"
         " removed in a future release. Your existing configuration has been migrated to"
@@ -99,13 +105,19 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
 
     def __init__(self, controller: ADCIController, device_data: ADCIPartitionData):
         """Pass coordinator to CoordinatorEntity."""
-        log.debug("%s: Initializing Alarm.com control panel entity.", __name__)
+
         super().__init__(controller, device_data)
 
         self._arm_code: str | None = self._controller.config_entry.options.get(
             "arm_code"
         )
         self._device: ADCIPartitionData = device_data
+
+        log.debug(
+            "%s: Initializing Alarm.com control panel entity for partition %s.",
+            __name__,
+            self.unique_id,
+        )
 
     @property
     def code_format(

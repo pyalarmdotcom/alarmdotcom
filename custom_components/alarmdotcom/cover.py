@@ -52,6 +52,12 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
         self._attr_device_class: CoverDeviceClass = CoverDeviceClass.GARAGE
         self._last_reported_state: ADCGarageDoor.DeviceState = None
 
+        log.debug(
+            "%s: Initializing Alarm.com garage door entity for garage door %s.",
+            __name__,
+            self.unique_id,
+        )
+
     @property
     def extra_state_attributes(self) -> dict | None:
         """Return entity specific state attributes."""

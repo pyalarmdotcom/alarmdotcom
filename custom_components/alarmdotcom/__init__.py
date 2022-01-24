@@ -173,14 +173,17 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
 
     def _update_device_data(self) -> None:
 
+        updated = False
+
         try:
-            device_data: None | adci.ADCIGarageDoorData | adci.ADCILockData | adci.ADCIGarageDoorData | adci.ADCIPartitionData | adci.ADCISensorData | adci.ADCISystemData = self._controller.devices.get(
+            device_data: dict | adci.ADCIGarageDoorData | adci.ADCILockData | adci.ADCIPartitionData | adci.ADCISensorData | adci.ADCISystemData = self._controller.devices.get(
                 "entity_data", {}
             ).get(
-                self.unique_id
+                self.unique_id, {}
             )
             self._device = device_data
-            return
+
+            updated = True
 
         except KeyError as err:
             log.error(
@@ -188,6 +191,12 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
             )
             raise UpdateFailed from err
 
-        raise UpdateFailed(
-            f"{__name__}: Failed to update data for {self._device.get('name')}."
-        )
+        if not updated:
+            err_msg = (
+                f"{__name__}: Failed to update data for {self._device.get('name')}."
+            )
+
+            log.error(err_msg)
+            log.debug(device_data)
+
+            raise UpdateFailed(err_msg)

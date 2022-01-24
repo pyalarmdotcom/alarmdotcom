@@ -59,20 +59,20 @@ class ADCIController:
                 self.hass,
                 self.config_entry.data[adci.CONF_USERNAME],
                 self.config_entry.data[adci.CONF_PASSWORD],
-                self.config_entry.data[adci.CONF_2FA_COOKIE],
+                self.config_entry.data.get(adci.CONF_2FA_COOKIE),
                 self.config_entry.options.get(adci.CONF_FORCE_BYPASS),
                 self.config_entry.options.get(adci.CONF_NO_DELAY),
                 self.config_entry.options.get(adci.CONF_SILENT_ARM),
             )
         except ConnectionError as err:
-            log.debug(
+            log.error(
                 "%s: get_controller failed with CannotConnect exception: %s",
                 __name__,
                 err,
             )
             raise ConfigEntryNotReady from err
         except AuthenticationFailed as err:
-            log.debug(
+            log.error(
                 "%s: get_controller failed with InvalidAuth exception: %s",
                 __name__,
                 err,
@@ -379,14 +379,14 @@ async def get_controller(
             await controller.async_login()
 
     except ConnectionError as err:
-        log.debug(
+        log.error(
             "%s: get_controller failed with CannotConnect exception: %s",
             __name__,
             err,
         )
         raise err
     except AuthenticationFailed as err:
-        log.debug(
+        log.error(
             "%s: get_controller failed with InvalidAuth exception: %s",
             __name__,
             err,
