@@ -7,6 +7,7 @@ from typing import Any
 from homeassistant import config_entries
 from homeassistant.const import CONF_CODE, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 import voluptuous as vol
 
 from pyalarmdotcomajax.const import ArmingOption as ADCArmingOption
@@ -130,9 +131,38 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self.config = _convert_imported_configuration(import_config)
         self._imported_options = _convert_imported_options(import_config)
 
-        log.debug("%s: Done importing config options.", __name__)
+        log.debug("%s: Done reading config options. Trying to log in.", __name__)
 
         self._async_abort_entries_match({**self.config})
+
+        try:
+            api = await get_controller(
+                self.hass,
+                self.config[adci.CONF_USERNAME],
+                self.config[adci.CONF_PASSWORD],
+                self.config[adci.CONF_2FA_COOKIE],
+            )
+
+            self._existing_entry = await self.async_set_unique_id(
+                f"{api.provider_name}:{api.user_id}"
+            )
+
+            self._config_title = f"{api.provider_name}: {api.user_email}"
+
+        except ConnectionError as err:
+            log.error(
+                "%s: get_controller failed with CannotConnect exception: %s",
+                __name__,
+                err,
+            )
+            raise ConfigEntryNotReady from err
+        except AuthenticationFailed as err:
+            log.error(
+                "%s: get_controller failed with InvalidAuth exception: %s",
+                __name__,
+                err,
+            )
+            raise ConfigEntryAuthFailed from err
 
         return await self.async_step_final()
 

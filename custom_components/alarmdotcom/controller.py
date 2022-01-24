@@ -85,11 +85,16 @@ class ADCIController:
                 self.config_entry.add_update_listener(self._async_update_listener)
             )
 
+        # This is indicitive of a problem. Just flag for now.
+        if self.config_entry.title is None:
+            log.error("Config entry has no title.")
+
         # Coordinator manages updates for all Alarmdotcom components
         self.coordinator = DataUpdateCoordinator(
             self.hass,
             log,
-            name=self.config_entry.title,
+            # name=self.config_entry.title,
+            name="alarmdotcom",
             update_method=self.async_update,
             update_interval=timedelta(minutes=1),
         )
@@ -117,8 +122,12 @@ class ADCIController:
         low_battery_ids: set[str] = set()
         malfunction_ids: set[str] = set()
 
+        log.debug("Processing systems.")
+
         # Process systems
         for src_sys in self.api.systems:
+
+            log.debug("%s: %s", src_sys.id_, src_sys.name)
 
             dest_sys: adci.ADCISystemData = {
                 "unique_id": src_sys.id_,
@@ -131,8 +140,12 @@ class ADCIController:
             entity_data[src_sys.id_] = dest_sys
             system_ids.add(src_sys.id_)
 
+        log.debug("Processing partitions.")
+
         # Process partitions
         for src_part in self.api.partitions:
+
+            log.debug("%s: %s", src_part.id_, src_part.name)
 
             dest_part: adci.ADCIPartitionData = {
                 "unique_id": src_part.id_,
@@ -154,8 +167,12 @@ class ADCIController:
             entity_data[src_part.id_] = dest_part
             partition_ids.add(src_part.id_)
 
+        log.debug("Processing sensors.")
+
         # Process sensors
         for src_sensor in self.api.sensors:
+
+            log.debug("%s: %s", src_sensor.id_, src_sensor.name)
 
             dest_sensor: adci.ADCISensorData = {
                 "unique_id": src_sensor.id_,
@@ -172,8 +189,12 @@ class ADCIController:
             entity_data[src_sensor.id_] = dest_sensor
             sensor_ids.add(src_sensor.id_)
 
+        log.debug("Processing locks.")
+
         # Process locks
         for src_lock in self.api.locks:
+
+            log.debug("%s: %s", src_lock.id_, src_lock.name)
 
             dest_lock: adci.ADCILockData = {
                 "unique_id": src_lock.id_,
@@ -193,8 +214,12 @@ class ADCIController:
             entity_data[src_lock.id_] = dest_lock
             lock_ids.add(src_lock.id_)
 
+        log.debug("Processing garage doors.")
+
         # Process garage doors
         for src_garage in self.api.garage_doors:
+
+            log.debug("%s: %s", src_garage.id_, src_garage.name)
 
             dest_garage: adci.ADCIGarageDoorData = {
                 "unique_id": src_garage.id_,
@@ -213,6 +238,8 @@ class ADCIController:
             entity_data[src_garage.id_] = dest_garage
             garage_door_ids.add(src_garage.id_)
 
+        log.debug("Processing low battery sensors.")
+
         # Process "virtual" battery sensors for sensors and locks.
         for parent_id in sensor_ids.union(lock_ids):
 
@@ -227,8 +254,12 @@ class ADCIController:
                 "parent_id": battery_parent["unique_id"],
             }
 
+            log.debug("%s: %s", dest_batt.get("unique_id"), dest_batt.get("name"))
+
             entity_data[dest_batt["unique_id"]] = dest_batt
             low_battery_ids.add(dest_batt["unique_id"])
+
+        log.debug("Processing malfunction sensors.")
 
         # Process "virtual" malfunction sensors for sensors, locks, and partitions.
         for parent_id in sensor_ids.union(lock_ids, partition_ids):
@@ -245,6 +276,12 @@ class ADCIController:
                 if "mismatched_states" in malfunction_parent
                 else malfunction_parent.get("malfunction"),
             }
+
+            log.debug(
+                "%s: %s",
+                dest_malfunction.get("unique_id"),
+                dest_malfunction.get("name"),
+            )
 
             # (malfunction_parent.get("malfunction") or malfunction_parent.get("mismatched_states", False)) or False
 
