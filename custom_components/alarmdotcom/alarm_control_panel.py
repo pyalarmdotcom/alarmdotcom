@@ -134,7 +134,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
     def state(self) -> str:
         """Return the state of the device."""
 
-        if self._device.get("state") is None or self._device.get("mismatched_states"):
+        if self._device.get("state") is None:
             return adci.STATE_MALFUNCTION
 
         if self._device.get("state") == ADCPartition.DeviceState.DISARMED:
@@ -155,7 +155,6 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
         return dict(
             (super().extra_state_attributes or {})
             | {
-                "mismatched_states": self._device.get("mismatched_states"),
                 "desired_state": self._device.get("desired_state").name.title(),
                 "uncleared_issues": self._device.get("uncleared_issues"),
             }

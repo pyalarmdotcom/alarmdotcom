@@ -50,7 +50,7 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
 
         self._device: adci.ADCIGarageDoorData = device_data
         self._attr_device_class: CoverDeviceClass = CoverDeviceClass.GARAGE
-        self._last_reported_state: ADCGarageDoor.DeviceState = None
+        self._attr_supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
 
         log.debug(
             "%s: Initializing Alarm.com garage door entity for garage door %s.",
@@ -59,53 +59,13 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
         )
 
     @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return entity specific state attributes."""
-
-        return (super().extra_state_attributes or {}) | {
-            "mismatched_states": self._device.get("mismatched_states"),
-            "desired_state": self._device.get("desired_state"),
-        }
-
-    @property
-    def supported_features(self) -> int:
-        """Flag supported features."""
-
-        return int(SUPPORT_OPEN) | int(SUPPORT_CLOSE)
-
-    @property
-    def is_opening(self) -> bool | None:
-        """Return if the cover is opening or not."""
-        if (
-            self._device.get("state") == ADCGarageDoor.DeviceState.TRANSITIONING
-            and self._last_reported_state == ADCGarageDoor.DeviceState.CLOSED
-        ):
-            return True
-
-        return None
-
-    @property
-    def is_closing(self) -> bool | None:
-        """Return if the cover is closing or not."""
-        if (
-            self._device.get("state") == ADCGarageDoor.DeviceState.TRANSITIONING
-            and self._last_reported_state == ADCGarageDoor.DeviceState.OPEN
-        ):
-            return True
-
-        return None
-
-    @property
     def is_closed(self) -> bool | None:
         """Return if the cover is closed or not."""
 
-        if (
-            reported_state := self._device.get("state")
-        ) == ADCGarageDoor.DeviceState.OPEN:
-            self._last_reported_state = ADCGarageDoor.DeviceState.OPEN
+        if self._device.get("state") == ADCGarageDoor.DeviceState.OPEN:
             return False
-        elif reported_state == ADCGarageDoor.DeviceState.CLOSED:
-            self._last_reported_state = ADCGarageDoor.DeviceState.CLOSED
+
+        if self._device.get("state") == ADCGarageDoor.DeviceState.CLOSED:
             return True
 
         return None

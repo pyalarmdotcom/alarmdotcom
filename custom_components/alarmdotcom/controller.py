@@ -155,7 +155,6 @@ class ADCIController:
                 "parent_id": src_part.system_id,
                 "mac_address": src_part.mac_address,
                 "raw_state_text": src_part.raw_state_text,
-                "mismatched_states": src_part.mismatched_states,
                 "desired_state": src_part.desired_state,
                 "uncleared_issues": src_part.uncleared_issues,
                 "async_arm_away_callback": src_part.async_alarm_arm_away,
@@ -205,7 +204,6 @@ class ADCIController:
                 "battery_low": src_lock.battery_low or src_lock.battery_critical,
                 "mac_address": src_lock.mac_address,
                 "raw_state_text": src_lock.raw_state_text,
-                "mismatched_states": src_lock.mismatched_states,
                 "desired_state": src_lock.desired_state,
                 "async_lock_callback": src_lock.async_lock,
                 "async_unlock_callback": src_lock.async_unlock,
@@ -229,7 +227,6 @@ class ADCIController:
                 "parent_id": src_garage.partition_id,
                 "mac_address": src_garage.mac_address,
                 "raw_state_text": src_garage.raw_state_text,
-                "mismatched_states": src_garage.mismatched_states,
                 "desired_state": src_garage.desired_state,
                 "async_close_callback": src_garage.async_close,
                 "async_open_callback": src_garage.async_open,
@@ -272,9 +269,7 @@ class ADCIController:
                 "unique_id": f"{malfunction_parent.get('unique_id')}_malfunction",
                 "name": f"{malfunction_parent.get('name')}: Malfunction",
                 "parent_id": malfunction_parent["unique_id"],
-                "state": malfunction_parent.get("malfunction") or malfunction_parent.get("mismatched_states", False)  # type: ignore
-                if "mismatched_states" in malfunction_parent
-                else malfunction_parent.get("malfunction"),
+                "state": malfunction_parent.get("malfunction"),
             }
 
             log.debug(
@@ -282,8 +277,6 @@ class ADCIController:
                 dest_malfunction.get("unique_id"),
                 dest_malfunction.get("name"),
             )
-
-            # (malfunction_parent.get("malfunction") or malfunction_parent.get("mismatched_states", False)) or False
 
             entity_data[dest_malfunction["unique_id"]] = dest_malfunction
             malfunction_ids.add(dest_malfunction["unique_id"])
