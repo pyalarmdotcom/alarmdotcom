@@ -93,15 +93,6 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
         return str(lock.ATTR_CODE_FORMAT)
 
     @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return entity specific state attributes."""
-
-        return (super().extra_state_attributes or {}) | {
-            "mismatched_states": self._device.get("mismatched_states"),
-            "desired_state": self._device.get("desired_state"),
-        }
-
-    @property
     def state(self) -> str | STATE_LOCKED | STATE_UNLOCKED | STATE_JAMMED | None:
         """Return the state of the sensor."""
 

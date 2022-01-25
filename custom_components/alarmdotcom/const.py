@@ -142,7 +142,6 @@ class ADCISensorState(Enum):
 class ADCIGarageDoorState(Enum):
     """Enum of garage door states."""
 
-    TRANSITIONING = "TRANSITIONING"
     OPEN = "OPEN"
     CLOSED = "CLOSED"
 
@@ -174,7 +173,6 @@ class ADCIPartitionData(ADCIBaseEntity):
 
     make_and_model: NotRequired[dict]
     uncleared_issues: bool
-    mismatched_states: bool
     desired_state: Enum
     raw_state_text: str
     system_id: NotRequired[str]
@@ -202,7 +200,6 @@ class ADCILockData(ADCIBaseEntity):
     """Dict for an ADCI Lock."""
 
     make_and_model: NotRequired[dict]
-    mismatched_states: bool
     desired_state: Enum
     raw_state_text: str
     state: ADCILockState
@@ -216,7 +213,6 @@ class ADCIGarageDoorData(ADCIBaseEntity):
     """Dict for an ADCI garage door."""
 
     make_and_model: NotRequired[dict]
-    mismatched_states: bool
     desired_state: Enum
     raw_state_text: str
     state: ADCIGarageDoorState
