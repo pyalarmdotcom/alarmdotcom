@@ -2,6 +2,9 @@
   "image": "ludeeus/container:integration-debian",
   "name": "alarmdotcom",
   "appPort": ["8123:8123"],
+  "containerEnv": {
+    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
+  },
   "postCreateCommand": [
     "container install",
     "pip install -r requirements-dev.txt",
