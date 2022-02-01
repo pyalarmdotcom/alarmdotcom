@@ -72,7 +72,7 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
         super().__init__(controller, device_data)
 
         self._arm_code: str | None = self._controller.config_entry.options.get(
-            "lock_code"
+            "arm_code"
         )
 
         self._device: adci.ADCILockData = device_data
