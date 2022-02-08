@@ -5,9 +5,9 @@ import logging
 import re
 
 from homeassistant.components import alarm_control_panel
+from pyalarmdotcomajax.entities import ADCPartition, ADCPartitionCommand
 
 from custom_components.alarmdotcom.const import ADCIPartitionData
-from pyalarmdotcomajax.entities import ADCPartition, ADCPartitionCommand
 
 # Needed for backward compatibility because of https://github.com/home-assistant/core/commit/6f7f5b4034bc55246a8fa170dd330b1edec9ea57.
 # AlarmControlPanel renamed AlarmControlPanelEntity in April 2020.
@@ -55,28 +55,17 @@ async def async_setup_platform(
         " Assistant config flow."
     )
 
-    log.warning(
-        "Configuration of Alarm.com via configuration.yaml is deprecated and will be"
-        " removed in a future release. Your existing configuration has been migrated to"
-        " the integrations page successfully and can be removed from your"
-        " configuration.yaml file."
-    )
-
     hass.async_create_task(
         hass.config_entries.flow.async_init(
             adci.DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
         )
     )
 
-    error_msg = (
-        "The Alarm.com custom integration can now only be configured via Home"
-        " Assistant's integration's page. Please delete the Alarm.com entry from"
-        " configuration.yaml. Your settings have already been migrated. "
-    )
+    log.warning(adci.MIGRATE_MSG_ALERT)
 
     persistent_notification.async_create(
         hass,
-        error_msg,
+        adci.MIGRATE_MSG_ALERT,
         title="Alarm.com Updated",
         notification_id="alarmdotcom_migration",
     )

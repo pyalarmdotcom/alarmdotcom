@@ -8,3 +8,13 @@ logger:
 
 # If you need to debug uncomment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
 debugpy:
+# alarm_control_panel:
+#   - platform: alarmdotcom
+#     username:
+#     password:
+#     # The below parameters are optional
+#     code: "01234"
+#     # force_bypass, no_entry_delay, and silent_arming are not supported on all systems/providers. See the description section below.
+#     force_bypass: "true"
+#     no_entry_delay: "home"
+#     silent_arming: "false"

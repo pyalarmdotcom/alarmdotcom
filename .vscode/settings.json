@@ -1,16 +1,35 @@
 {
-  "python.linting.pylintEnabled": true,
-  "python.linting.flake8Enabled": true,
-  "python.linting.enabled": true,
-  "python.analysis.extraPaths": ["/usr/local/lib/python3.9/site-packages"],
-  "files.associations": {
-    "*.yaml": "home-assistant"
-  },
-  "python.linting.banditEnabled": true,
+  "files.eol": "\n",
+  "editor.tabSize": 4,
+  "terminal.integrated.defaultProfile.linux": "bash",
   "terminal.integrated.profiles.linux": {
-    "Bash": {
+    "zsh": {
       "path": "/bin/bash"
     }
   },
-  "terminal.integrated.defaultProfile.linux": "Bash"
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  },
+  "python.analysis.autoSearchPaths": false,
+  "python.linting.pylintEnabled": true,
+  "python.linting.enabled": true,
+  "python.linting.pylintArgs": ["--disable", "import-error"],
+  "python.formatting.provider": "black",
+  "python.linting.banditEnabled": true,
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "python.linting.flake8Enabled": true,
+  "editor.formatOnType": true,
+  "files.trimTrailingWhitespace": true,
+  "python.linting.mypyEnabled": true,
+  "python.defaultInterpreterPath": "/usr/local/bin/python",
+  "python.formatting.blackPath": "/usr/local/bin/black",
+  "python.linting.banditPath": "/usr/local/bin/bandit",
+  "python.linting.flake8Path": "/usr/local/bin/flake8",
+  "python.linting.mypyPath": "/usr/local/bin/mypy",
+  "python.linting.pycodestylePath": "/usr/local/bin/pycodestyle",
+  "python.linting.pylintPath": "/usr/local/bin/pylint",
+  "python.sortImports.path": "/usr/local/bin/isort",
+  "typescript.tsc.autoDetect": "off",
+  "npm.autoDetect": "off"
 }

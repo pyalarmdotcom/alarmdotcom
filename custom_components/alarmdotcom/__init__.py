@@ -134,7 +134,7 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
         device_data: Any,
     ) -> None:
         """Initialize class."""
-        super().__init__(controller.coordinator)
+        super().__init__(controller._coordinator)
         self._controller: ADCIController = controller
         self._device = device_data
 

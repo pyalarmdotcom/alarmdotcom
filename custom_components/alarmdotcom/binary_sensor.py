@@ -14,7 +14,6 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-
 from pyalarmdotcomajax.entities import ADCSensor, ADCSensorSubtype
 
 from . import ADCIEntity, const as adci

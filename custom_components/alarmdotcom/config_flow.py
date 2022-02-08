@@ -1,20 +1,22 @@
 """Config flow to configure Alarmdotcom."""
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
+import aiohttp
 from homeassistant import config_entries
 from homeassistant.const import CONF_CODE, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.update_coordinator import UpdateFailed
+from pyalarmdotcomajax.const import ArmingOption as ADCArmingOption, AuthResult
+from pyalarmdotcomajax.errors import AuthenticationFailed, DataFetchFailed
 import voluptuous as vol
 
-from pyalarmdotcomajax.const import ArmingOption as ADCArmingOption
-from pyalarmdotcomajax.errors import AuthenticationFailed
-
 from . import const as adci
-from .controller import get_controller
+from .controller import ADCIController
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +33,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self._config_title: str | None = None
         self._existing_entry: config_entries.ConfigEntry | None = None
         self._imported_options = None
+        self._controller: ADCIController | None = None
+
+        self._force_generic_name: bool = False
 
     @staticmethod
     def async_get_options_flow(
@@ -54,52 +59,123 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
             }
 
             try:
-                api = await get_controller(
-                    self.hass,
-                    self.config[adci.CONF_USERNAME],
-                    self.config[adci.CONF_PASSWORD],
-                    self.config[adci.CONF_2FA_COOKIE],
+                self._controller = ADCIController(self.hass)
+
+                log.debug("Logging in to Alarm.com...")
+
+                login_result = await self._controller.async_login(
+                    username=self.config[adci.CONF_USERNAME],
+                    password=self.config[adci.CONF_PASSWORD],
+                    twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
+                    # support_human_input=True,
                 )
 
-                self._existing_entry = await self.async_set_unique_id(
-                    f"{api.provider_name}:{api.user_id}"
-                )
+                log.debug("Login result: %s", login_result)
 
-                self._config_title = f"{api.provider_name}: {api.user_email}"
+                if login_result == AuthResult.ENABLE_TWO_FACTOR:
+                    return self.async_abort(reason="must_enable_2fa")
 
-            except ConnectionError as err:
+                elif login_result == AuthResult.OTP_REQUIRED:
+                    log.debug("OTP code required.")
+                    return await self.async_step_otp()
+
+                elif login_result == AuthResult.SUCCESS:
+                    return await self.async_step_final()
+
+                else:
+                    errors["base"] = "unknown"
+
+            except (UpdateFailed, ConfigEntryNotReady) as err:
                 log.error(
-                    "%s: get_controller failed with CannotConnect exception: %s",
-                    __name__,
-                    err,
-                )
-                errors["base"] = "invalid_auth"
-            except AuthenticationFailed as err:
-                log.error(
-                    "%s: get_controller failed with InvalidAuth exception: %s",
+                    "%s: user login failed to contact Alarm.com: %s",
                     __name__,
                     err,
                 )
                 errors["base"] = "cannot_connect"
-
-            return await self.async_step_final()
+            except ConfigEntryAuthFailed as err:
+                log.error(
+                    "%s: user login failed with InvalidAuth exception: %s",
+                    __name__,
+                    err,
+                )
+                errors["base"] = "invalid_auth"
 
         creds_schema = vol.Schema(
             {
                 vol.Required(adci.CONF_USERNAME): str,
                 vol.Required(adci.CONF_PASSWORD): str,
-                vol.Optional(adci.CONF_2FA_COOKIE): str,
             }
         )
 
         return self.async_show_form(
-            step_id="user", data_schema=creds_schema, errors=errors, last_step=True
+            step_id="user", data_schema=creds_schema, errors=errors, last_step=False
+        )
+
+    async def async_step_otp(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Gather OTP when integration configured through UI."""
+        errors = {}
+        if user_input is not None:
+
+            try:
+
+                if not isinstance(self._controller, ADCIController):
+                    raise ConnectionError("Failed to get ADC controller.")
+
+                await self._controller.async_send_otp(user_input[adci.CONF_OTP])
+
+                if cookie := self._controller.two_factor_cookie:
+                    self.config[adci.CONF_2FA_COOKIE] = cookie
+                else:
+                    raise AuthenticationFailed(
+                        "OTP submission failed. Two-factor cookie not found."
+                    )
+
+            except (ConnectionError, DataFetchFailed) as err:
+                log.error(
+                    "%s: OTP submission failed with CannotConnect exception: %s",
+                    __name__,
+                    err,
+                )
+                errors["base"] = "cannot_connect"
+
+            except AuthenticationFailed as err:
+                log.error(
+                    "%s: Incorrect OTP: %s",
+                    __name__,
+                    err,
+                )
+                errors["base"] = "invalid_otp"
+
+            else:
+                return await self.async_step_final()
+
+        creds_schema = vol.Schema(
+            {
+                vol.Required(adci.CONF_OTP): str,
+            }
+        )
+
+        return self.async_show_form(
+            step_id="otp", data_schema=creds_schema, errors=errors, last_step=True
         )
 
     async def async_step_final(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Create configuration entry using entered data."""
+
+        if not isinstance(self._controller, ADCIController):
+            raise ConnectionError("Failed to get ADC controller.")
+
+        self._config_title = (
+            "Alarm.com"
+            if self._force_generic_name
+            else f"{self._controller.provider_name}:{self._controller.user_id}"
+        )
+
+        self._existing_entry = await self.async_set_unique_id(self._config_title)
 
         if self._existing_entry:
             log.debug(
@@ -110,10 +186,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 self._existing_entry, data=user_input
             )
             await self.hass.config_entries.async_reload(self._existing_entry.entry_id)
+
             return self.async_abort(reason="reauth_successful")
 
         # TODO: For non-imported flows, set options to defaults as defined in options flow handler.
         # TODO: For imported flows, validate options through schema.
+
+        # Named async_ but doesn't require await!
         return self.async_create_entry(
             title=self._config_title, data=self.config, options=self._imported_options
         )
@@ -131,40 +210,40 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self.config = _convert_imported_configuration(import_config)
         self._imported_options = _convert_imported_options(import_config)
 
-        log.debug("%s: Done reading config options. Trying to log in.", __name__)
+        log.debug("%s: Done reading config options. Logging in...", __name__)
 
         self._async_abort_entries_match({**self.config})
 
         try:
-            api = await get_controller(
-                self.hass,
-                self.config[adci.CONF_USERNAME],
-                self.config[adci.CONF_PASSWORD],
-                self.config[adci.CONF_2FA_COOKIE],
+            self._controller = ADCIController(self.hass)
+
+            login_result = await self._controller.async_login(
+                username=self.config[adci.CONF_USERNAME],
+                password=self.config[adci.CONF_PASSWORD],
+                twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
             )
 
-            self._existing_entry = await self.async_set_unique_id(
-                f"{api.provider_name}:{api.user_id}"
-            )
+            log.debug("Login result: %s", login_result)
 
-            self._config_title = f"{api.provider_name}: {api.user_email}"
+            # If provider requires 2FA, create config entry anyway. Will fail on update and prompt for reauth.
+            if login_result != AuthResult.SUCCESS:
+                self._force_generic_name = True
 
-        except ConnectionError as err:
+            return await self.async_step_final()
+
+        except (
+            ConfigEntryAuthFailed,
+            UpdateFailed,
+            ConfigEntryNotReady,
+            asyncio.TimeoutError,
+            aiohttp.ClientError,
+        ) as err:
             log.error(
-                "%s: get_controller failed with CannotConnect exception: %s",
+                "%s: Failed to log in when migrating from configuration.yaml: %s",
                 __name__,
                 err,
             )
-            raise ConfigEntryNotReady from err
-        except AuthenticationFailed as err:
-            log.error(
-                "%s: get_controller failed with InvalidAuth exception: %s",
-                __name__,
-                err,
-            )
-            raise ConfigEntryAuthFailed from err
-
-        return await self.async_step_final()
+            raise
 
     # #
     # Reauthentication Steps
@@ -269,7 +348,7 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
         )
 
 
-def _convert_imported_configuration(config: dict[str, Any]) -> Any:
+def _convert_imported_configuration(config: dict[str, Any | None]) -> Any:
     """Convert a key from the imported configuration."""
 
     username = config.get(CONF_USERNAME)
@@ -281,8 +360,7 @@ def _convert_imported_configuration(config: dict[str, Any]) -> Any:
     data[adci.CONF_USERNAME] = username
     data[adci.CONF_PASSWORD] = password
 
-    if two_factor_cookie:
-        data[adci.CONF_2FA_COOKIE] = two_factor_cookie
+    data[adci.CONF_2FA_COOKIE] = two_factor_cookie if two_factor_cookie else None
 
     return data
 

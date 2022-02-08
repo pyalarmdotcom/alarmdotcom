@@ -13,7 +13,6 @@ from homeassistant.components.cover import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-
 from pyalarmdotcomajax.const import ADCGarageDoorCommand
 from pyalarmdotcomajax.entities import ADCGarageDoor
 

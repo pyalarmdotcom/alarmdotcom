@@ -52,30 +52,21 @@ Each sensor in your system is created as both a device and as an entity within H
 
 1. Use [HACS](https://hacs.xyz/) to download this integration.
 2. Configure the integration via Home Assistant's Integrations page. (Configuration -> Add Integration -> Alarm.com)
-3. When prompted, enter your Alarm.com username, password, and two-factor authentication cookie (more info on this below).
+3. When prompted, enter your Alarm.com username, password, and two-factor authentication one-time password.
 
 ## Configuration
 
 You'll be prompted to enter these parameters when configuring the integration.
 
-| Parameter         | Required | Description                                                                   |
-| ----------------- | -------- | ----------------------------------------------------------------------------- |
-| Username          | Yes      | Username for your Alarm.com account.                                          |
-| Password          | Yes      | Password for your Alarm.com account.                                          |
-| Two Factor Cookie | Maybe    | Required for accounts with two-factor authentication enabled. See note below. |
+| Parameter         | Required | Description                                                   |
+| ----------------- | -------- | ------------------------------------------------------------- |
+| Username          | Yes      | Username for your Alarm.com account.                          |
+| Password          | Yes      | Password for your Alarm.com account.                          |
+| One-Time Password | Maybe    | Required for accounts with two-factor authentication enabled. |
 
-### Two Factor Authentication Cookie
+### Two-Factor Authentication Cookie
 
-Some providers are starting to require 2FA for logins. This can be worked around by getting the `twoFactorAuthenticationId` cookie from an already authenticated browser and entering it as a configuration parameter.
-
-<details>
-  <summary><b>Getting a Two Factor Authentication Cookie</b></summary>
-    1. Temporarily remove your alarmdotcom config from configuration.yaml. (If the component is enabled it will keep trying to log in which will disrupt your initial 2FA setup)
-    2. Log in to your account on the Alarm.com website: https://www.alarm.com/login.aspx
-    3. Enable Two Factor Authentication
-    4. Once you are fully logged in to the alarm.com portal without any more 2FA nag screens, go into the developer tools in your browser and locate the `twoFactorAuthenticationId` cookie. Instructions for locating the cookie in Chrome can be found here: https://developers.google.com/web/tools/chrome-devtools/storage/cookies
-    5. Copy the cookie string into your config under the `Two Factor Cookie` parameter.
-</details>
+As of v0.2.7-beta8, this integration prompts for a one-time password during log in and retrieves a two-factor cookie automatically.
 
 ### Additional Options
 

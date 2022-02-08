@@ -3,19 +3,43 @@
     "step": {
       "user": {
         "data": {
-          "host": "[%key:common::config_flow::data::host%]",
           "username": "[%key:common::config_flow::data::username%]",
           "password": "[%key:common::config_flow::data::password%]"
+        },
+        "title": "Log In to Alarm.com"
+      },
+      "reauth_confirm": {
+        "title": "[%key:common::config_flow::title::reauth%]",
+        "description": "Alarm.com needs to re-authenticate your account"
+      },
+      "otp": {
+        "title": "Complete Two-Factor Authentication",
+        "data": {
+          "otp": "One-Time Password"
         }
       }
     },
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "invalid_otp": "Invalid one-time password."
     },
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+      "reauth_successful": "[%key:common::config_flow::abort::reauth_successful%]",
+      "must_enable_2fa": "Two-factor authentication must be enabled in order to log in with this provider."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "force_bypass": "Force Bypass",
+          "no_entry_delay": "No Entry Delay",
+          "silent_arming": "Silent Arming",
+          "arm_code": "Security Code (Locks & Alarm)"
+        }
+      }
     }
   }
 }

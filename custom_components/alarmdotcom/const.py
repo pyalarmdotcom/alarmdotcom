@@ -6,9 +6,8 @@ from enum import Enum
 from types import FunctionType
 from typing import TypedDict
 
-from typing_extensions import NotRequired
-
 from pyalarmdotcomajax.const import ArmingOption as ADCArmingOption
+from typing_extensions import NotRequired
 
 INTEGRATION_NAME = "Alarm.com"
 DOMAIN = "alarmdotcom"
@@ -39,6 +38,12 @@ ADC_BINARY_TYPE_CO = "co_sensor"
 ADC_BINARY_TYPE_PANIC = "panic_sensor"
 ADC_BINARY_TYPE_GLASS = "glass_sensor"
 
+MIGRATE_MSG_ALERT = (
+    "The Alarm.com integration is now configured exclusively via Home Assistant's"
+    " integrations page. Please delete the Alarm.com entry from configuration.yaml."
+    " Your existing settings have already been migrated."
+)
+
 # #
 # CONFIGURATION
 # #
@@ -47,6 +52,7 @@ ADC_BINARY_TYPE_GLASS = "glass_sensor"
 CONF_USERNAME = "username"
 CONF_PASSWORD = "password"  # nosec
 CONF_2FA_COOKIE = "2fa_cookie"
+CONF_OTP = "otp"
 
 CONF_FORCE_BYPASS = "force_bypass"
 CONF_NO_DELAY = "no_entry_delay"
