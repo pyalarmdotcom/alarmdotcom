@@ -13,6 +13,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.entities import ADCSensor, ADCSensorSubtype
 
@@ -155,15 +156,14 @@ class ADCIBatterySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 
-        self._attr_entity_category = "diagnostic"
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_device_class = bsdc.BATTERY
 
     @property
     def device_info(self) -> dict[str, Any]:
         """Return info to categorize this entity as a device."""
 
-        # Battery sensors should not appear as their own devices.
-
+        # Associate with parent device.
         return {
             "identifiers": {(adci.DOMAIN, self._device.get("parent_id"))},
         }
@@ -179,21 +179,20 @@ class ADCIBatterySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
 
 
 class ADCIProblemSensor(ADCIEntity, BinarySensorEntity):  # type: ignore
-    """Returns low battery state for Alarm.com sensors and locks."""
+    """Returns malfunction state for Alarm.com sensors and locks."""
 
     def __init__(self, controller: ADCIController, device_data: adci.ADCISensorData):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 
-        self._attr_entity_category = "diagnostic"
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         self._attr_device_class = bsdc.PROBLEM
 
     @property
     def device_info(self) -> dict[str, Any]:
         """Return info to categorize this entity as a device."""
 
-        # Associate battery sensor entities should be tied to their parent device.
-
+        # Associate with parent device.
         return {
             "identifiers": {(adci.DOMAIN, self._device.get("parent_id"))},
         }
