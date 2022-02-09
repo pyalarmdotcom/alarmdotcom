@@ -172,7 +172,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self._config_title = (
             "Alarm.com"
             if self._force_generic_name
-            else f"{self._controller.provider_name}:{self._controller.user_id}"
+            else f"{self._controller.provider_name}:{self._controller.user_email}"
         )
 
         self._existing_entry = await self.async_set_unique_id(self._config_title)
