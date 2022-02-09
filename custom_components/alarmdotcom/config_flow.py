@@ -67,7 +67,6 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                     username=self.config[adci.CONF_USERNAME],
                     password=self.config[adci.CONF_PASSWORD],
                     twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
-                    # support_human_input=True,
                 )
 
                 log.debug("Login result: %s", login_result)
@@ -299,11 +298,16 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
     @property
     def schema(self) -> vol.Schema:
         """Input schema for integration options."""
+
+        # str(arm_code) converts int arm codes imported prior to v0.2.0-beta.10. Without this, users get an error when configuring options.
+
         return vol.Schema(
             {
                 vol.Optional(
                     adci.CONF_ARM_CODE,
-                    default=self.options.get(adci.CONF_ARM_CODE, None),
+                    default=str(arm_code)
+                    if (arm_code := self.options.get(adci.CONF_ARM_CODE))
+                    else None,
                 ): str,
                 vol.Required(
                     adci.CONF_FORCE_BYPASS,
@@ -368,7 +372,7 @@ def _convert_imported_configuration(config: dict[str, Any | None]) -> Any:
 def _convert_imported_options(config: dict[str, Any]) -> Any:
     """Convert a key from the imported configuration."""
 
-    code: str | None = config.get(CONF_CODE)
+    code: str | int | None = config.get(CONF_CODE)
     force_bypass: ADCArmingOption | None = config.get(adci.LEGACY_CONF_FORCE_BYPASS)
     no_entry_delay: ADCArmingOption | None = config.get(adci.LEGACY_CONF_NO_ENTRY_DELAY)
     silent_arming: ADCArmingOption | None = config.get(adci.LEGACY_CONF_SILENT_ARMING)
@@ -376,7 +380,7 @@ def _convert_imported_options(config: dict[str, Any]) -> Any:
     data: dict = {}
 
     if code:
-        data[adci.CONF_ARM_CODE] = code
+        data[adci.CONF_ARM_CODE] = str(code)
 
     if force_bypass:
         data[adci.CONF_FORCE_BYPASS] = adci.ADCIArmingOption.from_config_yaml(
