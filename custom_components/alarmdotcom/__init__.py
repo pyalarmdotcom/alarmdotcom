@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, UpdateFailed
@@ -18,9 +18,7 @@ log = logging.getLogger(__name__)
 PLATFORMS: list[str] = ["alarm_control_panel", "binary_sensor", "lock", "cover"]
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, config_entry: config_entries.ConfigEntry
-) -> bool:
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up alarmdotcom controller from a config entry."""
 
     log.debug("%s: Initializing Alarmdotcom from config entry.", __name__)
@@ -86,8 +84,37 @@ async def async_setup_entry(
     return True
 
 
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    log.debug("Migrating from version %s", config_entry.version)
+
+    if config_entry.version == 1:
+
+        new_options: ConfigEntry = {**config_entry.options}
+
+        new_options[adci.CONF_USE_ARM_CODE] = bool(
+            config_entry.options.get(adci.CONF_ARM_CODE)
+        )
+
+        new_options[adci.CONF_ARM_CODE] = (
+            str(arm_code)
+            if (arm_code := config_entry.options.get(adci.CONF_ARM_CODE))
+            else ""
+        )
+
+        config_entry.version = 2
+
+        hass.config_entries.async_update_entry(
+            config_entry, data={**config_entry.data}, options=new_options
+        )
+
+    log.info("Migration to version %s successful", config_entry.version)
+
+    return True
+
+
 def _async_import_options_from_data_if_missing(
-    hass: HomeAssistant, entry: config_entries.ConfigEntry
+    hass: HomeAssistant, entry: ConfigEntry
 ) -> None:
     """Import options from configuration.yaml."""
 
@@ -111,9 +138,7 @@ def _async_import_options_from_data_if_missing(
         hass.config_entries.async_update_entry(entry, data=data, options=options)
 
 
-async def async_unload_entry(
-    hass: HomeAssistant, config_entry: config_entries.ConfigEntry
-) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok: bool = await hass.config_entries.async_unload_platforms(
         config_entry, PLATFORMS

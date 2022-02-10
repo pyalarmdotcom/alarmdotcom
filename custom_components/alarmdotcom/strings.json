@@ -37,8 +37,10 @@
           "force_bypass": "Force Bypass",
           "no_entry_delay": "No Entry Delay",
           "silent_arming": "Silent Arming",
-          "arm_code": "Security Code (Locks & Alarm)"
-        }
+          "arm_code": "Security Code (Locks & Alarm)",
+          "use_arm_code": "Enable Security Code"
+        },
+        "description": "\"Enable Security Code\" must be selected for security codes to be recognized!"
       }
     }
   }

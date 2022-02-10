@@ -10,6 +10,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_CODE, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pyalarmdotcomajax.const import ArmingOption as ADCArmingOption, AuthResult
 from pyalarmdotcomajax.errors import AuthenticationFailed, DataFetchFailed
@@ -23,6 +24,8 @@ log = logging.getLogger(__name__)
 
 class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ignore
     """Handle a Alarmdotcom config flow."""
+
+    VERSION = 2
 
     def __init__(self) -> None:
         """Initialize the Alarmdotcom flow."""
@@ -182,7 +185,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 " flow."
             )
             self.hass.config_entries.async_update_entry(
-                self._existing_entry, data=user_input
+                self._existing_entry, data=self.config
             )
             await self.hass.config_entries.async_reload(self._existing_entry.entry_id)
 
@@ -283,7 +286,7 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
 
         if user_input is not None:
             self.options.update(user_input)
-            return await self._update_options()
+            return self.async_create_entry(title="", data=self.options)
 
         return self.async_show_form(
             step_id="init",
@@ -292,62 +295,45 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             last_step=True,
         )
 
-    async def _update_options(self) -> FlowResult:
-        return self.async_create_entry(title="", data=self.options)
-
     @property
     def schema(self) -> vol.Schema:
         """Input schema for integration options."""
 
-        # str(arm_code) converts int arm codes imported prior to v0.2.0-beta.10. Without this, users get an error when configuring options.
+        ARMING_OPTIONS = [
+            adci.ADCIArmingOption.NEVER.value,
+            adci.ADCIArmingOption.ALWAYS.value,
+            adci.ADCIArmingOption.STAY.value,
+            adci.ADCIArmingOption.AWAY.value,
+        ]
 
         return vol.Schema(
             {
                 vol.Optional(
                     adci.CONF_ARM_CODE,
-                    default=str(arm_code)
-                    if (arm_code := self.options.get(adci.CONF_ARM_CODE))
-                    else None,
-                ): str,
+                    default=self.options.get(adci.CONF_ARM_CODE, ""),
+                ): cv.string,
+                vol.Optional(
+                    adci.CONF_USE_ARM_CODE,
+                    default=self.options.get(adci.CONF_USE_ARM_CODE),
+                ): cv.boolean,
                 vol.Required(
                     adci.CONF_FORCE_BYPASS,
                     default=self.options.get(
                         adci.CONF_FORCE_BYPASS, adci.ADCIArmingOption.NEVER.value
                     ),
-                ): vol.In(
-                    [
-                        adci.ADCIArmingOption.NEVER.value,
-                        adci.ADCIArmingOption.ALWAYS.value,
-                        adci.ADCIArmingOption.STAY.value,
-                        adci.ADCIArmingOption.AWAY.value,
-                    ]
-                ),
+                ): vol.In(ARMING_OPTIONS),
                 vol.Required(
                     adci.CONF_NO_DELAY,
                     default=self.options.get(
                         adci.CONF_NO_DELAY, adci.ADCIArmingOption.NEVER.value
                     ),
-                ): vol.In(
-                    [
-                        adci.ADCIArmingOption.NEVER.value,
-                        adci.ADCIArmingOption.ALWAYS.value,
-                        adci.ADCIArmingOption.STAY.value,
-                        adci.ADCIArmingOption.AWAY.value,
-                    ]
-                ),
+                ): vol.In(ARMING_OPTIONS),
                 vol.Required(
                     adci.CONF_SILENT_ARM,
                     default=self.options.get(
                         adci.CONF_SILENT_ARM, adci.ADCIArmingOption.NEVER.value
                     ),
-                ): vol.In(
-                    [
-                        adci.ADCIArmingOption.NEVER.value,
-                        adci.ADCIArmingOption.ALWAYS.value,
-                        adci.ADCIArmingOption.STAY.value,
-                        adci.ADCIArmingOption.AWAY.value,
-                    ]
-                ),
+                ): vol.In(ARMING_OPTIONS),
             }
         )
 
@@ -381,6 +367,9 @@ def _convert_imported_options(config: dict[str, Any]) -> Any:
 
     if code:
         data[adci.CONF_ARM_CODE] = str(code)
+        data[adci.CONF_USE_ARM_CODE] = True
+    else:
+        data[adci.CONF_USE_ARM_CODE] = False
 
     if force_bypass:
         data[adci.CONF_FORCE_BYPASS] = adci.ADCIArmingOption.from_config_yaml(

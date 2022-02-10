@@ -58,6 +58,7 @@ CONF_FORCE_BYPASS = "force_bypass"
 CONF_NO_DELAY = "no_entry_delay"
 CONF_SILENT_ARM = "silent_arming"
 CONF_ARM_CODE = "arm_code"
+CONF_USE_ARM_CODE = "use_arm_code"
 
 # Legacy configuration.yaml
 LEGACY_CONF_FORCE_BYPASS = "force_bypass"

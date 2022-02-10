@@ -20,7 +20,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Run Home Assistant on port 9123",
+      "label": "Run Home Assistant on port 8123",
       "type": "shell",
       "command": "container start",
       "problemMatcher": []

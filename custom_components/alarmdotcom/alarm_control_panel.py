@@ -97,8 +97,10 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
 
         super().__init__(controller, device_data)
 
-        self._arm_code: str | None = self._controller.config_entry.options.get(
-            "arm_code"
+        self._arm_code: str | None = (
+            self._controller.config_entry.options.get(adci.CONF_ARM_CODE)
+            if self._controller.config_entry.options.get(adci.CONF_USE_ARM_CODE)
+            else None
         )
         self._device: ADCIPartitionData = device_data
 
