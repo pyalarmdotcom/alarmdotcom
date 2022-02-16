@@ -1,5 +1,7 @@
 # Alarm.com Custom Component for [Home Assistant](https://www.home-assistant.io/)
 
+![hacs installs](https://img.shields.io/endpoint?url=https%3A%2F%2Flauwbier.nl%2Fhacs%2Falarmdotcom)
+
 ![image](https://user-images.githubusercontent.com/466460/150609027-55be3eba-8364-4508-ad8d-835407e8782e.png)
 
 ## Intro
