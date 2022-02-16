@@ -1,7 +1,3 @@
----
-This README is for the v0.2 beta version of this integration. The README for the latest stable version, v0.1.12, is [here](https://github.com/uvjustin/alarmdotcom/tree/v0.1.12). Setup instructions differ significantly between versions.
----
-
 # Alarm.com Custom Component for [Home Assistant](https://www.home-assistant.io/)
 
 ![image](https://user-images.githubusercontent.com/466460/150609027-55be3eba-8364-4508-ad8d-835407e8782e.png)
