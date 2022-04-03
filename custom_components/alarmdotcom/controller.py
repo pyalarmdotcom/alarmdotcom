@@ -103,7 +103,7 @@ class ADCIController:
                 twofactorcookie=twofactorcookie,
             )
 
-            async with async_timeout.timeout(15):
+            async with async_timeout.timeout(30):
                 login_result = await self._alarm.async_login()
 
                 return login_result
