@@ -10,7 +10,7 @@
 
 ## 🐛Bug Fixes
 
-1. Fixed strange behavior around setting and clearing arm code.
+1. Fixed weird behavior with setting and clearing arm code.
 
 ## ❤️ Thanks for Contributing
 
