@@ -1,43 +1,43 @@
 """Interfaces with Alarm.com alarm control panels."""
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 import re
 
-from homeassistant.components import alarm_control_panel
-from pyalarmdotcomajax.entities import ADCPartition, ADCPartitionCommand
-
 from custom_components.alarmdotcom.const import ADCIPartitionData
+from homeassistant import config_entries
+from homeassistant import core
+from homeassistant.components import alarm_control_panel
+from homeassistant.components import persistent_notification
+from homeassistant.components.alarm_control_panel.const import SUPPORT_ALARM_ARM_AWAY
+from homeassistant.components.alarm_control_panel.const import SUPPORT_ALARM_ARM_HOME
+from homeassistant.components.alarm_control_panel.const import SUPPORT_ALARM_ARM_NIGHT
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_ALARM_ARMED_AWAY
+from homeassistant.const import STATE_ALARM_ARMED_HOME
+from homeassistant.const import STATE_ALARM_ARMED_NIGHT
+from homeassistant.const import STATE_ALARM_DISARMED
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.typing import ConfigType
+from pyalarmdotcomajax.entities import ADCPartition
+
+from . import ADCIEntity
+from . import const as adci
+from .controller import ADCIController
 
 # Needed for backward compatibility because of https://github.com/home-assistant/core/commit/6f7f5b4034bc55246a8fa170dd330b1edec9ea57.
 # AlarmControlPanel renamed AlarmControlPanelEntity in April 2020.
 try:
-    from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
+    from homeassistant.components.alarm_control_panel import (
+        AlarmControlPanelEntity,
+    )
 except ImportError:
     from homeassistant.components.alarm_control_panel import (
         AlarmControlPanel as AlarmControlPanelEntity,
     )
-
-from homeassistant import config_entries, core
-from homeassistant.components import persistent_notification
-from homeassistant.components.alarm_control_panel.const import (
-    SUPPORT_ALARM_ARM_AWAY,
-    SUPPORT_ALARM_ARM_HOME,
-    SUPPORT_ALARM_ARM_NIGHT,
-)
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
-    STATE_ALARM_DISARMED,
-)
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from homeassistant.helpers.typing import ConfigType
-
-from . import ADCIEntity, const as adci
-from .controller import ADCIController
 
 log = logging.getLogger(__name__)
 
@@ -97,12 +97,36 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
 
         super().__init__(controller, device_data)
 
-        self._arm_code: str | None = (
-            self._controller.config_entry.options.get(adci.CONF_ARM_CODE)
-            if self._controller.config_entry.options.get(adci.CONF_USE_ARM_CODE)
-            else None
+        self._arm_code: str | None = self._controller.config_entry.options.get(
+            adci.CONF_ARM_CODE
         )
+
         self._device: ADCIPartitionData = device_data
+
+        self._conf_arm_home: set = set(
+            self._controller.config_entry.options.get(adci.CONF_ARM_HOME)
+        )
+        self._conf_arm_away: set = set(
+            self._controller.config_entry.options.get(adci.CONF_ARM_AWAY)
+        )
+        self._conf_arm_night: set = set(
+            self._controller.config_entry.options.get(adci.CONF_ARM_NIGHT)
+        )
+
+        try:
+            self.async_arm_home_callback: Callable = self._device[
+                "async_arm_home_callback"
+            ]
+            self.async_arm_away_callback: Callable = self._device[
+                "async_arm_away_callback"
+            ]
+            self.async_arm_night_callback: Callable = self._device[
+                "async_arm_night_callback"
+            ]
+            self.async_disarm_callback: Callable = self._device["async_disarm_callback"]
+        except KeyError:
+            log.error("Failed to initialize control functions for %s.", self.unique_id)
+            self._attr_available = False
 
         log.debug(
             "%s: Initializing Alarm.com control panel entity for partition %s.",
@@ -115,7 +139,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
         self,
     ) -> alarm_control_panel.FORMAT_NUMBER | alarm_control_panel.FORMAT_TEXT | None:
         """Return one or more digits/characters."""
-        if self._arm_code is None:
+        if self._arm_code in [None, ""]:
             return None
         if isinstance(self._arm_code, str) and re.search("^\\d+$", self._arm_code):
             return alarm_control_panel.FORMAT_NUMBER
@@ -160,37 +184,63 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
             | int(SUPPORT_ALARM_ARM_NIGHT)
         )
 
-    async def async_alarm_arm_night(self, code: str | None = None) -> None:
-        """Send disarm command."""
-        if self._validate_code(code):
-            await self._controller.async_partition_action(
-                self.unique_id, ADCPartitionCommand.ARM_NIGHT
-            )
-
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
         if self._validate_code(code):
-            await self._controller.async_partition_action(
-                self.unique_id, ADCPartitionCommand.DISARM
-            )
+            try:
+                await self.async_disarm_callback()
+            except PermissionError:
+                self._show_permission_error("disarm")
+
+            await self._controller.async_coordinator_update()
+
+    async def async_alarm_arm_night(self, code: str | None = None) -> None:
+        """Send arm night command."""
+
+        if self._validate_code(code):
+            try:
+                await self.async_arm_night_callback(
+                    force_bypass="bypass" in self._conf_arm_night,
+                    no_entry_delay="delay" in self._conf_arm_night,
+                    silent_arming="silent" in self._conf_arm_night,
+                )
+            except PermissionError:
+                self._show_permission_error("arm_night")
+
+            await self._controller.async_coordinator_update()
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
-        """Send arm home (alarm stay in adc) command."""
+        """Send arm home command."""
+
         if self._validate_code(code):
-            await self._controller.async_partition_action(
-                self.unique_id, ADCPartitionCommand.ARM_STAY
-            )
+            try:
+                await self.async_arm_home_callback(
+                    force_bypass="bypass" in self._conf_arm_home,
+                    no_entry_delay="delay" in self._conf_arm_home,
+                    silent_arming="silent" in self._conf_arm_home,
+                )
+            except PermissionError:
+                self._show_permission_error("arm_home")
+
+            await self._controller.async_coordinator_update()
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
         if self._validate_code(code):
-            await self._controller.async_partition_action(
-                self.unique_id, ADCPartitionCommand.ARM_AWAY
-            )
+            try:
+                await self.async_arm_away_callback(
+                    force_bypass="bypass" in self._conf_arm_away,
+                    no_entry_delay="delay" in self._conf_arm_away,
+                    silent_arming="silent" in self._conf_arm_away,
+                )
+            except PermissionError:
+                self._show_permission_error("arm_away")
+
+            await self._controller.async_coordinator_update()
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check: bool | str = self._arm_code is None or code == self._arm_code
+        check: bool | str = self._arm_code in [None, ""] or code == self._arm_code
         if not check:
             log.warning("Wrong code entered")
         return check
