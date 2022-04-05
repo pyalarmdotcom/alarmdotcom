@@ -15,4 +15,13 @@ ignore =
     W503,
     E203,
     D202,
-    W504
+    W504,
+    # Below required for zimports
+    A003,
+    E203,E305,E711,E712,E721,E722,E741,
+    F841,
+    N801,N802,N806,
+    W503,W504
+import-order-style = google
+application-import-names = sqlalchemy,test
+enable-extensions = G

@@ -1,5 +1,4 @@
 """Controller interfaces with the Alarm.com API via pyalarmdotcomajax."""
-
 from __future__ import annotations
 
 import asyncio
@@ -8,29 +7,20 @@ import logging
 
 import aiohttp
 import async_timeout
-from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from pyalarmdotcomajax import ADCController
-from pyalarmdotcomajax.const import (
-    ADCDeviceType,
-    ADCGarageDoorCommand,
-    ADCLockCommand,
-    ADCPartitionCommand,
-    AuthResult,
-)
-from pyalarmdotcomajax.errors import (
-    AuthenticationFailed,
-    DataFetchFailed,
-    UnexpectedDataStructure,
-)
-
-from custom_components.alarmdotcom.errors import PartialInitialization
+from pyalarmdotcomajax.const import AuthResult
+from pyalarmdotcomajax.errors import AuthenticationFailed
+from pyalarmdotcomajax.errors import DataFetchFailed
+from pyalarmdotcomajax.errors import UnexpectedDataStructure
 
 from . import const as adci
+from .errors import PartialInitialization
 
 log = logging.getLogger(__name__)
 
@@ -80,9 +70,6 @@ class ADCIController:
         username: str,
         password: str,
         twofactorcookie: str,
-        forcebypass: adci.ADCIArmingOption | None = None,
-        noentrydelay: adci.ADCIArmingOption | None = None,
-        silentarming: adci.ADCIArmingOption | None = None,
     ) -> AuthResult:
         """Log into Alarm.com."""
 
@@ -91,19 +78,10 @@ class ADCIController:
                 username=username,
                 password=password,
                 websession=async_get_clientsession(self.hass),
-                forcebypass=adci.ADCIArmingOption(forcebypass).to_adc
-                if forcebypass is not None
-                else adci.ADCIArmingOption.NEVER.value,
-                noentrydelay=adci.ADCIArmingOption(noentrydelay).to_adc
-                if noentrydelay is not None
-                else adci.ADCIArmingOption.NEVER.value,
-                silentarming=adci.ADCIArmingOption(silentarming).to_adc
-                if silentarming is not None
-                else adci.ADCIArmingOption.NEVER.value,
                 twofactorcookie=twofactorcookie,
             )
 
-            async with async_timeout.timeout(15):
+            async with async_timeout.timeout(45):
                 login_result = await self._alarm.async_login()
 
                 return login_result
@@ -121,7 +99,7 @@ class ADCIController:
 
         try:
             await self._alarm.async_submit_otp(
-                code, f"Home Assistant ({self.hass.config.location_name})"
+                str(code), f"Home Assistant ({self.hass.config.location_name})"
             )
         except (DataFetchFailed, AuthenticationFailed):
             log.error("OTP submission failed.")
@@ -142,9 +120,6 @@ class ADCIController:
             username=self.config_entry.data[adci.CONF_USERNAME],
             password=self.config_entry.data[adci.CONF_PASSWORD],
             twofactorcookie=self.config_entry.data.get(adci.CONF_2FA_COOKIE),
-            forcebypass=self.config_entry.options.get(adci.CONF_FORCE_BYPASS),
-            noentrydelay=self.config_entry.options.get(adci.CONF_NO_DELAY),
-            silentarming=self.config_entry.options.get(adci.CONF_SILENT_ARM),
         )
 
         if not reload:
@@ -161,10 +136,14 @@ class ADCIController:
         self._coordinator = DataUpdateCoordinator(
             self.hass,
             log,
-            # name=self.config_entry.title,
-            name="alarmdotcom",
+            name=self.config_entry.title,
+            # name="alarmdotcom",
             update_method=self.async_update,
-            update_interval=timedelta(minutes=1),
+            update_interval=timedelta(
+                seconds=self.config_entry.data.get(
+                    adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT
+                )
+            ),
         )
 
         # Fetch initial data so we have data when entities subscribe.
@@ -172,6 +151,14 @@ class ADCIController:
         await self._coordinator.async_config_entry_first_refresh()
 
         return True
+
+    async def async_coordinator_update(self, critical: bool = True) -> None:
+        """Force coordinator refresh. Used to force refresh after alarm control panel command."""
+
+        if critical:
+            await self._coordinator.async_refresh()
+        else:
+            await self._coordinator.async_request_refresh()
 
     async def async_update(self) -> adci.ADCIEntities:
         """Pull fresh data from Alarm.com for coordinator."""
@@ -218,6 +205,7 @@ class ADCIController:
         partition_ids: set[str] = set()
         sensor_ids: set[str] = set()
         lock_ids: set[str] = set()
+        light_ids: set[str] = set()
         garage_door_ids: set[str] = set()
         low_battery_ids: set[str] = set()
         malfunction_ids: set[str] = set()
@@ -257,10 +245,10 @@ class ADCIController:
                 "raw_state_text": src_part.raw_state_text,
                 "desired_state": src_part.desired_state,
                 "uncleared_issues": src_part.uncleared_issues,
-                "async_arm_away_callback": src_part.async_alarm_arm_away,
-                "async_arm_stay_callback": src_part.async_alarm_arm_stay,
-                "async_disarm_callback": src_part.async_alarm_disarm,
-                "async_arm_night_callback": src_part.async_alarm_arm_night,
+                "async_arm_away_callback": src_part.async_arm_away,
+                "async_arm_home_callback": src_part.async_arm_stay,
+                "async_disarm_callback": src_part.async_disarm,
+                "async_arm_night_callback": src_part.async_arm_night,
             }
 
             entity_data[src_part.id_] = dest_part
@@ -272,6 +260,14 @@ class ADCIController:
         for src_sensor in self._alarm.sensors:
 
             log.debug("%s: %s", src_sensor.id_, src_sensor.name)
+
+            if src_sensor.device_subtype in adci.SENSOR_SUBTYPE_BLACKLIST:
+                log.debug(
+                    "Skipping blacklisted sensor %s (%s)",
+                    src_sensor.name,
+                    src_sensor.id_,
+                )
+                continue
 
             dest_sensor: adci.ADCISensorData = {
                 "unique_id": src_sensor.id_,
@@ -311,6 +307,30 @@ class ADCIController:
 
             entity_data[src_lock.id_] = dest_lock
             lock_ids.add(src_lock.id_)
+
+        log.debug("Processing lights.")
+
+        # Process lights
+        for src_light in self._alarm.lights:
+
+            log.debug("%s: %s", src_light.id_, src_light.name)
+
+            dest_light: adci.ADCILightData = {
+                "unique_id": src_light.id_,
+                "name": src_light.name,
+                "state": src_light.state,
+                "malfunction": src_light.malfunction,
+                "parent_id": src_light.partition_id,
+                "mac_address": src_light.mac_address,
+                "raw_state_text": src_light.raw_state_text,
+                "desired_state": src_light.desired_state,
+                "brightness": src_light.brightness,
+                "async_turn_on_callback": src_light.async_turn_on,
+                "async_turn_off_callback": src_light.async_turn_off,
+            }
+
+            entity_data[src_light.id_] = dest_light
+            light_ids.add(src_light.id_)
 
         log.debug("Processing garage doors.")
 
@@ -358,10 +378,10 @@ class ADCIController:
 
         log.debug("Processing malfunction sensors.")
 
-        # Process "virtual" malfunction sensors for sensors, locks, and partitions.
+        # Process "virtual" malfunction sensors for sensors, locks, lights, and partitions.
         for parent_id in sensor_ids.union(lock_ids, partition_ids):
 
-            malfunction_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCIPartitionData = entity_data[
+            malfunction_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData = entity_data[
                 parent_id
             ]
 
@@ -389,6 +409,7 @@ class ADCIController:
             "partition_ids": partition_ids,
             "sensor_ids": sensor_ids,
             "lock_ids": lock_ids,
+            "light_ids": light_ids,
             "garage_door_ids": garage_door_ids,
             "low_battery_ids": low_battery_ids,
             "malfunction_ids": malfunction_ids,
@@ -401,91 +422,3 @@ class ADCIController:
     ) -> None:
         """Handle options update."""
         await hass.config_entries.async_reload(entry.entry_id)
-
-    # #
-    # Actions
-    # #
-
-    async def _async_send_action(
-        self,
-        entity_id: str,
-        action: ADCPartitionCommand | ADCLockCommand | ADCGarageDoorCommand,
-        device_type: ADCDeviceType,
-    ) -> bool:
-        """Send action request to API & handle errors."""
-
-        if not self.config_entry:
-            raise PartialInitialization
-
-        try:
-            response: bool = await self._alarm.async_send_action(
-                device_type=device_type, event=action, device_id=entity_id
-            )
-        except PermissionError as err:
-            log.error("%s: Inadequate permissions. %s", __name__, str(err))
-            # TODO: This notification needs work. Actions should be user-readable. Device type should be a HA device type (alarm control panel instead of partition). Device name should be shown.
-            error_msg = (
-                "Your Alarm.com user does not have permission to"
-                f" {action.value.lower()} your {device_type.name.lower()}. Please log"
-                " in to Alarm.com to grant the appropriate permissions to your"
-                " account."
-            )
-            persistent_notification.async_create(
-                self.hass,
-                error_msg,
-                title="Alarm.com Error",
-                notification_id="alarmcom_permission_error",
-            )
-            return False
-
-        await self._coordinator.async_refresh()
-
-        return response
-
-    async def async_lock_action(self, entity_id: str, action: ADCLockCommand) -> bool:
-        """Do something with a lock."""
-
-        if not self.config_entry:
-            raise PartialInitialization
-
-        if entity_id not in self.devices.get("lock_ids", {}) or action not in [
-            ADCLockCommand.LOCK,
-            ADCLockCommand.UNLOCK,
-        ]:
-            return False
-
-        return await self._async_send_action(entity_id, action, ADCDeviceType.LOCK)
-
-    async def async_partition_action(
-        self, entity_id: str, action: ADCPartitionCommand
-    ) -> bool:
-        """Do something with a partition."""
-
-        if not self.config_entry:
-            raise PartialInitialization
-
-        if entity_id not in self.devices.get("partition_ids", {}) or action not in [
-            ADCPartitionCommand.ARM_STAY,
-            ADCPartitionCommand.DISARM,
-            ADCPartitionCommand.ARM_NIGHT,
-            ADCPartitionCommand.ARM_AWAY,
-        ]:
-            return False
-
-        return await self._async_send_action(entity_id, action, ADCDeviceType.PARTITION)
-
-    async def async_garage_door_action(self, entity_id: str, action: str) -> bool:
-        """Do something with a garage door."""
-
-        if not self.config_entry:
-            raise PartialInitialization
-
-        if entity_id not in self.devices.get("garage_door_ids", {}) or action not in [
-            ADCGarageDoorCommand.OPEN,
-            ADCGarageDoorCommand.CLOSE,
-        ]:
-            return False
-
-        return await self._async_send_action(
-            entity_id, action, ADCDeviceType.GARAGE_DOOR
-        )

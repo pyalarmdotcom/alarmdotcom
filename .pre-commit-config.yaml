@@ -4,14 +4,10 @@
 default_language_version:
   python: python3.9
 repos:
-  - repo: https://github.com/asottile/reorder_python_imports
-    rev: v2.6.0
+  - repo: https://github.com/sqlalchemyorg/zimports/
+    rev: v0.4.5
     hooks:
-      - id: reorder-python-imports
-        args:
-          - --py39-plus
-        files: ^(homeassistant|script|tests|custom_components)/.+\.py$
-        stages: [manual]
+      - id: zimports
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.31.0
     hooks:
@@ -21,8 +17,6 @@ repos:
     rev: v1.4
     hooks:
       - id: autoflake
-        args:
-          - --remove-all-unused-imports
         files: ^(homeassistant|script|tests|custom_components)/.+\.py$
   - repo: https://github.com/psf/black
     rev: 21.12b0
@@ -32,15 +26,15 @@ repos:
           - --safe
           - --quiet
         files: ^(homeassistant|script|tests|custom_components)/.+\.py$
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.1.0
-    hooks:
-      - id: codespell
-        args:
-          - --ignore-words-list=hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo
-          - --skip="./.*,*.csv,*.json"
-          - --quiet-level=2
-        exclude_types: [csv, json]
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.1.0
+  #   hooks:
+  #     - id: codespell
+  #       args:
+  #         - --ignore-words-list=hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo
+  #         - --skip="./.*,*.csv,*.json"
+  #         - --quiet-level=2
+  #       exclude_types: [csv, json]
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.2
     hooks:
@@ -56,14 +50,8 @@ repos:
         args:
           - --quiet
           - --format=custom
-          # - --configfile=pyproject.toml
           - --exclude=examples
         files: ^(homeassistant|script|tests|custom_components)/.+\.py$
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.10.1
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
     hooks:
@@ -82,4 +70,3 @@ repos:
     rev: v2.5.1
     hooks:
       - id: prettier
-        # stages: [manual]

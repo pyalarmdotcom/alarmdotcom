@@ -1,5 +1,4 @@
 """Device Type Resolvers used via regex to determine whether a binary sensor is a window or a door."""
-
 # Device Translations
 LANG_DOOR = [
     ("afrikaans", "deur"),
