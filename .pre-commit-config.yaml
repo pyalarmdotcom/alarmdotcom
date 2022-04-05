@@ -4,10 +4,14 @@
 default_language_version:
   python: python3.9
 repos:
-  - repo: https://github.com/sqlalchemyorg/zimports/
-    rev: v0.4.5
+  - repo: https://github.com/asottile/reorder_python_imports
+    rev: v2.6.0
     hooks:
-      - id: zimports
+      - id: reorder-python-imports
+        args:
+          - --py39-plus
+        files: ^(homeassistant|script|tests|custom_components)/.+\.py$
+        stages: [manual]
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.31.0
     hooks:
@@ -17,6 +21,8 @@ repos:
     rev: v1.4
     hooks:
       - id: autoflake
+        args:
+          - --remove-all-unused-imports
         files: ^(homeassistant|script|tests|custom_components)/.+\.py$
   - repo: https://github.com/psf/black
     rev: 21.12b0
@@ -50,8 +56,14 @@ repos:
         args:
           - --quiet
           - --format=custom
+          # - --configfile=pyproject.toml
           - --exclude=examples
         files: ^(homeassistant|script|tests|custom_components)/.+\.py$
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
     hooks:
@@ -70,3 +82,4 @@ repos:
     rev: v2.5.1
     hooks:
       - id: prettier
+        # stages: [manual]

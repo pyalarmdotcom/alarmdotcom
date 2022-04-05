@@ -1,11 +1,12 @@
 """Const for the Alarmdotcom integration."""
+
 from __future__ import annotations
 
-from collections.abc import Callable
 from enum import Enum
+from types import FunctionType
 from typing import TypedDict
 
-from pyalarmdotcomajax.const import ADCSensorSubtype
+from pyalarmdotcomajax.const import ArmingOption as ADCArmingOption
 from typing_extensions import NotRequired
 
 INTEGRATION_NAME = "Alarm.com"
@@ -21,6 +22,13 @@ If you have any issues with this you need to open an issue here:
 """
 
 STATE_MALFUNCTION = "Malfunction"
+
+# Attributes
+ATTR_CLIENT = "client"
+ATTR_COORDINATOR = "coordinator"
+
+# Storage
+STORE_CONTROLLER = "controller"
 
 # ADC Binary Sensor Types
 ADC_BINARY_TYPE_UNKNOWN = "generic_sensor"
@@ -46,31 +54,66 @@ CONF_PASSWORD = "password"  # nosec
 CONF_2FA_COOKIE = "2fa_cookie"
 CONF_OTP = "otp"
 
+CONF_FORCE_BYPASS = "force_bypass"
+CONF_NO_DELAY = "no_entry_delay"
+CONF_SILENT_ARM = "silent_arming"
 CONF_ARM_CODE = "arm_code"
-CONF_UPDATE_INTERVAL = "update_interval"
-CONF_ARM_HOME = "arm_home_options"
-CONF_ARM_AWAY = "arm_away_options"
-CONF_ARM_NIGHT = "arm_night_options"
+CONF_USE_ARM_CODE = "use_arm_code"
 
-CONF_UPDATE_INTERVAL_DEFAULT = 60
-CONF_ARM_MODE_OPTIONS = {
-    "bypass": "Force Bypass",
-    "silent": "Arm Silently",
-    "delay": "Arming Delay",
-}
-CONF_ARM_MODE_OPTIONS_DEFAULT = ["delay"]
-
-SENSOR_SUBTYPE_BLACKLIST = [
-    ADCSensorSubtype.MOBILE_PHONE,  # No purpose
-    ADCSensorSubtype.MOTION_SENSOR,  # Not reliable with polling
-    ADCSensorSubtype.PANEL_MOTION_SENSOR,  # Not reliable with polling
-    ADCSensorSubtype.PANEL_IMAGE_SENSOR,  # No support yet
-]
-
+# Legacy configuration.yaml
+LEGACY_CONF_FORCE_BYPASS = "force_bypass"
+LEGACY_CONF_NO_ENTRY_DELAY = "no_entry_delay"
+LEGACY_CONF_SILENT_ARMING = "silent_arming"
+LEGACY_CONF_TWO_FACTOR_COOKIE = "two_factor_cookie"
 
 # #
 # Device States
 # #
+
+
+class ADCIArmingOption(Enum):
+    """Possible selections for arming options (force bypass, etc.)."""
+
+    ALWAYS = "Always"
+    NEVER = "Never"
+    STAY = "Stay Only"
+    AWAY = "Away Only"
+
+    @property
+    def to_adc(self) -> ADCArmingOption:
+        """Return pyalarmdotcomajax enum for selected arming option."""
+        lookup = {
+            ADCIArmingOption.STAY: ADCArmingOption.STAY,
+            ADCIArmingOption.AWAY: ADCArmingOption.AWAY,
+            ADCIArmingOption.NEVER: ADCArmingOption.NEVER,
+            ADCIArmingOption.ALWAYS: ADCArmingOption.ALWAYS,
+        }
+
+        return lookup[self]
+
+    @classmethod
+    def from_adc(cls, adc_enum: ADCArmingOption) -> ADCIArmingOption:
+        """Return alarmdotcom enum for supplied pyalarmdotcomajax enum."""
+        lookup = {
+            ADCArmingOption.STAY: ADCIArmingOption.STAY,
+            ADCArmingOption.AWAY: ADCIArmingOption.AWAY,
+            ADCArmingOption.NEVER: ADCIArmingOption.NEVER,
+            ADCArmingOption.ALWAYS: ADCIArmingOption.ALWAYS,
+        }
+
+        return lookup[adc_enum]
+
+    @classmethod
+    def from_config_yaml(cls, legacy_value: str) -> ADCIArmingOption:
+        """Return alarmdotcom enum for supplied pyalarmdotcomajax enum."""
+        lookup = {
+            "home": ADCIArmingOption.STAY,
+            "away": ADCIArmingOption.AWAY,
+            "false": ADCIArmingOption.NEVER,
+            "true": ADCIArmingOption.ALWAYS,
+        }
+
+        return lookup[legacy_value]
 
 
 class ADCIPartitionState(Enum):
@@ -89,13 +132,6 @@ class ADCILockState(Enum):
     FAILED = "FAILED"
     LOCKED = "LOCKED"
     UNLOCKED = "UNLOCKED"
-
-
-class ADCILightState(Enum):
-    """Enum of light states."""
-
-    ON = "ON"
-    OFF = "OFF"
 
 
 class ADCISensorState(Enum):
@@ -150,10 +186,10 @@ class ADCIPartitionData(ADCIBaseEntity):
     state: ADCIPartitionState
     parent_id: str
 
-    async_disarm_callback: Callable
-    async_arm_home_callback: Callable
-    async_arm_away_callback: Callable
-    async_arm_night_callback: Callable
+    async_disarm_callback: FunctionType
+    async_arm_stay_callback: FunctionType
+    async_arm_away_callback: FunctionType
+    async_arm_night_callback: FunctionType
 
 
 class ADCISensorData(ADCIBaseEntity):
@@ -176,21 +212,8 @@ class ADCILockData(ADCIBaseEntity):
     state: ADCILockState
     parent_id: str
 
-    async_lock_callback: Callable
-    async_unlock_callback: Callable
-
-
-class ADCILightData(ADCIBaseEntity):
-    """Dict for an ADCI Light."""
-
-    brightness: int | None
-    make_and_model: NotRequired[dict]
-    desired_state: Enum
-    raw_state_text: str
-    state: ADCILightState
-    parent_id: str
-    async_turn_on_callback: Callable
-    async_turn_off_callback: Callable
+    async_lock_callback: FunctionType
+    async_unlock_callback: FunctionType
 
 
 class ADCIGarageDoorData(ADCIBaseEntity):
@@ -200,8 +223,8 @@ class ADCIGarageDoorData(ADCIBaseEntity):
     desired_state: Enum
     raw_state_text: str
     state: ADCIGarageDoorState
-    async_open_callback: Callable
-    async_close_callback: Callable
+    async_open_callback: FunctionType
+    async_close_callback: FunctionType
     parent_id: str
 
 
@@ -214,14 +237,12 @@ class ADCIEntities(TypedDict):
         | ADCISystemData
         | ADCISensorData
         | ADCILockData
-        | ADCILightData
         | ADCIPartitionData,
     ]
     system_ids: set[str]
     partition_ids: set[str]
     sensor_ids: set[str]
     lock_ids: set[str]
-    light_ids: set[str]
     garage_door_ids: set[str]
     low_battery_ids: set[str]
     malfunction_ids: set[str]
