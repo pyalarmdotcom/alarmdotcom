@@ -1,22 +1,22 @@
 """Alarmdotcom implementation of an HA cover (garage door)."""
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 from typing import Any
 
 from homeassistant import core
-from homeassistant.components.cover import (
-    SUPPORT_CLOSE,
-    SUPPORT_OPEN,
-    CoverDeviceClass,
-    CoverEntity,
-)
+from homeassistant.components.cover import CoverDeviceClass
+from homeassistant.components.cover import CoverEntity
+from homeassistant.components.cover import SUPPORT_CLOSE
+from homeassistant.components.cover import SUPPORT_OPEN
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.const import ADCGarageDoorCommand
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from pyalarmdotcomajax.entities import ADCGarageDoor
 
-from . import ADCIEntity, const as adci
+from . import ADCIEntity
+from . import const as adci
 from .controller import ADCIController
 
 log = logging.getLogger(__name__)
@@ -51,6 +51,13 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
         self._attr_device_class: CoverDeviceClass = CoverDeviceClass.GARAGE
         self._attr_supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
 
+        try:
+            self.async_open_callback: Callable = self._device["async_open_callback"]
+            self.async_close_callback: Callable = self._device["async_close_callback"]
+        except KeyError:
+            log.error("Failed to initialize control functions for %s.", self.unique_id)
+            self._attr_available = False
+
         log.debug(
             "%s: Initializing Alarm.com garage door entity for garage door %s.",
             __name__,
@@ -71,12 +78,18 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""
-        await self._controller.async_garage_door_action(
-            self.unique_id, ADCGarageDoorCommand.OPEN
-        )
+        try:
+            await self.async_open_callback()
+        except PermissionError:
+            self._show_permission_error("open")
+
+        await self._controller.async_coordinator_update(critical=False)
 
     async def async_close_cover(self, **kwargs: Any) -> None:
-        """Close cover."""
-        await self._controller.async_garage_door_action(
-            self.unique_id, ADCGarageDoorCommand.CLOSE
-        )
+        """Close the cover."""
+        try:
+            await self.async_close_callback()
+        except PermissionError:
+            self._show_permission_error("close")
+
+        await self._controller.async_coordinator_update(critical=False)

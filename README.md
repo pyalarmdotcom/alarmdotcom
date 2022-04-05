@@ -26,9 +26,10 @@ You should use Alarm.com's official apps, devices, and services for notification
 | Device Type  | Actions                               | View Status | Low Battery Sub-Sensor | Malfunction Sub-Sensor |
 | ------------ | ------------------------------------- | ----------- | ---------------------- | ---------------------- |
 | Alarm System | arm away, arm stay, arm night, disarm | ✔           |                        | ✔                      |
-| Sensors      | _(none)_                              | ✔           | ✔                      | ✔                      |
-| Locks        | lock, unlock                          | ✔           | ✔                      | ✔                      |
+| Sensor       | _(none)_                              | ✔           | ✔                      | ✔                      |
+| Lock         | lock, unlock                          | ✔           | ✔                      | ✔                      |
 | Garage Door  | open, close                           | ✔           |                        |                        |
+| Light        | turn on / set brightness, turn off    | ✔           |                        |                        |
 
 As of v0.2.0, multiples of all of the above devices are supported.
 
@@ -76,11 +77,12 @@ These options can be set using the "Configure" button on the Alarm.com card on H
 
 ![image](https://user-images.githubusercontent.com/466460/150607393-e057d445-a882-4fbd-a455-acf155083327.png)
 
-| Parameter      | Description                                                                                                                                                                                                                                                                                    |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Code           | Specifies a code to arm/disarm your alarm or lock/unlock your locks in the Home Assistant frontend. This is not necessarily the code you use to arm/disarm your panel. This is a separate code that Home Assistant in [alarm panel card](https://www.home-assistant.io/lovelace/alarm-panel/). |
-| Force Bypass   | Specifies when to use the "force bypass" setting when arming. Can be set to `always`, `never`, `armed home`, and `armed away`.                                                                                                                                                                 |
-| No Entry Delay | Specifies when to use the "no entry delay" setting when arming. Same options as above.                                                                                                                                                                                                         |
-| Silent Arming  | Specifies when to use the "silent arming" setting when arming. Same options as above.                                                                                                                                                                                                          |
+| Parameter       | Description                                                                                                                                                                                                                                                                                    |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code            | Specifies a code to arm/disarm your alarm or lock/unlock your locks in the Home Assistant frontend. This is not necessarily the code you use to arm/disarm your panel. This is a separate code that Home Assistant in [alarm panel card](https://www.home-assistant.io/lovelace/alarm-panel/). |
+| Force Bypass    | Bypass open zones (windows, doors, etc.) when arming.                                                                                                                                                                                                                                          |
+| Arming Delay    | Wait after issuing arm command to give you time to exit.                                                                                                                                                                                                                                       |
+| Silent Arming   | Suppress beeps when arming and double arming delay.                                                                                                                                                                                                                                            |
+| Update Interval | Frequency with which this integration should poll Alarm.com servers for updated status.                                                                                                                                                                                                        |
 
-_Arming options and modes are not available on all systems/providers. Also, some combinations of these options are incompatible. If arming does not work with a combination of options, please check that you are able to arm via the web portal using those same options._
+_The three arming options are not available on all systems/providers. Also, some combinations of these options are incompatible. If arming does not work with a combination of options, please check that you are able to arm via the web portal using those same options._
