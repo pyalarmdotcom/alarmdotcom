@@ -7,20 +7,19 @@ import re
 from typing import Any
 
 from homeassistant import core
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass as bsdc
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass as bsdc,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.entities import ADCSensor
-from pyalarmdotcomajax.entities import ADCSensorSubtype
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
+from pyalarmdotcomajax.entities import ADCSensor, ADCSensorSubtype
 
-from . import ADCIEntity
-from . import const as adci
+from . import ADCIEntity, const as adci
 from .controller import ADCIController
-from .device_type_langs import LANG_DOOR
-from .device_type_langs import LANG_WINDOW
+from .device_type_langs import LANG_DOOR, LANG_WINDOW
 
 log = logging.getLogger(__name__)
 
@@ -105,55 +104,47 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
             and self._device_subtype_raw == ADCSensorSubtype.CONTACT_SENSOR
         ):
             return self._derived_class
-        if self._device_subtype_raw == ADCSensorSubtype.SMOKE_DETECTOR:
+        elif self._device_subtype_raw == ADCSensorSubtype.SMOKE_DETECTOR:
             return bsdc.SMOKE
-        if self._device_subtype_raw == ADCSensorSubtype.CO_DETECTOR:
-            # CO was released in 2022.2.0. Need to use GAS for prior versions of Home Assistant.
+        elif self._device_subtype_raw == ADCSensorSubtype.CO_DETECTOR:
+            # CO will be released in ~2022-01. Need to use GAS until then.
             try:
                 return bsdc.CO
             except AttributeError:
                 return bsdc.GAS
-        if self._device_subtype_raw == ADCSensorSubtype.PANIC_BUTTON:
+        elif self._device_subtype_raw == ADCSensorSubtype.PANIC_BUTTON:
             return bsdc.SAFETY
-        if self._device_subtype_raw in [
-            ADCSensorSubtype.GLASS_BREAK_DETECTOR,
-            ADCSensorSubtype.PANEL_GLASS_BREAK_DETECTOR,
-        ]:
+        elif self._device_subtype_raw == ADCSensorSubtype.GLASS_BREAK_DETECTOR:
             return bsdc.VIBRATION
-
-        return None
-
-    @property
-    def icon(self) -> str | None:
-        """Return the icon to use in the frontend, if any."""
-        if self.device_class in [bsdc.SMOKE, bsdc.CO, bsdc.GAS]:
-            if not self.available:
-                return "mdi:smoke-detector-variant-off"
-            if self.is_on:
-                return "mdi:smoke-detector-variant-alert"
-            return "mdi:smoke-detector-variant"
-        if hasattr(self, "_attr_icon"):
-            return self._attr_icon  # type: ignore
-        if hasattr(self, "entity_description"):
-            return self.entity_description.icon  # type: ignore
-        return None
+        else:
+            return None
 
     @property
-    def is_on(self) -> bool | None:
+    def state(self) -> STATE_OFF | STATE_ON | str:
         """Return the state of the sensor."""
 
-        if self._device.get("state") in [
-            ADCSensor.DeviceState.CLOSED,
-            ADCSensor.DeviceState.IDLE,
-            ADCSensor.DeviceState.DRY,
-        ]:
-            return False
-        elif self._device.get("state") in [
-            ADCSensor.DeviceState.OPEN,
-            ADCSensor.DeviceState.ACTIVE,
-            ADCSensor.DeviceState.WET,
-        ]:
-            return True
+        if self.is_on is not None:
+            return self.is_on
+
+        return str(adci.STATE_MALFUNCTION)
+
+    @property
+    def is_on(self) -> STATE_OFF | STATE_ON | None:
+        """Return the state of the sensor."""
+
+        if not self._device.get("malfunction"):
+            if self._device.get("state") in [
+                ADCSensor.DeviceState.CLOSED,
+                ADCSensor.DeviceState.IDLE,
+                ADCSensor.DeviceState.DRY,
+            ]:
+                return STATE_OFF
+            elif self._device.get("state") in [
+                ADCSensor.DeviceState.OPEN,
+                ADCSensor.DeviceState.ACTIVE,
+                ADCSensor.DeviceState.WET,
+            ]:
+                return STATE_ON
 
         return None
 

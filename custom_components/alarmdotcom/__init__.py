@@ -1,28 +1,21 @@
 """The alarmdotcom integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers.update_coordinator import CoordinatorEntity, UpdateFailed
 
 from . import const as adci
 from .controller import ADCIController
 
 log = logging.getLogger(__name__)
 
-PLATFORMS: list[str] = [
-    "alarm_control_panel",
-    "binary_sensor",
-    "lock",
-    "cover",
-    "light",
-]
+PLATFORMS: list[str] = ["alarm_control_panel", "binary_sensor", "lock", "cover"]
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -49,64 +42,39 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     log.debug("Alarmdotcom config options %s", dict(config_entry.options))
 
-    #
     # Delete devices from Home Assistant that are no longer present on Alarm.com.
-    #
-
-    # Get devices from Alarm.com
-    current_device_ids: set[str] = set()
+    current_devices: set[str] = set()
     for device_id in controller.devices.get("entity_data", []):
-        current_device_ids.add(device_id)
+        current_devices.add(device_id)
 
-    log.debug(current_device_ids)
-
-    # Delete mobile phones from current_device_ids.
-    # These devices may have been added to Home Assistant before v0.2.3. Mobile phones are used for pin-less disarming on some panels but provide no value in Home Assistant.
-    for sensor_id in controller.devices.get("sensor_ids", []):
-        device: (
-            adci.ADCIGarageDoorData
-            | adci.ADCISystemData
-            | adci.ADCISensorData
-            | adci.ADCILockData
-            | adci.ADCILightData
-            | adci.ADCIPartitionData
-            | None
-        ) = controller.devices.get("entity_data", {}).get(sensor_id)
-
-        if (
-            device is not None
-            and device.get("device_subtype") in adci.SENSOR_SUBTYPE_BLACKLIST
-        ):
-            log.debug(
-                "Removing blacklisted sensor %s (%s) from Home Assistant.",
-                device.get("name"),
-                device.get("unique_id"),
-            )
-            current_device_ids.remove(sensor_id)
-
-    # Compare against device registry
     device_registry = dr.async_get(hass)
     for device_entry in dr.async_entries_for_config_entry(
         device_registry, config_entry.entry_id
     ):
         for identifier in device_entry.identifiers:
-            if identifier[0] == adci.DOMAIN:
-                if (
-                    identifier[1] in current_device_ids
-                    or f"{identifier[1]}_low_battery" in current_device_ids
-                    or f"{identifier[1]}_malfunction" in current_device_ids
-                ):
+            if (
+                identifier
+                or f"{identifier}_low_battery"
+                or f"{identifier}_malfunction" in current_devices
+            ):
+                break
+        else:
+            device_registry.async_remove_device(device_entry.id)
 
-                    break
+    # Delete entities from Home Assistant that are no longer present on Alarm.com.
+    entity_registry = er.async_get(hass)
+    for entity_entry in er.async_entries_for_config_entry(
+        entity_registry, config_entry.entry_id
+    ):
 
-                log.debug(
-                    "Removing orphaned device %s (%s | %s)",
-                    device_entry.name,
-                    device_entry.identifiers,
-                    device_entry.id,
-                )
-
-                device_registry.async_remove_device(device_entry.id)
+        if (
+            entity_entry.entity_id
+            or f"{entity_entry.entity_id}_low_battery"
+            or f"{entity_entry.entity_id}_malfunction" in current_devices
+        ):
+            break
+        else:
+            entity_registry.async_remove(entity_entry.id)
 
     # Store controller
     hass.data[adci.DOMAIN][config_entry.entry_id] = controller
@@ -118,16 +86,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
+    log.debug("Migrating from version %s", config_entry.version)
 
     if config_entry.version == 1:
 
-        log.debug("Migrating from version %s", config_entry.version)
+        new_options: ConfigEntry = {**config_entry.options}
 
-        v2_options: ConfigEntry = {**config_entry.options}
+        new_options[adci.CONF_USE_ARM_CODE] = bool(
+            config_entry.options.get(adci.CONF_ARM_CODE)
+        )
 
-        v2_options["use_arm_code"] = bool(config_entry.options.get(adci.CONF_ARM_CODE))
-
-        v2_options[adci.CONF_ARM_CODE] = (
+        new_options[adci.CONF_ARM_CODE] = (
             str(arm_code)
             if (arm_code := config_entry.options.get(adci.CONF_ARM_CODE))
             else ""
@@ -136,70 +105,10 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         config_entry.version = 2
 
         hass.config_entries.async_update_entry(
-            config_entry, data={**config_entry.data}, options=v2_options
+            config_entry, data={**config_entry.data}, options=new_options
         )
 
-        log.info("Migration to version %s successful", config_entry.version)
-
-    if config_entry.version == 2:
-
-        log.debug("Migrating from version %s", config_entry.version)
-
-        v3_options: ConfigEntry = {**config_entry.options}
-
-        if not v3_options["use_arm_code"]:
-            v3_options[adci.CONF_ARM_CODE] = None
-
-        # Populate Arm Home
-        new_arm_home = []
-
-        if v3_options["force_bypass"] in ["Stay Only", "Always"]:
-            new_arm_home.append("bypass")
-        if v3_options["silent_arming"] in ["Stay Only", "Always"]:
-            new_arm_home.append("silent")
-        if v3_options["no_entry_delay"] not in ["Stay Only", "Always"]:
-            new_arm_home.append("delay")
-
-        v3_options[adci.CONF_ARM_HOME] = new_arm_home
-
-        # Populate Arm Away
-        new_arm_away = []
-
-        if v3_options["force_bypass"] in ["Away Only", "Always"]:
-            new_arm_away.append("bypass")
-        if v3_options["silent_arming"] in ["Away Only", "Always"]:
-            new_arm_away.append("silent")
-        if v3_options["no_entry_delay"] not in ["Away Only", "Always"]:
-            new_arm_away.append("delay")
-
-        v3_options[adci.CONF_ARM_AWAY] = new_arm_away
-
-        # Populate Arm Night
-        new_arm_night = []
-
-        if v3_options["force_bypass"] == "Always":
-            new_arm_night.append("bypass")
-        if v3_options["silent_arming"] == "Always":
-            new_arm_night.append("silent")
-        if v3_options["no_entry_delay"] != "Always":
-            new_arm_night.append("delay")
-
-        v3_options[adci.CONF_ARM_NIGHT] = new_arm_night
-
-        config_entry.version = 3
-
-        # Purge deprecated config options.
-
-        v3_options["use_arm_code"] = None
-        v3_options["force_bypass"] = None
-        v3_options["silent_arming"] = None
-        v3_options["no_entry_delay"] = None
-
-        hass.config_entries.async_update_entry(
-            config_entry, data={**config_entry.data}, options=v3_options
-        )
-
-        log.info("Migration to version %s successful", config_entry.version)
+    log.info("Migration to version %s successful", config_entry.version)
 
     return True
 
@@ -212,10 +121,10 @@ def _async_import_options_from_data_if_missing(
     options = dict(entry.options)
     data = {}
     importable_options = [
-        "force_bypass",
-        "no_entry_delay",
-        "silent_arming",
-        "code",
+        adci.CONF_FORCE_BYPASS,
+        adci.CONF_NO_DELAY,
+        adci.CONF_SILENT_ARM,
+        adci.CONF_ARM_CODE,
     ]
     found = False
     for key in entry.data:
@@ -292,7 +201,7 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
         updated = False
 
         try:
-            device_data: dict | adci.ADCIGarageDoorData | adci.ADCILockData | adci.ADCIPartitionData | adci.ADCISensorData | adci.ADCISystemData | adci.ADCILightData = self._controller.devices.get(
+            device_data: dict | adci.ADCIGarageDoorData | adci.ADCILockData | adci.ADCIPartitionData | adci.ADCISensorData | adci.ADCISystemData = self._controller.devices.get(
                 "entity_data", {}
             ).get(
                 self.unique_id, {}
@@ -316,20 +225,3 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
             log.debug(device_data)
 
             raise UpdateFailed(err_msg)
-
-    def _show_permission_error(self, action: str = "") -> None:
-        """Show Home Assistant notification to alert user that they lack permission to perform action."""
-
-        # TODO: This notification needs work. Actions should be user-readable. Device type should be a HA device type (alarm control panel instead of partition). Device name should be shown.
-        error_msg = (
-            "Your Alarm.com user does not have permission to"
-            f" {action} your {self._attr_device_class.lower()}. Please log"
-            " in to Alarm.com to grant the appropriate permissions to your"
-            " account."
-        )
-        persistent_notification.async_create(
-            self.hass,
-            error_msg,
-            title="Alarm.com Error",
-            notification_id="alarmcom_permission_error",
-        )

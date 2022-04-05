@@ -33,26 +33,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Security Code",
         "data": {
-          "arm_code": "Security Code (Locks & Alarm)"
+          "force_bypass": "Force Bypass",
+          "no_entry_delay": "No Entry Delay",
+          "silent_arming": "Silent Arming",
+          "arm_code": "Security Code (Locks & Alarm)",
+          "use_arm_code": "Enable Security Code"
         },
-        "description": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`."
-      },
-      "modes": {
-        "title": "Arming Mode Profiles",
-        "data": {
-          "arm_home_options": "Arm Home",
-          "arm_away_options": "Arm Away",
-          "arm_night_options": "Arm Night"
-        },
-        "description": "Set arming behavior for each arming mode. Note that Arm Night is not available on all providers."
-      },
-      "polling": {
-        "data": {
-          "update_interval": "Update Internal (Seconds)"
-        },
-        "description": "Sets the rate at which Home Assistant checks Alarm.com for updates. **Be careful! Updating too frequently may result in an account lockout.**"
+        "description": "\"Enable Security Code\" must be selected for security codes to be recognized!"
       }
     }
   }
