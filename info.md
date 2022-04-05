@@ -1,5 +1,21 @@
-# Version 0.2.1
+# Version 0.2.3
 
 ## 💡 New Features
 
-Added support for one-time passwords via email and SMS.
+1. Support for lights (on/off and dimmers)!
+2. User-configurable refresh interval for polling Alarm.com.
+3. Changes to integration options screens:
+   - Arming settings (force bypass, etc.) are now grouped under arming modes (arm home, etc.).
+   - Options are now paginated.
+
+## 🐛Bug Fixes
+
+1. Fixed strange behavior around setting and clearing arm code.
+
+## ❤️ Thanks for Contributing
+
+### Code
+
+@elahd
+
+**Full Changelog**: https://github.com/uvjustin/alarmdotcom/compare/v0.2.1...v0.2.2-beta
