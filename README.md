@@ -19,7 +19,7 @@ This integration is great for casual use within Home Assistant but... **do not r
 3. Your automations may be buggy.
 4. This code may be buggy. It's written by volunteers in their free time and testing is spotty.
 
-You should use Alarm.com's official apps, devices, and services for notifications of all kinds related to safety, break-ins, property damage (i.e.: freeze sensors), etc.
+You should use Alarm.com's official apps, devices, and services for notifications of all kinds related to safety, break-ins, property damage (e.g.: freeze sensors), etc.
 
 Where possible, use local control for smart home devices that are natively supported by Home Assistant (lights, garage door openers, etc.). Locally controlled devices will continue to work during internet outages whereas this integraiton will not.
 
@@ -42,10 +42,10 @@ As of v0.2.0, multiples of all of the above devices are supported.
 | Sensor Type             | Notes                                                                                                                                                                                                                                                                                                                                           |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Contact Sensor          | Doors, windows, etc.                                                                                                                                                                                                                                                                                                                            |
-| Smoke                   | Both integrated units (i.e.: [First Alert ZCOMBO](https://www.firstalert.com/smoke-carbon-monoxide-alarms/combo-smoke-carbon-monoxide-alarms/wireless-smoke-carbon-monoxide-alarm-works-with-zwave-ring/SAP_ZCOMBO.html)) and listeners (i.e. [Encore FireFighter [PDF]](https://2gig.com/wp-content/uploads/Encore-Firefighter-specs-345.pdf)) |
+| Smoke                   | Both integrated units (e.g.: [First Alert ZCOMBO](https://www.firstalert.com/smoke-carbon-monoxide-alarms/combo-smoke-carbon-monoxide-alarms/wireless-smoke-carbon-monoxide-alarm-works-with-zwave-ring/SAP_ZCOMBO.html)) and listeners (e.g. [Encore FireFighter [PDF]](https://2gig.com/wp-content/uploads/Encore-Firefighter-specs-345.pdf)) |
 | Carbon Monoxide         | _(See above.)_                                                                                                                                                                                                                                                                                                                                  |
 | Panic                   |                                                                                                                                                                                                                                                                                                                                                 |
-| Glass Break / Vibration | Both standalone listeners (i.e.: [DSC PGx922](https://www.dsc.com/?n=products&o=view&id=2585)) & control-panel built-ins (i.e. [Qolsys IQ Panel 4](https://qolsys.com/panel-glass-break/)).                                                                                                                                                     |
+| Glass Break / Vibration | Both standalone listeners (e.g.: [DSC PGx922](https://www.dsc.com/?n=products&o=view&id=2585)) & control-panel built-ins (e.g. [Qolsys IQ Panel 4](https://qolsys.com/panel-glass-break/)).                                                                                                                                                     |
 
 Note that Alarm.com can has multiple designations for each sensor and not all are known to the developers of this integration. If you have one of the above listed devices but don't see it in Home Assistant, [open an issue on GitHub](https://github.com/uvjustin/alarmdotcom/issues/new/choose).
 
@@ -63,7 +63,7 @@ The developers have access to the devices listed below and plan to add support i
 
 | Device Type  | Notes                                                                                                                                                 |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image Sensor | _Not_ video cameras. Image sensors (i.e.: [Qolsys Image Sensor](https://qolsys.com/image-sensor/)) take still photos when triggered by motion events. |
+| Image Sensor | _Not_ video cameras. Image sensors (e.g.: [Qolsys Image Sensor](https://qolsys.com/image-sensor/)) take still photos when triggered by motion events. |
 
 #### Help Wanted Devices
 
@@ -71,12 +71,12 @@ If you own one of the below devices and want to help build support, [open an iss
 
 | Device Type        | Notes                                                                                                                    | Help Needed |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| RGB Light          | i.e.: [Inovelli RGBW Smart Bulb](https://inovelli.com/rgbw-smart-bulb-z-wave/)                                           | A lot.      |
-| Video Camera       | i.e.: [Alarm.com ADC-V515](https://www.alarmgrid.com/products/alarm-com-adc-v515)                                        | A lot.      |
-| Water Valve        | i.e.: [Dome Water Main Shut-off](https://www.domeha.com/z-wave-water-main-shut-off-valve)                                | A lot.      |
-| Thermostat         | i.e.: [Alarm.com Intelligent Thermostat](https://suretyhome.com/product/intelligent-thermostat/)                         | A lot.      |
-| Leak Sensor        | i.e.: [Dome Leak Sensor](https://www.domeha.com/z-wave-leak-sensor)                                                      | A little.   |
-| Temperature Sensor | i.e.: [Alarm.com PowerG Wireless Temperature Sensor](https://suretyhome.com/product/powerg-wireless-temperature-sensor/) | A little.   |
+| RGB Light          | e.g.: [Inovelli RGBW Smart Bulb](https://inovelli.com/rgbw-smart-bulb-z-wave/)                                           | A lot.      |
+| Video Camera       | e.g.: [Alarm.com ADC-V515](https://www.alarmgrid.com/products/alarm-com-adc-v515)                                        | A lot.      |
+| Water Valve        | e.g.: [Dome Water Main Shut-off](https://www.domeha.com/z-wave-water-main-shut-off-valve)                                | A lot.      |
+| Thermostat         | e.g.: [Alarm.com Intelligent Thermostat](https://suretyhome.com/product/intelligent-thermostat/)                         | A lot.      |
+| Leak Sensor        | e.g.: [Dome Leak Sensor](https://www.domeha.com/z-wave-leak-sensor)                                                      | A little.   |
+| Temperature Sensor | e.g.: [Alarm.com PowerG Wireless Temperature Sensor](https://suretyhome.com/product/powerg-wireless-temperature-sensor/) | A little.   |
 
 ##### Help Needed Scale
 
@@ -90,7 +90,7 @@ These devices are known but blocked from appearing in Home Assistant. If you dis
 | Device Type        | Reason                                                                                                                                                                                                                                                                                                                                                      |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Motion Sensors     | This integration receives updates from Alarm.com on a delay, meaning that many motion detection events will be missed. This update paradaigm is too unreliable to use in automations. Note that we do still plan to show battery and malfunction subsensors for motion sensors, as discussed in [#106](https://github.com/uvjustin/alarmdotcom/issues/106). |
-| Mobile Phones      | Some control panels support PIN-less proximity unlocking via bluetooth (i.e.: [Qolsys IQ Panel 4](https://qolsys.com/bluetooth/)). Paired mobile phones appear in Alarm.com as sensors, but don't provide any useful functions or information for use in Home Assistant (not even malfunction or battery level).                                            |
+| Mobile Phones      | Some control panels support PIN-less proximity unlocking via bluetooth (e.g.: [Qolsys IQ Panel 4](https://qolsys.com/bluetooth/)). Paired mobile phones appear in Alarm.com as sensors, but don't provide any useful functions or information for use in Home Assistant (not even malfunction or battery level).                                            |
 | Audio Systems      | Alarm.com supports Sonos systems, but Home Assistant has a better, built-in integration for these devices.                                                                                                                                                                                                                                                  |
 | Irrigation Systems | Like above, Home Assistant probably has better direct integrations for these devices.                                                                                                                                                                                                                                                                       |
 | Blinds and Shades  | _(See above.)_                                                                                                                                                                                                                                                                                                                                              |
