@@ -147,17 +147,17 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         v3_options: ConfigEntry = {**config_entry.options}
 
-        if not v3_options["use_arm_code"]:
+        if not v3_options.get("use_arm_code"):
             v3_options[adci.CONF_ARM_CODE] = None
 
         # Populate Arm Home
         new_arm_home = []
 
-        if v3_options["force_bypass"] in ["Stay Only", "Always"]:
+        if v3_options.get("force_bypass") in ["Stay Only", "Always"]:
             new_arm_home.append("bypass")
-        if v3_options["silent_arming"] in ["Stay Only", "Always"]:
+        if v3_options.get("silent_arming") in ["Stay Only", "Always"]:
             new_arm_home.append("silent")
-        if v3_options["no_entry_delay"] not in ["Stay Only", "Always"]:
+        if v3_options.get("no_entry_delay") not in ["Stay Only", "Always"]:
             new_arm_home.append("delay")
 
         v3_options[adci.CONF_ARM_HOME] = new_arm_home
@@ -165,11 +165,11 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         # Populate Arm Away
         new_arm_away = []
 
-        if v3_options["force_bypass"] in ["Away Only", "Always"]:
+        if v3_options.get("force_bypass") in ["Away Only", "Always"]:
             new_arm_away.append("bypass")
-        if v3_options["silent_arming"] in ["Away Only", "Always"]:
+        if v3_options.get("silent_arming") in ["Away Only", "Always"]:
             new_arm_away.append("silent")
-        if v3_options["no_entry_delay"] not in ["Away Only", "Always"]:
+        if v3_options.get("no_entry_delay") not in ["Away Only", "Always"]:
             new_arm_away.append("delay")
 
         v3_options[adci.CONF_ARM_AWAY] = new_arm_away
@@ -177,11 +177,11 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         # Populate Arm Night
         new_arm_night = []
 
-        if v3_options["force_bypass"] == "Always":
+        if v3_options.get("force_bypass") == "Always":
             new_arm_night.append("bypass")
-        if v3_options["silent_arming"] == "Always":
+        if v3_options.get("silent_arming") == "Always":
             new_arm_night.append("silent")
-        if v3_options["no_entry_delay"] != "Always":
+        if v3_options.get("no_entry_delay") != "Always":
             new_arm_night.append("delay")
 
         v3_options[adci.CONF_ARM_NIGHT] = new_arm_night
@@ -190,10 +190,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         # Purge deprecated config options.
 
-        v3_options["use_arm_code"] = None
-        v3_options["force_bypass"] = None
-        v3_options["silent_arming"] = None
-        v3_options["no_entry_delay"] = None
+        if v3_options.get("use_arm_code"):
+            v3_options["use_arm_code"] = None
+        if v3_options.get("force_bypass"):
+            v3_options["force_bypass"] = None
+        if v3_options.get("silent_arming"):
+            v3_options["silent_arming"] = None
+        if v3_options.get("no_entry_delay"):
+            v3_options["no_entry_delay"] = None
 
         hass.config_entries.async_update_entry(
             config_entry, data={**config_entry.data}, options=v3_options
