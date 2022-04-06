@@ -71,7 +71,7 @@ If you own one of the below devices and want to help build support, [open an iss
 
 | Device Type        | Notes                                                                                                                    | Help Needed |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| RGB Lights         | i.e.: [Inovelli RGBW Smart Bulb](https://inovelli.com/rgbw-smart-bulb-z-wave/)                                           | A lot.      |
+| RGB Light          | i.e.: [Inovelli RGBW Smart Bulb](https://inovelli.com/rgbw-smart-bulb-z-wave/)                                           | A lot.      |
 | Video Camera       | i.e.: [Alarm.com ADC-V515](https://www.alarmgrid.com/products/alarm-com-adc-v515)                                        | A lot.      |
 | Water Valve        | i.e.: [Dome Water Main Shut-off](https://www.domeha.com/z-wave-water-main-shut-off-valve)                                | A lot.      |
 | Thermostat         | i.e.: [Alarm.com Intelligent Thermostat](https://suretyhome.com/product/intelligent-thermostat/)                         | A lot.      |
