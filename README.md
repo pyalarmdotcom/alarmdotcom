@@ -45,7 +45,7 @@ As of v0.2.0, multiples of all of the above devices are supported.
 | Smoke                   | Both integrated units (i.e.: [First Alert ZCOMBO](https://www.firstalert.com/smoke-carbon-monoxide-alarms/combo-smoke-carbon-monoxide-alarms/wireless-smoke-carbon-monoxide-alarm-works-with-zwave-ring/SAP_ZCOMBO.html)) and listeners (i.e. [Encore FireFighter [PDF]](https://2gig.com/wp-content/uploads/Encore-Firefighter-specs-345.pdf)) |
 | Carbon Monoxide         | _(See above.)_                                                                                                                                                                                                                                                                                                                                  |
 | Panic                   |                                                                                                                                                                                                                                                                                                                                                 |
-| Glass Break / Vibration | Both standalone listeners (i.e.: [DSC PGx922](https://www.dsc.com/?n=products&o=view&id=2585)) & control-panel built-ins (i.e. [Quolsys IQ Panel](https://qolsys.com/panel-glass-break/)).                                                                                                                                                      |
+| Glass Break / Vibration | Both standalone listeners (i.e.: [DSC PGx922](https://www.dsc.com/?n=products&o=view&id=2585)) & control-panel built-ins (i.e. [Qolsys IQ Panel 4](https://qolsys.com/panel-glass-break/)).                                                                                                                                                     |
 
 Note that Alarm.com can has multiple designations for each sensor and not all are known to the developers of this integration. If you have one of the above listed devices but don't see it in Home Assistant, [open an issue on GitHub](https://github.com/uvjustin/alarmdotcom/issues/new/choose).
 
@@ -53,16 +53,13 @@ Note that Alarm.com can has multiple designations for each sensor and not all ar
 
 Each sensor in your system is created as both a device and as an entity within Home Assistant. Each sensor and lock has an associated low battery sensor that activates when the device's battery is low. Each sensor, lock, and control panel has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
 
-<details>
-<summary><b>Subsensors Screenshot</b></summary>
 ![image](https://user-images.githubusercontent.com/466460/150608118-ac6fa640-48c0-41ca-8cbf-4cbc4b142b91.png)
-</details>
 
 ### Future Support
 
 #### Roadmapped Devices
 
-The developers have access to the devices listed below and plan to add support soon.
+The developers have access to the devices listed below and plan to add support in a future release.
 
 | Device Type  | Notes                                                                                                                                                 |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -74,28 +71,28 @@ If you own one of the below devices and want to help build support, [open an iss
 
 | Device Type        | Notes                                                                                                                    | Help Needed |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| Video Camera       | I.e.: [Alarm.com ADC-V515](https://www.alarmgrid.com/products/alarm-com-adc-v515)                                        | A lot.      |
-| Water Valve        | I.e.: [Dome Water Main Shut-off](https://www.domeha.com/z-wave-water-main-shut-off-valve)                                | A lot.      |
-| Thermostat         | I.e.: [Alarm.com Intelligent Thermostat](https://suretyhome.com/product/intelligent-thermostat/)                         | A lot.      |
-| Leak Sensor        |                                                                                                                          | A little.   |
-| Temperature Sensor | I.e.: [Alarm.com PowerG Wireless Temperature Sensor](https://suretyhome.com/product/powerg-wireless-temperature-sensor/) | A little.   |
+| Video Camera       | i.e.: [Alarm.com ADC-V515](https://www.alarmgrid.com/products/alarm-com-adc-v515)                                        | A lot.      |
+| Water Valve        | i.e.: [Dome Water Main Shut-off](https://www.domeha.com/z-wave-water-main-shut-off-valve)                                | A lot.      |
+| Thermostat         | i.e.: [Alarm.com Intelligent Thermostat](https://suretyhome.com/product/intelligent-thermostat/)                         | A lot.      |
+| Leak Sensor        | i.e.: [Dome Leak Sensor](https://www.domeha.com/z-wave-leak-sensor)                                                      | A little.   |
+| Temperature Sensor | i.e.: [Alarm.com PowerG Wireless Temperature Sensor](https://suretyhome.com/product/powerg-wireless-temperature-sensor/) | A little.   |
 
 ##### Help Needed Scale
 
 - **A lot:** You'll need to know how to capture web traffic. We'll ask you to log into Alarm.com and use your web browser's network inspector tool to capture requests for all of your device's functions.
-- **A little:** We'll ask you to run a Python script to dump metadata for your devices. This is straightforward and doesn't require much technical knowledge.
+- **A little:** We'll ask you to run a Python script to dump metadata for your devices. This is straightforward and doesn't require much technical skill.
 
 #### Device Blacklist
 
 These devices are known but blocked from appearing in Home Assistant. If you disagree with any of these blacklisting reasons, please [open an issue on GitHub](https://github.com/uvjustin/alarmdotcom/issues/new/choose)!
 
-| Device Type        | Reason                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Motion Sensors     | This integration receives updates from Alarm.com on a delay, meaning that many motion detection events will be missed. This update paradaigm is too unreliable to use in integrations. Note that we do still plan to show battery and malfunction subsensors for motion sensors, as discussed in [#106](https://github.com/uvjustin/alarmdotcom/issues/106). |
-| Mobile Phones      | Some control panels support PIN-less unlocking via mobile phone. Mobile phones appear in Alarm.com as sensors, but don't provide any useful functions or information for use in Home Assistant (not even malfunction or battery level).                                                                                                                      |
-| Audio Systems      | Alarm.com supports Sonos integration, but Home Assistant has a better, built-in integration for these devices.                                                                                                                                                                                                                                               |
-| Irrigation Systems | Like above, Home Assistant probably has better direct integrations for these devices.                                                                                                                                                                                                                                                                        |
-| Blinds and Shades  | _(See above.)_                                                                                                                                                                                                                                                                                                                                               |
+| Device Type        | Reason                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Motion Sensors     | This integration receives updates from Alarm.com on a delay, meaning that many motion detection events will be missed. This update paradaigm is too unreliable to use in automations. Note that we do still plan to show battery and malfunction subsensors for motion sensors, as discussed in [#106](https://github.com/uvjustin/alarmdotcom/issues/106). |
+| Mobile Phones      | Some control panels support PIN-less proximity unlocking via bluetooth (i.e.: [Qolsys IQ Panel 4](https://qolsys.com/bluetooth/)). Paired mobile phones appear in Alarm.com as sensors, but don't provide any useful functions or information for use in Home Assistant (not even malfunction or battery level).                                            |
+| Audio Systems      | Alarm.com supports Sonos systems, but Home Assistant has a better, built-in integration for these devices.                                                                                                                                                                                                                                                  |
+| Irrigation Systems | Like above, Home Assistant probably has better direct integrations for these devices.                                                                                                                                                                                                                                                                       |
+| Blinds and Shades  | _(See above.)_                                                                                                                                                                                                                                                                                                                                              |
 
 ## Using the Integration
 
