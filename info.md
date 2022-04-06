@@ -1,4 +1,4 @@
-# Version 0.2.3-beta1
+# Version 0.2.3-beta.1
 
 ## 🐛Beta Bug Fixes
 
