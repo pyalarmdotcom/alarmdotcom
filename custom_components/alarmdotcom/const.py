@@ -62,8 +62,6 @@ CONF_ARM_MODE_OPTIONS_DEFAULT = ["delay"]
 
 SENSOR_SUBTYPE_BLACKLIST = [
     ADCSensorSubtype.MOBILE_PHONE,  # No purpose
-    ADCSensorSubtype.MOTION_SENSOR,  # Not reliable with polling
-    ADCSensorSubtype.PANEL_MOTION_SENSOR,  # Not reliable with polling
     ADCSensorSubtype.PANEL_IMAGE_SENSOR,  # No support yet
 ]
 

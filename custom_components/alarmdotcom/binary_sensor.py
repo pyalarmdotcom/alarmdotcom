@@ -120,6 +120,11 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
             ADCSensorSubtype.PANEL_GLASS_BREAK_DETECTOR,
         ]:
             return bsdc.VIBRATION
+        if self._device_subtype_raw in [
+            ADCSensorSubtype.MOTION_SENSOR,
+            ADCSensorSubtype.PANEL_MOTION_SENSOR,
+        ]:
+            return bsdc.MOTION
 
         return None
 
