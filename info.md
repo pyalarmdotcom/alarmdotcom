@@ -1,10 +1,12 @@
 # Version 0.2.3-beta.3
 
+## 💡New Features
+1. Added support for freeze sensors (#106).
+
 ## 🐛Beta Bug Fixes
 
 1. Fixed night arming -- was sending wrong command.
-2. Added support for freeze sensors (#106).
-3. Fixed "NoneType" error that appeared on load for some users. (#108).
+2. Fixed "NoneType" error that appeared on load for some users. (#108).
 
 ## ❤️ Thanks for Contributing
 
