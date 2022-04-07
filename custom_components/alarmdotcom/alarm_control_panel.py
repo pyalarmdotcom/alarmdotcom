@@ -104,13 +104,13 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
         self._device: ADCIPartitionData = device_data
 
         self._conf_arm_home: set = set(
-            self._controller.config_entry.options.get(adci.CONF_ARM_HOME)
+            self._controller.config_entry.options.get(adci.CONF_ARM_HOME, {})
         )
         self._conf_arm_away: set = set(
-            self._controller.config_entry.options.get(adci.CONF_ARM_AWAY)
+            self._controller.config_entry.options.get(adci.CONF_ARM_AWAY, {})
         )
         self._conf_arm_night: set = set(
-            self._controller.config_entry.options.get(adci.CONF_ARM_NIGHT)
+            self._controller.config_entry.options.get(adci.CONF_ARM_NIGHT, {}))
         )
 
         try:

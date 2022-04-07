@@ -125,6 +125,8 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
             ADCSensorSubtype.PANEL_MOTION_SENSOR,
         ]:
             return bsdc.MOTION
+        if self._device_subtype_raw == ADCSensorSubtype.FREEZE_SENSOR:
+            return bsdc.COLD
 
         return None
 
