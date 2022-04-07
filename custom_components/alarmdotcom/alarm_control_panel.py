@@ -110,7 +110,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
             self._controller.config_entry.options.get(adci.CONF_ARM_AWAY, {})
         )
         self._conf_arm_night: set = set(
-            self._controller.config_entry.options.get(adci.CONF_ARM_NIGHT, {}))
+            self._controller.config_entry.options.get(adci.CONF_ARM_NIGHT, {})
         )
 
         try:
