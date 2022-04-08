@@ -4,7 +4,7 @@
 
 1. Support for lights! (On/off and dimmers only. No RGB support.)
 2. Added support for freeze sensors (#106).
-3. User-configurable refresh interval for polling Alarm.com. (#99)
+3. User-configurable refresh interval for polling Alarm.com (#99).
 4. Changes to integration options screens:
    - Arming settings (force bypass, etc.) are now grouped under arming modes (arm home, etc.).
    - Options screens are now paginated.
