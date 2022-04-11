@@ -36,7 +36,7 @@
         "title": "General Settings",
         "data": {
           "arm_code": "Security Code (Locks & Alarm)",
-          "update_interval": "Update Internal (Seconds)"
+          "update_interval": "Update Interval"
         },
         "data_description": {
           "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`.",

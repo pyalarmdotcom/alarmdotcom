@@ -33,11 +33,15 @@
   "options": {
     "step": {
       "init": {
-        "title": "Security Code",
+        "title": "General Settings",
         "data": {
-          "arm_code": "Security Code (Locks & Alarm)"
+          "arm_code": "Security Code (Locks & Alarm)",
+          "update_interval": "Update Interval"
         },
-        "description": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`."
+        "data_description": {
+          "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`.",
+          "update_interval": "Sets the rate at which Home Assistant checks Alarm.com for updates. Be careful! Updating too frequently may result in an account lockout."
+        }
       },
       "modes": {
         "title": "Arming Mode Profiles",
@@ -47,12 +51,6 @@
           "arm_night_options": "Arm Night"
         },
         "description": "Set arming behavior for each arming mode. Note that Arm Night is not available on all providers."
-      },
-      "polling": {
-        "data": {
-          "update_interval": "Update Internal (Seconds)"
-        },
-        "description": "Sets the rate at which Home Assistant checks Alarm.com for updates. **Be careful! Updating too frequently may result in an account lockout.**"
       }
     }
   }

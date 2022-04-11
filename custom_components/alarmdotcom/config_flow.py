@@ -8,10 +8,12 @@ from typing import Literal
 
 import aiohttp
 from homeassistant import config_entries
+from homeassistant.const import CONF_UNIT_OF_MEASUREMENT
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pyalarmdotcomajax.const import AuthResult
 from pyalarmdotcomajax.errors import AuthenticationFailed
@@ -303,7 +305,20 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
                     default=""
                     if not (arm_code_raw := self.options.get(adci.CONF_ARM_CODE))
                     else arm_code_raw,
-                ): cv.string,
+                ): selector.selector({"text": {"type": "password"}}),
+                vol.Required(
+                    adci.CONF_UPDATE_INTERVAL,
+                    default=self.options.get(
+                        adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT
+                    ),
+                ): selector.selector(
+                    {
+                        "number": {
+                            "mode": "box",
+                            CONF_UNIT_OF_MEASUREMENT: "seconds",
+                        }
+                    }
+                ),
             }
         )
 
@@ -320,11 +335,11 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
         """First screen for configuration options. Sets arming mode profiles."""
         errors: dict = {}
 
+        # TODO: Update interval will not take effect until HA reboots. We need to either force reboot message or find a way around this, maybe updating the coordinator directly.
+
         if user_input is not None:
-            if user_input.get(adci.CONF_ARM_CODE) == "CLEAR!":
-                user_input[adci.CONF_ARM_CODE] = ""
             self.options.update(user_input)
-            return await self.async_step_polling()
+            return self.async_create_entry(title="", data=self.options)
 
         schema = vol.Schema(
             {
@@ -351,38 +366,6 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
 
         return self.async_show_form(
             step_id="modes",
-            data_schema=schema,
-            errors=errors,
-            last_step=False,
-        )
-
-    async def async_step_polling(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """First screen for configuration options. Sets update interval."""
-        errors: dict = {}
-
-        # TODO: Update interval will not take effect until HA reboots. We need to either force reboot message or find a way around this, maybe updating the coordinator directly.
-
-        if user_input is not None:
-            if user_input.get(adci.CONF_ARM_CODE) == "CLEAR!":
-                user_input[adci.CONF_ARM_CODE] = ""
-            self.options.update(user_input)
-            return self.async_create_entry(title="", data=self.options)
-
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    adci.CONF_UPDATE_INTERVAL,
-                    default=self.options.get(
-                        adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT
-                    ),
-                ): cv.positive_int,
-            }
-        )
-
-        return self.async_show_form(
-            step_id="polling",
             data_schema=schema,
             errors=errors,
             last_step=True,

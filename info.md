@@ -7,6 +7,7 @@
 ## 🧹 Housekeeping
 
 1. CO sensor no longer compatible with Home Assistant versions prior to 2022.2. Minimum Home Assistant version for this integration set to 2022.2.
+2. Some configuration options changed to use Home Assistant selectors. PIN displayed as a masked password.
 
 ## 🐛Bug Fixes
 
