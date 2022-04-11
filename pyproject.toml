@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 line-length = 88
 target-version = ["py39"]
 exclude = 'generated'
-experimental-string-processing = "True"
 
 [tool.zimports]
 black-line-length = 88

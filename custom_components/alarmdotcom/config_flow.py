@@ -194,12 +194,15 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
 
             return self.async_abort(reason="reauth_successful")
 
-        # TODO: For non-imported flows, set options to defaults as defined in options flow handler.
-        # TODO: For imported flows, validate options through schema.
+        options = (
+            self._imported_options
+            if self._imported_options
+            else adci.CONF_OPTIONS_DEFAULT
+        )
 
         # Named async_ but doesn't require await!
         return self.async_create_entry(
-            title=self._config_title, data=self.config, options=self._imported_options
+            title=self._config_title, data=self.config, options=options
         )
 
     # #
