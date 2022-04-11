@@ -1,6 +1,6 @@
 # v0.2.4
 
-## 🧹 New Features
+## 💡 New Features
 
 1. Support for lights that don't report their state.
 
