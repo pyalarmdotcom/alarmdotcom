@@ -108,11 +108,7 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         if self._device_subtype_raw == ADCSensorSubtype.SMOKE_DETECTOR:
             return bsdc.SMOKE
         if self._device_subtype_raw == ADCSensorSubtype.CO_DETECTOR:
-            # CO was released in 2022.2.0. Need to use GAS for prior versions of Home Assistant.
-            try:
-                return bsdc.CO
-            except AttributeError:
-                return bsdc.GAS
+            return bsdc.CO
         if self._device_subtype_raw == ADCSensorSubtype.PANIC_BUTTON:
             return bsdc.SAFETY
         if self._device_subtype_raw in [

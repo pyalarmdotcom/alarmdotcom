@@ -1,8 +1,6 @@
 ---
 # https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
 
-default_language_version:
-  python: python3.9
 repos:
   - repo: https://github.com/sqlalchemyorg/zimports/
     rev: v0.4.5
@@ -19,7 +17,7 @@ repos:
       - id: autoflake
         files: ^(homeassistant|script|tests|custom_components)/.+\.py$
   - repo: https://github.com/psf/black
-    rev: 21.12b0
+    rev: 22.3.0
     hooks:
       - id: black
         args:

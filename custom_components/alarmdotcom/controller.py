@@ -249,6 +249,7 @@ class ADCIController:
                 "async_arm_home_callback": src_part.async_arm_stay,
                 "async_disarm_callback": src_part.async_disarm,
                 "async_arm_night_callback": src_part.async_arm_night,
+                "read_only": src_part.read_only,
             }
 
             entity_data[src_part.id_] = dest_part
@@ -303,6 +304,7 @@ class ADCIController:
                 "desired_state": src_lock.desired_state,
                 "async_lock_callback": src_lock.async_lock,
                 "async_unlock_callback": src_lock.async_unlock,
+                "read_only": src_lock.read_only,
             }
 
             entity_data[src_lock.id_] = dest_lock
@@ -327,6 +329,7 @@ class ADCIController:
                 "brightness": src_light.brightness,
                 "async_turn_on_callback": src_light.async_turn_on,
                 "async_turn_off_callback": src_light.async_turn_off,
+                "read_only": src_light.read_only,
             }
 
             entity_data[src_light.id_] = dest_light
@@ -350,6 +353,7 @@ class ADCIController:
                 "desired_state": src_garage.desired_state,
                 "async_close_callback": src_garage.async_close,
                 "async_open_callback": src_garage.async_open,
+                "read_only": src_garage.read_only,
             }
 
             entity_data[src_garage.id_] = dest_garage

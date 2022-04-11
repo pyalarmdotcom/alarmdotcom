@@ -147,6 +147,7 @@ class ADCIPartitionData(ADCIBaseEntity):
     system_id: NotRequired[str]
     state: ADCIPartitionState
     parent_id: str
+    read_only: bool
 
     async_disarm_callback: Callable
     async_arm_home_callback: Callable
@@ -173,6 +174,7 @@ class ADCILockData(ADCIBaseEntity):
     raw_state_text: str
     state: ADCILockState
     parent_id: str
+    read_only: bool
 
     async_lock_callback: Callable
     async_unlock_callback: Callable
@@ -189,6 +191,7 @@ class ADCILightData(ADCIBaseEntity):
     parent_id: str
     async_turn_on_callback: Callable
     async_turn_off_callback: Callable
+    read_only: bool
 
 
 class ADCIGarageDoorData(ADCIBaseEntity):
@@ -201,6 +204,7 @@ class ADCIGarageDoorData(ADCIBaseEntity):
     async_open_callback: Callable
     async_close_callback: Callable
     parent_id: str
+    read_only: bool
 
 
 class ADCIEntities(TypedDict):

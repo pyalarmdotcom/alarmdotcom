@@ -1,11 +1,14 @@
 {
-  "image": "ludeeus/container:integration-debian",
+  "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
   "name": "alarmdotcom",
   "appPort": ["8123:8123"],
+  "features": {
+    "github-cli": "latest"
+  },
   "containerEnv": {
     "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
   },
-  "postCreateCommand": "container install && pip install -r requirements-dev.txt && pre-commit install && pre-commit install-hooks",
+  "postCreateCommand": "container install && pip install --upgrade pip && pip install -r requirements-dev.txt && pre-commit install && pre-commit install-hooks",
   "extensions": [
     "ms-python.vscode-pylance",
     "esbenp.prettier-vscode",
@@ -41,8 +44,8 @@
     "python.linting.flake8Path": "/usr/local/bin/flake8",
     "python.linting.mypyPath": "/usr/local/bin/mypy",
     "python.linting.pycodestylePath": "/usr/local/bin/pycodestyle",
-    "python.linting.pylintPath": "/usr/local/bin/pylint",
-    "python.sortImports.path": "/usr/local/bin/isort",
+    "python.linting.pylintPath": "/usr/bin/local/pylint",
+    "python.sortImports.path": "/usr/bin/local/isort",
     "typescript.tsc.autoDetect": "off",
     "grunt.autoDetect": "off",
     "jake.autoDetect": "off",

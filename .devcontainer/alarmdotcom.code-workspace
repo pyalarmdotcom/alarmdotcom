@@ -1,0 +1,55 @@
+{
+  "folders": [
+	{
+		"path": ".."
+	},
+	{
+		"path": "../../pyalarmdotcomajax"
+	}
+],
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "bash",
+		"terminal.integrated.profiles.linux": {
+			"zsh": {
+				"path": "/bin/bash"
+			}
+		},
+		"files.associations": {
+			"*.yaml": "home-assistant"
+		},
+		"typescript.tsc.autoDetect": "off",
+		"files.eol": "\n",
+		"editor.tabSize": 4,
+		"python.analysis.autoSearchPaths": false,
+		"python.linting.pylintEnabled": true,
+		"python.linting.enabled": true,
+		"python.linting.pylintArgs": ["--disable", "import-error"],
+		"python.formatting.provider": "black",
+		"editor.formatOnPaste": false,
+		"editor.formatOnSave": true,
+		"editor.formatOnType": true,
+		"files.trimTrailingWhitespace": true,
+		"python.linting.mypyEnabled": true,
+		"python.defaultInterpreterPath": "/usr/local/bin/python",
+		"python.formatting.blackPath": "/usr/local/bin/black",
+		"python.linting.banditPath": "/usr/local/bin/bandit",
+		"python.linting.flake8Path": "/usr/local/bin/flake8",
+		"python.linting.mypyPath": "/usr/local/bin/mypy",
+		"python.linting.pycodestylePath": "/usr/local/bin/pycodestyle",
+		"python.linting.pylintPath": "/usr/local/bin/pylint",
+		"python.sortImports.path": "/usr/local/bin/isort",
+		"npm.autoDetect": "off"
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.vscode-pylance",
+			"esbenp.prettier-vscode",
+			"github.vscode-pull-request-github",
+			"ryanluker.vscode-coverage-gutters",
+			"bungcip.better-toml",
+			"donjayamanne.python-extension-pack",
+			"marklarah.pre-commit-vscode",
+			"davidanson.vscode-markdownlint"
+		]
+	},
+}

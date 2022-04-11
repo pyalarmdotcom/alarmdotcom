@@ -10,9 +10,10 @@ from homeassistant import config_entries
 from homeassistant import core
 from homeassistant.components import alarm_control_panel
 from homeassistant.components import persistent_notification
-from homeassistant.components.alarm_control_panel.const import SUPPORT_ALARM_ARM_AWAY
-from homeassistant.components.alarm_control_panel.const import SUPPORT_ALARM_ARM_HOME
-from homeassistant.components.alarm_control_panel.const import SUPPORT_ALARM_ARM_NIGHT
+from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
+from homeassistant.components.alarm_control_panel import SUPPORT_ALARM_ARM_AWAY
+from homeassistant.components.alarm_control_panel import SUPPORT_ALARM_ARM_HOME
+from homeassistant.components.alarm_control_panel import SUPPORT_ALARM_ARM_NIGHT
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ALARM_ARMED_AWAY
 from homeassistant.const import STATE_ALARM_ARMED_HOME
@@ -27,17 +28,6 @@ from pyalarmdotcomajax.entities import ADCPartition
 from . import ADCIEntity
 from . import const as adci
 from .controller import ADCIController
-
-# Needed for backward compatibility because of https://github.com/home-assistant/core/commit/6f7f5b4034bc55246a8fa170dd330b1edec9ea57.
-# AlarmControlPanel renamed AlarmControlPanelEntity in April 2020.
-try:
-    from homeassistant.components.alarm_control_panel import (
-        AlarmControlPanelEntity,
-    )
-except ImportError:
-    from homeassistant.components.alarm_control_panel import (
-        AlarmControlPanel as AlarmControlPanelEntity,
-    )
 
 log = logging.getLogger(__name__)
 
@@ -201,7 +191,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
             try:
                 await self.async_arm_night_callback(
                     force_bypass="bypass" in self._conf_arm_night,
-                    no_entry_delay="delay" in self._conf_arm_night,
+                    no_entry_delay="delay" not in self._conf_arm_night,
                     silent_arming="silent" in self._conf_arm_night,
                 )
             except PermissionError:
@@ -216,7 +206,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
             try:
                 await self.async_arm_home_callback(
                     force_bypass="bypass" in self._conf_arm_home,
-                    no_entry_delay="delay" in self._conf_arm_home,
+                    no_entry_delay="delay" not in self._conf_arm_home,
                     silent_arming="silent" in self._conf_arm_home,
                 )
             except PermissionError:
@@ -230,7 +220,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
             try:
                 await self.async_arm_away_callback(
                     force_bypass="bypass" in self._conf_arm_away,
-                    no_entry_delay="delay" in self._conf_arm_away,
+                    no_entry_delay="delay" not in self._conf_arm_away,
                     silent_arming="silent" in self._conf_arm_away,
                 )
             except PermissionError:

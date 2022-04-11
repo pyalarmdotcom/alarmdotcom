@@ -1,22 +1,19 @@
-# v0.2.3
+# v0.2.4
 
-## 💡New Features
+## 🧹 Housekeeping
 
-1. Support for lights! (On/off and dimmers only. No RGB support.)
-2. Added support for freeze sensors (#106).
-3. User-configurable refresh interval for polling Alarm.com (#99).
-4. Changes to integration options screens:
-   - Arming settings (force bypass, etc.) are now grouped under arming modes (arm home, etc.).
-   - Options screens are now paginated.
+1. CO sensor no longer compatible with Home Assistant versions prior to 2022.2. Minimum Home Assistant version for this integration set to 2022.2.
 
 ## 🐛Bug Fixes
 
-1. Fixed issue with night arming not working at all.
+1. Fixed issue with "Delayed Arming" toggle being reversed. Please update your settings after updating if you noticed this bug in v0.2.3 and changed settings accordingly.
 
 ## ❤️ Thanks for Contributing
 
 ### Code
-@hufman (via pyalarmdotcomajax), @elahd
+
+@elahd
 
 ### Beta Testing
-@AritroSaha10, @pdobrien3, @Valdorama, @Anto79-ops
+
+@BinaryShrub
