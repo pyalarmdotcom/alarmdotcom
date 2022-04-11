@@ -140,7 +140,7 @@ class ADCIController:
             # name="alarmdotcom",
             update_method=self.async_update,
             update_interval=timedelta(
-                seconds=self.config_entry.data.get(
+                seconds=self.config_entry.options.get(
                     adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT
                 )
             ),
