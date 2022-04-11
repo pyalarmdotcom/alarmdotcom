@@ -75,9 +75,18 @@ class ADCILight(ADCIEntity, LightEntity):  # type: ignore
         )
 
     @property
+    def assumed_state(self) -> bool:
+        """Return whether device reports state."""
+
+        return not self._device.get("supports_state_tracking", False)
+
+    @property
     def is_on(self) -> bool | None:
         """Return True if entity is on."""
-        if self._device.get("state") == ADCLight.DeviceState.ON:
+        if self._device.get("state") in [
+            ADCLight.DeviceState.ON,
+            ADCLight.DeviceState.LEVELCHANGE,
+        ]:
             return True
 
         if self._device.get("state") == ADCLight.DeviceState.OFF:

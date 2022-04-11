@@ -200,6 +200,7 @@ class ADCILightData(ADCIBaseEntity):
     async_turn_on_callback: Callable
     async_turn_off_callback: Callable
     read_only: bool
+    supports_state_tracking: bool
 
 
 class ADCIGarageDoorData(ADCIBaseEntity):

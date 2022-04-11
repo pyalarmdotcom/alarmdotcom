@@ -330,6 +330,7 @@ class ADCIController:
                 "async_turn_on_callback": src_light.async_turn_on,
                 "async_turn_off_callback": src_light.async_turn_off,
                 "read_only": src_light.read_only,
+                "supports_state_tracking": src_light.supports_state_tracking,
             }
 
             entity_data[src_light.id_] = dest_light
