@@ -1,2 +1,4 @@
 pre-commit==2.16.0
 pyalarmdotcomajax
+pylint==2.12.2
+pylint_strict_informational==0.1

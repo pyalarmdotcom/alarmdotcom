@@ -57,7 +57,9 @@ async def async_setup_entry(
 class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
     """Binary sensor device class."""
 
-    def __init__(self, controller: ADCIController, device_data: adci.ADCISensorData):
+    def __init__(
+        self, controller: ADCIController, device_data: adci.ADCISensorData
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 
@@ -151,7 +153,8 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
             ADCSensor.DeviceState.DRY,
         ]:
             return False
-        elif self._device.get("state") in [
+
+        if self._device.get("state") in [
             ADCSensor.DeviceState.OPEN,
             ADCSensor.DeviceState.ACTIVE,
             ADCSensor.DeviceState.WET,
@@ -164,7 +167,9 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
 class ADCIBatterySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
     """Returns low battery state for Alarm.com sensors and locks."""
 
-    def __init__(self, controller: ADCIController, device_data: adci.ADCISensorData):
+    def __init__(
+        self, controller: ADCIController, device_data: adci.ADCISensorData
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 
@@ -193,7 +198,9 @@ class ADCIBatterySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
 class ADCIProblemSensor(ADCIEntity, BinarySensorEntity):  # type: ignore
     """Returns malfunction state for Alarm.com sensors and locks."""
 
-    def __init__(self, controller: ADCIController, device_data: adci.ADCISensorData):
+    def __init__(
+        self, controller: ADCIController, device_data: adci.ADCISensorData
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 

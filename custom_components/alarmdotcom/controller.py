@@ -34,7 +34,9 @@ class ADCIController:
     _coordinator: DataUpdateCoordinator
     _alarm: ADCController
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry | None = None):
+    def __init__(
+        self, hass: HomeAssistant, config_entry: ConfigEntry | None = None
+    ) -> None:
         """Initialize the system."""
         self.hass: HomeAssistant = hass
         self.config_entry: ConfigEntry = config_entry
@@ -125,7 +127,7 @@ class ADCIController:
         if not reload:
             log.debug("%s: Registered update listener.", __name__)
             self.config_entry.async_on_unload(
-                self.config_entry.add_update_listener(self._async_update_listener)
+                self.config_entry.add_update_listener(_async_update_listener)
             )
 
         # This is indicitive of a problem. Just flag for now.
@@ -422,8 +424,7 @@ class ADCIController:
 
         return devices
 
-    async def _async_update_listener(
-        self, hass: HomeAssistant, entry: ConfigEntry
-    ) -> None:
-        """Handle options update."""
-        await hass.config_entries.async_reload(entry.entry_id)
+
+async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Refresh config entry when users updates configuration options."""
+    await hass.config_entries.async_reload(entry.entry_id)

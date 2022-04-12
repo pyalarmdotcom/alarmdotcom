@@ -5,7 +5,6 @@ from collections.abc import Callable
 import logging
 import re
 
-from custom_components.alarmdotcom.const import ADCIPartitionData
 from homeassistant import config_entries
 from homeassistant import core
 from homeassistant.components import alarm_control_panel
@@ -27,6 +26,7 @@ from pyalarmdotcomajax.entities import ADCPartition
 
 from . import ADCIEntity
 from . import const as adci
+from .const import ADCIPartitionData
 from .controller import ADCIController
 
 log = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ async def async_setup_entry(
 
     async_add_entities(
         ADCIControlPanel(
-            controller, controller.devices.get("entity_data", {}).get(partition_id)
+            controller, controller.devices.get("entity_data", {}).get(partition_id)  # type: ignore
         )
         for partition_id in controller.devices.get("partition_ids", [])
     )
@@ -82,7 +82,9 @@ async def async_setup_entry(
 class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
     """Alarm.com Alarm Control Panel entity."""
 
-    def __init__(self, controller: ADCIController, device_data: ADCIPartitionData):
+    def __init__(
+        self, controller: ADCIController, device_data: ADCIPartitionData
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
 
         super().__init__(controller, device_data)
@@ -141,26 +143,29 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
 
         if self._device.get("state") is None:
             return adci.STATE_MALFUNCTION
-
         if self._device.get("state") == ADCPartition.DeviceState.DISARMED:
             return str(STATE_ALARM_DISARMED)
-        elif self._device["state"] == ADCPartition.DeviceState.ARMED_STAY:
+        if self._device["state"] == ADCPartition.DeviceState.ARMED_STAY:
             return str(STATE_ALARM_ARMED_HOME)
-        elif self._device["state"] == ADCPartition.DeviceState.ARMED_AWAY:
+        if self._device["state"] == ADCPartition.DeviceState.ARMED_AWAY:
             return str(STATE_ALARM_ARMED_AWAY)
-        elif self._device["state"] == ADCPartition.DeviceState.ARMED_NIGHT:
+        if self._device["state"] == ADCPartition.DeviceState.ARMED_NIGHT:
             return str(STATE_ALARM_ARMED_NIGHT)
-        else:
-            return str(adci.STATE_MALFUNCTION)
+
+        return str(adci.STATE_MALFUNCTION)
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return entity specific state attributes."""
 
+        desired_state_name = None
+        if desired_state := self._device.get("desired_state"):
+            desired_state_name = desired_state.name.title()
+
         return dict(
             (super().extra_state_attributes or {})
             | {
-                "desired_state": self._device.get("desired_state").name.title(),
+                "desired_state": desired_state_name,
                 "uncleared_issues": self._device.get("uncleared_issues"),
             }
         )

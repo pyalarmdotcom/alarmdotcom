@@ -40,7 +40,9 @@ async def async_setup_entry(
 class ADCILight(ADCIEntity, LightEntity):  # type: ignore
     """Integration Light Entity."""
 
-    def __init__(self, controller: ADCIController, device_data: adci.ADCILightData):
+    def __init__(
+        self, controller: ADCIController, device_data: adci.ADCILightData
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 

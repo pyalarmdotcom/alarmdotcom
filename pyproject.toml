@@ -1,48 +1,37 @@
 [build-system]
-requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+requires = ["setuptools", "wheel"]
+
+[tool.bandit]
+tests = ["B103","B108","B306","B307","B313","B314","B315","B316","B317","B318","B319","B320","B325","B601","B602","B604","B608","B609"]
 
 [tool.black]
+exclude = 'generated'
 line-length = 88
 target-version = ["py39"]
-exclude = 'generated'
 
-[tool.zimports]
-black-line-length = 88
-keep-unused-type-checking = true
-
-# [tool.isort]
-# # https://github.com/PyCQA/isort/wiki/isort-Settings
-# profile = "black"
-# # will group `import x` and `from x import` of the same module.
-# force_sort_within_sections = true
-# known_first_party = [
-#     "alarmdotcom",
-#     "tests",
-# ]
-# forced_separate = [
-#     "tests",
-# ]
-# combine_as_imports = true
-
-[tool.pylint.MASTER]
-py-version = "3.9"
-ignore = [
-    "tests",
-]
-# Use a conservative default here; 2 should speed up most setups and not hurt
-# any too bad. Override on command line as appropriate.
-jobs = 2
-# init-hook='from pylint.config.find_default_config_files import find_default_config_files; from pathlib import Path; import sys; sys.path.append(str(Path(Path(list(find_default_config_files())[0]).parent, "pylint/plugins")))'
-load-plugins = [
-    "pylint.extensions.code_style",
-    "pylint.extensions.typing",
-    "pylint_strict_informational",
-    # "hass_constructor",
-    # "hass_imports",
-    # "hass_logger",
-]
-persistent = false
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+follow_imports = "silent"
+ignore_missing_imports = true
+no_implicit_optional = true
+pretty = true
+python_version = "3.9"
+show_absolute_path = true
+show_error_codes = true
+show_error_context = true
+strict_equality = true
+warn_incomplete_stub = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
 
 [tool.pylint.BASIC]
 class-const-naming-style = "any"
@@ -60,25 +49,46 @@ good-names = [
     "ip",
 ]
 
+[tool.pylint.CODE_STYLE]
+max-line-length-suggestions = 88
+
+[tool.pylint.EXCEPTIONS]
+overgeneral-exceptions = [
+    "BaseException",
+    "Exception",
+    "HomeAssistantError",
+]
+
+[tool.pylint.FORMAT]
+expected-line-ending-format = "LF"
+max-line-length = "88"
+
+[tool.pylint.MASTER]
+ignore = [
+    "tests",
+]
+jobs = 4
+init-hook = """\
+    from pathlib import Path; \
+    import sys; \
+    from pylint.config import find_default_config_files; \
+    sys.path.append( \
+        str(Path(next(find_default_config_files())).parent.joinpath('pylint/plugins'))
+    ) \
+    """
+load-plugins = [
+    "pylint.extensions.code_style",
+    "pylint.extensions.typing",
+    "pylint_strict_informational",
+    "hass_constructor",
+    "hass_imports",
+    "hass_logger",
+    "hass_enforce_type_hints",
+]
+persistent = false
+py-version = "3.9"
+
 [tool.pylint."MESSAGES CONTROL"]
-# Reasons disabled:
-# format - handled by black
-# locally-disabled - it spams too much
-# duplicate-code - unavoidable
-# cyclic-import - doesn't test if both import on load
-# abstract-class-little-used - prevents from setting right foundation
-# unused-argument - generic callbacks and setup methods create a lot of warnings
-# too-many-* - are not enforced for the sake of readability
-# too-few-* - same as too-many-*
-# abstract-method - with intro of async there are always methods missing
-# inconsistent-return-statements - doesn't handle raise
-# too-many-ancestors - it's too strict.
-# wrong-import-order - isort guards this
-# consider-using-f-string - str.format sometimes more readable
-# ---
-# Enable once current issues are fixed:
-# consider-using-namedtuple-or-dataclass (Pylint CodeStyle extension)
-# consider-using-assignment-expr (Pylint CodeStyle extension)
 disable = [
     "format",
     "abstract-class-little-used",
@@ -104,7 +114,7 @@ disable = [
     "consider-using-f-string",
     "consider-using-namedtuple-or-dataclass",
     "consider-using-assignment-expr",
-    "C0330", "C0326"
+    "C0330", "C0326", "W0706"
 ]
 enable = [
     #"useless-suppression",  # temporarily every now and then to clean them up
@@ -120,54 +130,25 @@ ignored-classes = [
 ]
 mixin-class-rgx = ".*[Mm]ix[Ii]n"
 
-[tool.pylint.FORMAT]
-expected-line-ending-format = "LF"
-max-line-length = "88"
-
-[tool.pylint.EXCEPTIONS]
-overgeneral-exceptions = [
-    "BaseException",
-    "Exception",
-    "HomeAssistantError",
-]
-
 [tool.pylint.TYPING]
 runtime-typing = false
 
-[tool.pylint.CODE_STYLE]
-max-line-length-suggestions = 88
-
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
 norecursedirs = [
     ".git",
     "testing_config",
 ]
+testpaths = [
+    "tests",
+]
 
-[tool.bandit]
-tests = ["B103","B108","B306","B307","B313","B314","B315","B316","B317","B318","B319","B320","B325","B601","B602","B604","B608","B609"]
+[tool.tomlsort]
+all = false
+check = false
+ignore_case = true
+in_place = true
+no_header = false
 
-[tool.mypy]
-python_version = "3.9"
-show_error_codes = true
-follow_imports = "silent"
-ignore_missing_imports = true
-strict_equality = true
-warn_incomplete_stub = true
-warn_redundant_casts = true
-warn_unused_configs = true
-warn_unused_ignores = true
-check_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_untyped_decorators = true
-disallow_untyped_defs = true
-no_implicit_optional = true
-warn_return_any = true
-warn_unreachable = true
-pretty = true
-show_absolute_path = true
-show_error_context = true
+[tool.zimports]
+black-line-length = 88
+keep-unused-type-checking = true

@@ -43,7 +43,7 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
 
     def __init__(
         self, controller: ADCIController, device_data: adci.ADCIGarageDoorData
-    ):
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 

@@ -12,9 +12,6 @@ from homeassistant.components import lock
 from homeassistant.components import persistent_notification
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_JAMMED
-from homeassistant.const import STATE_LOCKED
-from homeassistant.const import STATE_UNLOCKED
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
@@ -76,7 +73,9 @@ async def async_setup_entry(
 class ADCILock(ADCIEntity, LockEntity):  # type: ignore
     """Integration Lock Entity."""
 
-    def __init__(self, controller: ADCIController, device_data: adci.ADCILockData):
+    def __init__(
+        self, controller: ADCIController, device_data: adci.ADCILockData
+    ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device_data)
 
@@ -109,18 +108,16 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
         return str(lock.ATTR_CODE_FORMAT)
 
     @property
-    def is_locked(self) -> STATE_LOCKED | STATE_UNLOCKED | STATE_JAMMED | None:
+    def is_locked(self) -> bool | None:
         """Return true if the lock is locked."""
 
         if not self._device.get("malfunction"):
+
             if self._device.get("state") == ADCLock.DeviceState.LOCKED:
-                return STATE_LOCKED
+                return True
 
             if self._device.get("state") == ADCLock.DeviceState.UNLOCKED:
-                return STATE_UNLOCKED
-
-            if self._device.get("state") == ADCLock.DeviceState.FAILED:
-                return STATE_JAMMED
+                return False
 
         return None
 
