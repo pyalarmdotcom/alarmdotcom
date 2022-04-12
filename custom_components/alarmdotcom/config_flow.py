@@ -82,15 +82,14 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 if login_result == AuthResult.ENABLE_TWO_FACTOR:
                     return self.async_abort(reason="must_enable_2fa")
 
-                elif login_result == AuthResult.OTP_REQUIRED:
+                if login_result == AuthResult.OTP_REQUIRED:
                     log.debug("OTP code required.")
                     return await self.async_step_otp()
 
-                elif login_result == AuthResult.SUCCESS:
+                if login_result == AuthResult.SUCCESS:
                     return await self.async_step_final()
 
-                else:
-                    errors["base"] = "unknown"
+                errors["base"] = "unknown"
 
             except (UpdateFailed, ConfigEntryNotReady) as err:
                 log.error(

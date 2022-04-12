@@ -20,6 +20,18 @@
       "problemMatcher": []
     },
     {
+      "label": "Run pre-commit: pylint.",
+      "type": "shell",
+      "command": "pre-commit run pylint --all-files",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run pre-commit: auto-update.",
+      "type": "shell",
+      "command": "pre-commit autoupdate",
+      "problemMatcher": []
+    },
+    {
       "label": "Run Home Assistant on port 8123",
       "type": "shell",
       "command": "container start",
