@@ -5,7 +5,7 @@
   "issue_tracker": "https://www.github.com/uvjustin/alarmdotcom/issues",
   "requirements": ["beautifulsoup4==4.10.0", "pyalarmdotcomajax==0.2.6"],
   "dependencies": [],
-  "version": "0.2.5",
+  "version": "0.2.5-hotfix.1+064fed1",
   "codeowners": ["@uvjustin", "@elahd"],
   "iot_class": "cloud_polling",
   "config_flow": true
