@@ -22,6 +22,8 @@ If you have any issues with this you need to open an issue here:
 
 STATE_MALFUNCTION = "Malfunction"
 
+DEBUG_REQ_EVENT = "alarmdotcom_debug_request"
+
 # ADC Binary Sensor Types
 ADC_BINARY_TYPE_UNKNOWN = "generic_sensor"
 ADC_BINARY_TYPE_CONTACT = "contact_sensor"
@@ -137,6 +139,7 @@ class ADCIBaseEntity(TypedDict):
     battery_low: NotRequired[bool]
     malfunction: NotRequired[bool]
     mac_address: NotRequired[str]
+    debug_data: NotRequired[str]
 
 
 class ADCISystemData(ADCIBaseEntity):
@@ -161,6 +164,13 @@ class ADCIPartitionData(ADCIBaseEntity):
     async_arm_home_callback: Callable
     async_arm_away_callback: Callable
     async_arm_night_callback: Callable
+
+
+class ADCIDebugButtonData(ADCIBaseEntity):
+    """Dict for an ADCI debug button."""
+
+    system_id: NotRequired[str]
+    parent_id: str
 
 
 class ADCISensorData(ADCIBaseEntity):
@@ -236,6 +246,7 @@ class ADCIEntities(TypedDict):
     garage_door_ids: set[str]
     low_battery_ids: set[str]
     malfunction_ids: set[str]
+    debug_ids: set[str]
 
 
 class ADCIDevices:
