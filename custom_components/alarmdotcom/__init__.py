@@ -6,6 +6,7 @@ from typing import Any
 
 from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import Event
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -22,6 +23,7 @@ PLATFORMS: list[str] = [
     "lock",
     "cover",
     "light",
+    "button",
 ]
 
 
@@ -95,6 +97,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                     identifier[1] in current_device_ids
                     or f"{identifier[1]}_low_battery" in current_device_ids
                     or f"{identifier[1]}_malfunction" in current_device_ids
+                    or f"{identifier[1]}_debug" in current_device_ids
                 ):
 
                     break
@@ -112,6 +115,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     hass.data[adci.DOMAIN][config_entry.entry_id] = controller
 
     hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
+
+    async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
+        """Dump debug data when requested via Home Assistant event."""
+
+        entity_data = controller.devices.get("entity_data", {}).get(event.data.get("device_id"), {})  # type: ignore
+
+        log.warning(
+            "ALARM.COM DEBUG DATA FOR %s: %s",
+            entity_data.get("name", "").upper(),
+            entity_data,
+        )
+
+    hass.bus.async_listen(adci.DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
 
     return True
 

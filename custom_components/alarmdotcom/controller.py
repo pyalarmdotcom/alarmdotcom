@@ -211,6 +211,7 @@ class ADCIController:
         garage_door_ids: set[str] = set()
         low_battery_ids: set[str] = set()
         malfunction_ids: set[str] = set()
+        debug_ids: set[str] = set()
 
         log.debug("Processing systems.")
 
@@ -225,6 +226,7 @@ class ADCIController:
                 "malfunction": src_sys.malfunction,
                 "unit_id": src_sys.unit_id,
                 "mac_address": src_sys.mac_address,
+                "debug_data": src_sys.debug_data,
             }
 
             entity_data[src_sys.id_] = dest_sys
@@ -252,6 +254,7 @@ class ADCIController:
                 "async_disarm_callback": src_part.async_disarm,
                 "async_arm_night_callback": src_part.async_arm_night,
                 "read_only": src_part.read_only,
+                "debug_data": src_part.debug_data,
             }
 
             entity_data[src_part.id_] = dest_part
@@ -282,6 +285,7 @@ class ADCIController:
                 "mac_address": src_sensor.mac_address,
                 "raw_state_text": src_sensor.raw_state_text,
                 "device_subtype": src_sensor.device_subtype,
+                "debug_data": src_sensor.debug_data,
             }
 
             entity_data[src_sensor.id_] = dest_sensor
@@ -307,6 +311,7 @@ class ADCIController:
                 "async_lock_callback": src_lock.async_lock,
                 "async_unlock_callback": src_lock.async_unlock,
                 "read_only": src_lock.read_only,
+                "debug_data": src_lock.debug_data,
             }
 
             entity_data[src_lock.id_] = dest_lock
@@ -333,6 +338,7 @@ class ADCIController:
                 "async_turn_off_callback": src_light.async_turn_off,
                 "read_only": src_light.read_only,
                 "supports_state_tracking": src_light.supports_state_tracking,
+                "debug_data": src_light.debug_data,
             }
 
             entity_data[src_light.id_] = dest_light
@@ -357,6 +363,7 @@ class ADCIController:
                 "async_close_callback": src_garage.async_close,
                 "async_open_callback": src_garage.async_open,
                 "read_only": src_garage.read_only,
+                "debug_data": src_garage.debug_data,
             }
 
             entity_data[src_garage.id_] = dest_garage
@@ -388,6 +395,8 @@ class ADCIController:
         # Process "virtual" malfunction sensors for sensors, locks, lights, and partitions.
         for parent_id in sensor_ids.union(lock_ids, partition_ids):
 
+            # TODO: Add garage door malfunction sensors.
+
             malfunction_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData = entity_data[
                 parent_id
             ]
@@ -408,6 +417,30 @@ class ADCIController:
             entity_data[dest_malfunction["unique_id"]] = dest_malfunction
             malfunction_ids.add(dest_malfunction["unique_id"])
 
+        # Process debug buttons for all entities.
+        for parent_id in sensor_ids.union(
+            lock_ids, partition_ids, light_ids, garage_door_ids, system_ids
+        ):
+
+            debug_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData | adci.ADCIGarageDoorData | adci.ADCISystemData = entity_data[
+                parent_id
+            ]
+
+            dest_debug: adci.ADCIDebugButtonData = {
+                "unique_id": f"{debug_parent.get('unique_id')}_debug",
+                "name": f"{debug_parent.get('name')}: Debug",
+                "parent_id": debug_parent["unique_id"],
+            }
+
+            log.debug(
+                "%s: %s",
+                debug_parent.get("unique_id"),
+                debug_parent.get("name"),
+            )
+
+            entity_data[dest_debug["unique_id"]] = dest_debug
+            debug_ids.add(dest_debug["unique_id"])
+
         # Load objects to devices dict:
 
         devices: adci.ADCIEntities = {
@@ -420,6 +453,7 @@ class ADCIController:
             "garage_door_ids": garage_door_ids,
             "low_battery_ids": low_battery_ids,
             "malfunction_ids": malfunction_ids,
+            "debug_ids": debug_ids,
         }
 
         return devices
