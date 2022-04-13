@@ -2,7 +2,8 @@
 
 ## 🐛 Bug Fixes
 
-Fixes bug in which locks always report locked state. ([#113](https://github.com/uvjustin/alarmdotcom/issues/113))
+1. Fixes bug in which locks always report locked state. ([#113](https://github.com/uvjustin/alarmdotcom/issues/113))
+2. Added button sub-entities to each Alarm.com component. These buttons let users easily dump entity data to the Home Assistant log, reducing friction when reporting issues to developers.
 
 ## 🧹 Housekeeping
 
