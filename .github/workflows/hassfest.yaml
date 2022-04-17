@@ -1,7 +1,8 @@
 name: HACS Validation
 
-on:
+on: # yamllint disable-line rule:truthy
   push:
+    branches: [master]
   pull_request:
   schedule:
     - cron: "0 0 * * *"

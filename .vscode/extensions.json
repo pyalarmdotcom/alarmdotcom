@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "yzhang.markdown-all-in-one",
+        "ms-python.vscode-pylance",
+        "github.vscode-pull-request-github",
+        "ryanluker.vscode-coverage-gutters",
+        "bungcip.better-toml",
+        "donjayamanne.python-extension-pack",
+        "marklarah.pre-commit-vscode",
+        "davidanson.vscode-markdownlint"
+    ]
+}

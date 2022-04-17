@@ -89,10 +89,20 @@ class ADCIController:
                 return login_result
 
         except ConnectionError as err:
+            log.error(
+                "%s: Error logging in: %s",
+                __name__,
+                err,
+            )
             raise UpdateFailed("Error communicating with alarm.com") from err
         except AuthenticationFailed as err:
             raise ConfigEntryAuthFailed("Invalid account credentials.") from err
-        except (asyncio.TimeoutError, aiohttp.ClientError):
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            log.error(
+                "%s: Error logging in: %s",
+                __name__,
+                err,
+            )
             # Handled by Home Assistant Update Coordinator.
             raise
 
@@ -198,7 +208,12 @@ class ADCIController:
         except AuthenticationFailed as err:
             raise ConfigEntryAuthFailed("Invalid account credentials.") from err
 
-        except (asyncio.TimeoutError, aiohttp.ClientError):
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            log.error(
+                "%s: Update failed: %s",
+                __name__,
+                err,
+            )
             # Handled by Home Assistant Update Coordinator
             raise
 

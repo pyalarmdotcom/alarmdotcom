@@ -1,23 +1,26 @@
 {
   "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
   "name": "alarmdotcom",
-  "appPort": ["8123:8123"],
+  "appPort": [
+    "8123:8123"
+  ],
   "features": {
     "github-cli": "latest"
   },
   "containerEnv": {
-    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
+    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom",
+    "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh"
   },
   "postCreateCommand": "container install && pip install --upgrade pip && pip install -r requirements-dev.txt && pre-commit install && pre-commit install-hooks",
   "extensions": [
     "ms-python.vscode-pylance",
-    "esbenp.prettier-vscode",
     "github.vscode-pull-request-github",
     "ryanluker.vscode-coverage-gutters",
     "bungcip.better-toml",
     "donjayamanne.python-extension-pack",
     "marklarah.pre-commit-vscode",
-    "davidanson.vscode-markdownlint"
+    "davidanson.vscode-markdownlint",
+    "yzhang.markdown-all-in-one",
   ],
   "settings": {
     "files.eol": "\n",
@@ -31,7 +34,10 @@
     "python.analysis.autoSearchPaths": false,
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "python.linting.pylintArgs": ["--disable", "import-error"],
+    "python.linting.pylintArgs": [
+      "--disable",
+      "import-error"
+    ],
     "python.formatting.provider": "black",
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,
