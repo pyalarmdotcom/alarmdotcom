@@ -40,6 +40,8 @@ async def async_setup_entry(
 class ADCILight(ADCIEntity, LightEntity):  # type: ignore
     """Integration Light Entity."""
 
+    _device_type_name: str = "Light"
+
     def __init__(
         self, controller: ADCIController, device_data: adci.ADCILightData
     ) -> None:

@@ -41,6 +41,8 @@ async def async_setup_entry(
 class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
     """Integration Cover Entity."""
 
+    _device_type_name: str = "Garage Door"
+
     def __init__(
         self, controller: ADCIController, device_data: adci.ADCIGarageDoorData
     ) -> None:

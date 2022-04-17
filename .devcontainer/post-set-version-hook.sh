@@ -13,9 +13,10 @@ fi
 mkdir -p "$git_dir"
 
 if [ "$(git -C "$git_dir" config --get remote.origin.url)" == "$repo_url" ]; then
+    git -C "$git_dir" fetch
     git -C "$git_dir" checkout tags/"$1"
 else
-    git clone "$repo_url" --branch "$version" "$git_dir"
+    git clone "$repo_url" --branch "$1" "$git_dir"
 fi
 
 mkdir -p "$dev_dir"/pylint/plugins

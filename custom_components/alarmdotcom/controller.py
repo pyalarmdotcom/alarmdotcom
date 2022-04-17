@@ -25,9 +25,6 @@ from .errors import PartialInitialization
 log = logging.getLogger(__name__)
 
 
-# TODO: Commands and statuses here and in each platform file are too tightly coupled to pyalarmdotcomajax constants. Should have own constants instead.
-
-
 class ADCIController:
     """Manages a single Alarm.com instance."""
 
@@ -149,7 +146,6 @@ class ADCIController:
             self.hass,
             log,
             name=self.config_entry.title,
-            # name="alarmdotcom",
             update_method=self.async_update,
             update_interval=timedelta(
                 seconds=self.config_entry.options.get(
@@ -407,12 +403,12 @@ class ADCIController:
 
         log.debug("Processing malfunction sensors.")
 
-        # Process "virtual" malfunction sensors for sensors, locks, lights, and partitions.
-        for parent_id in sensor_ids.union(lock_ids, partition_ids):
+        # Process "virtual" malfunction sensors for sensors, locks, lights, garage doors, and partitions.
+        for parent_id in sensor_ids.union(
+            lock_ids, partition_ids, garage_door_ids, light_ids
+        ):
 
-            # TODO: Add garage door malfunction sensors.
-
-            malfunction_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData = entity_data[
+            malfunction_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData | adci.ADCIGarageDoorData = entity_data[
                 parent_id
             ]
 

@@ -5,9 +5,10 @@ from enum import Enum
 import logging
 import re
 from typing import Any
+from typing import cast
 
 from homeassistant import core
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass as bsdc
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import EntityCategory
@@ -75,7 +76,7 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         # Try to determine whether contact sensor is for a window or door by matching strings.
         # Do this in __init__ because it's expensive.
         # We don't want to run this logic on every update.
-        self._derived_class: bsdc = None
+        self._derived_class: BinarySensorDeviceClass = None
         if self._device_subtype_raw == ADCSensorSubtype.CONTACT_SENSOR:
             for _, word in LANG_DOOR:
                 if (
@@ -86,7 +87,7 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
                     )
                     is not None
                 ):
-                    self._derived_class = bsdc.DOOR
+                    self._derived_class = BinarySensorDeviceClass.DOOR
             for _, word in LANG_WINDOW:
                 if (
                     re.search(
@@ -96,10 +97,25 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
                     )
                     is not None
                 ):
-                    self._derived_class = bsdc.WINDOW
+                    self._derived_class = BinarySensorDeviceClass.WINDOW
 
     @property
-    def device_class(self) -> bsdc:
+    def device_type_name(self) -> str:
+        """Return human readable device type name based on device class."""
+
+        device_class: BinarySensorDeviceClass | None = self._device.get("device_class")
+
+        try:
+            return (
+                cast(str, BinarySensorDeviceClass[device_class].value)
+                .replace("_", " ")
+                .title()
+            )
+        except AttributeError:
+            return "Sensor"
+
+    @property
+    def device_class(self) -> BinarySensorDeviceClass:
         """Return type of binary sensor."""
 
         if (
@@ -108,30 +124,34 @@ class ADCIBinarySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         ):
             return self._derived_class
         if self._device_subtype_raw == ADCSensorSubtype.SMOKE_DETECTOR:
-            return bsdc.SMOKE
+            return BinarySensorDeviceClass.SMOKE
         if self._device_subtype_raw == ADCSensorSubtype.CO_DETECTOR:
-            return bsdc.CO
+            return BinarySensorDeviceClass.CO
         if self._device_subtype_raw == ADCSensorSubtype.PANIC_BUTTON:
-            return bsdc.SAFETY
+            return BinarySensorDeviceClass.SAFETY
         if self._device_subtype_raw in [
             ADCSensorSubtype.GLASS_BREAK_DETECTOR,
             ADCSensorSubtype.PANEL_GLASS_BREAK_DETECTOR,
         ]:
-            return bsdc.VIBRATION
+            return BinarySensorDeviceClass.VIBRATION
         if self._device_subtype_raw in [
             ADCSensorSubtype.MOTION_SENSOR,
             ADCSensorSubtype.PANEL_MOTION_SENSOR,
         ]:
-            return bsdc.MOTION
+            return BinarySensorDeviceClass.MOTION
         if self._device_subtype_raw == ADCSensorSubtype.FREEZE_SENSOR:
-            return bsdc.COLD
+            return BinarySensorDeviceClass.COLD
 
         return None
 
     @property
     def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
-        if self.device_class in [bsdc.SMOKE, bsdc.CO, bsdc.GAS]:
+        if self.device_class in [
+            BinarySensorDeviceClass.SMOKE,
+            BinarySensorDeviceClass.CO,
+            BinarySensorDeviceClass.GAS,
+        ]:
             if not self.available:
                 return "mdi:smoke-detector-variant-off"
             if self.is_on:
@@ -174,7 +194,7 @@ class ADCIBatterySensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         super().__init__(controller, device_data)
 
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_device_class = bsdc.BATTERY
+        self._attr_device_class = BinarySensorDeviceClass.BATTERY
 
     @property
     def device_info(self) -> dict[str, Any]:
@@ -205,7 +225,7 @@ class ADCIProblemSensor(ADCIEntity, BinarySensorEntity):  # type: ignore
         super().__init__(controller, device_data)
 
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        self._attr_device_class = bsdc.PROBLEM
+        self._attr_device_class = BinarySensorDeviceClass.PROBLEM
 
     @property
     def device_info(self) -> dict[str, Any]:
