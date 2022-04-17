@@ -44,7 +44,7 @@ _MODULE_FILTERS: dict[str, re.Pattern] = {
     # diagnostics matches only in the package root (diagnostics.py)
     "diagnostics": re.compile(r"^homeassistant\.components\.\w+\.(diagnostics)$"),
     # config_flow matches only in the package root (config_flow.py)
-    "config_flow": re.compile(r"^homeassistant\.components\.\w+\.(config_flow)$"),
+    "config_flow": re.compile(r"^homeassistant\.components\.\w+\.(config_flow)$")
 }
 
 _METHOD_MATCH: list[TypeHintMatch] = [
