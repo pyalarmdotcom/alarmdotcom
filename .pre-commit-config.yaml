@@ -1,21 +1,20 @@
----
-# https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
+# https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
 
 repos:
-  - repo: https://github.com/sqlalchemyorg/zimports/
-    rev: v0.5.0
-    hooks:
-      - id: zimports
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.32.0
     hooks:
       - id: pyupgrade
         args: [--py39-plus]
+  - repo: https://github.com/sqlalchemyorg/zimports/
+    rev: v0.5.0
+    hooks:
+      - id: zimports
   - repo: https://github.com/myint/autoflake/
     rev: v1.4
     hooks:
       - id: autoflake
-        files: ^(homeassistant|script|tests|custom_components)/.+\.py$
+        files: ^(tests|custom_components)/.+\.py$
   - repo: https://github.com/psf/black
     rev: 22.3.0
     hooks:
@@ -23,7 +22,7 @@ repos:
         args:
           - --safe
           - --quiet
-        files: ^(homeassistant|script|tests|custom_components)/.+\.py$
+        files: ^(tests|custom_components)/.+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:
@@ -40,7 +39,7 @@ repos:
         additional_dependencies:
           - flake8-docstrings==1.5.0
           - pydocstyle==5.1.1
-        files: ^(homeassistant|script|tests|custom_components)/.+\.py$
+        files: ^(tests|custom_components)/.+\.py$
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
@@ -49,7 +48,12 @@ repos:
           - --quiet
           - --format=custom
           - --exclude=examples
-        files: ^(homeassistant|script|tests|custom_components)/.+\.py$
+        files: ^(tests|custom_components)/.+\.py$
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.26.3
+    hooks:
+      - id: yamllint
+        exclude: (.vscode|.devcontainer|pylint|.github)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.2.0
     hooks:
@@ -65,10 +69,6 @@ repos:
       - id: mypy
         exclude: (.vscode|.devcontainer|pylint)
         additional_dependencies: [types-all]
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.6.2
-    hooks:
-      - id: prettier
   - repo: https://github.com/pappasam/toml-sort
     rev: v0.20.0
     hooks:
@@ -83,4 +83,4 @@ repos:
         exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/alarmdotcom/__pycache__|pylint)
         args:
           - --output-format=colorized
-          - -d W0511 # ignores TODO messages when running via pre-commit
+          - -d W0511  # ignores TODO messages when running via pre-commit
