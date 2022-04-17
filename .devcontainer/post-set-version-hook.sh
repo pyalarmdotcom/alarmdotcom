@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 git_dir="/tmp/ver"
-dev_dir="/ha-dev"
+dev_dir="/workspaces/alarmdotcom"
 repo_url="https://github.com/home-assistant/core.git"
 
 if [ -z "$1" ]; then
@@ -18,8 +18,9 @@ else
     git clone "$repo_url" --branch "$version" "$git_dir"
 fi
 
-mkdir -p "$dev_dir"
+mkdir -p "$dev_dir"/pylint/plugins
 
-if [ "$(readlink "$dev_dir"/pylint)" != "$dev_dir"/pylint ]; then
-    ln -sf /tmp/ver/pylint /ha-dev/pylint
+if [ "$(readlink "$dev_dir"/pylint)" != "$git_dir"/pylint ]; then
+    rm -rf "$dev_dir"/pylint/plugins
+    cp -r "$git_dir"/pylint/plugins "$dev_dir"/pylint/plugins
 fi

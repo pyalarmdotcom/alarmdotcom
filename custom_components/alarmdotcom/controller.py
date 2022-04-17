@@ -434,10 +434,10 @@ class ADCIController:
 
         # Process debug buttons for all entities.
         for parent_id in sensor_ids.union(
-            lock_ids, partition_ids, light_ids, garage_door_ids, system_ids
+            lock_ids, partition_ids, light_ids, garage_door_ids
         ):
 
-            debug_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData | adci.ADCIGarageDoorData | adci.ADCISystemData = entity_data[
+            debug_parent: adci.ADCISensorData | adci.ADCILockData | adci.ADCILightData | adci.ADCIPartitionData | adci.ADCIGarageDoorData = entity_data[
                 parent_id
             ]
 
