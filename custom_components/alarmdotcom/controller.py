@@ -10,6 +10,8 @@ import async_timeout
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -37,6 +39,7 @@ class ADCIController:
         """Initialize the system."""
         self.hass: HomeAssistant = hass
         self.config_entry: ConfigEntry = config_entry
+        self._timeout_count: int = 0
 
     @property
     def devices(self) -> adci.ADCIEntities:
@@ -69,6 +72,7 @@ class ADCIController:
         username: str,
         password: str,
         twofactorcookie: str,
+        new_websession: bool = False,
     ) -> AuthResult:
         """Log into Alarm.com."""
 
@@ -76,32 +80,36 @@ class ADCIController:
             self._alarm = ADCController(
                 username=username,
                 password=password,
-                websession=async_get_clientsession(self.hass),
+                websession=async_create_clientsession(self.hass)
+                if new_websession
+                else async_get_clientsession(self.hass),
                 twofactorcookie=twofactorcookie,
             )
 
-            async with async_timeout.timeout(45):
+            async with async_timeout.timeout(60):
+
                 login_result = await self._alarm.async_login()
 
                 return login_result
 
-        except ConnectionError as err:
-            log.error(
-                "%s: Error logging in: %s",
-                __name__,
-                err,
-            )
-            raise UpdateFailed("Error communicating with alarm.com") from err
+        except UnexpectedDataStructure as err:
+            raise UpdateFailed(
+                "Alarm.com returned data in an unexpected format."
+            ) from err
         except AuthenticationFailed as err:
             raise ConfigEntryAuthFailed("Invalid account credentials.") from err
-        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+        except (
+            asyncio.TimeoutError,
+            aiohttp.ClientError,
+            asyncio.exceptions.CancelledError,
+            ConnectionError,
+        ) as err:
             log.error(
                 "%s: Error logging in: %s",
                 __name__,
                 err,
             )
-            # Handled by Home Assistant Update Coordinator.
-            raise
+            raise err
 
     async def async_send_otp(self, code: int) -> None:
         """Submit two-factor authentication code and return two factor authentication cookie."""
@@ -125,11 +133,21 @@ class ADCIController:
         if not self.config_entry:
             raise PartialInitialization
 
-        await self.async_login(
-            username=self.config_entry.data[adci.CONF_USERNAME],
-            password=self.config_entry.data[adci.CONF_PASSWORD],
-            twofactorcookie=self.config_entry.data.get(adci.CONF_2FA_COOKIE),
-        )
+        try:
+            await self.async_login(
+                username=self.config_entry.data[adci.CONF_USERNAME],
+                password=self.config_entry.data[adci.CONF_PASSWORD],
+                twofactorcookie=self.config_entry.data.get(adci.CONF_2FA_COOKIE),
+            )
+        except (
+            asyncio.TimeoutError,
+            aiohttp.ClientError,
+            asyncio.exceptions.CancelledError,
+            ConnectionError,
+        ) as err:
+            raise ConfigEntryNotReady from err
+        except (ConfigEntryAuthFailed, ConfigEntryNotReady) as err:
+            raise err
 
         if not reload:
             log.debug("%s: Registered update listener.", __name__)

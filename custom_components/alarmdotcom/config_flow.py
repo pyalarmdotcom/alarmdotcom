@@ -75,6 +75,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                     username=self.config[adci.CONF_USERNAME],
                     password=self.config[adci.CONF_PASSWORD],
                     twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
+                    new_websession=True,
                 )
 
                 log.debug("Login result: %s", login_result)
@@ -230,6 +231,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 username=self.config[adci.CONF_USERNAME],
                 password=self.config[adci.CONF_PASSWORD],
                 twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
+                new_websession=True,
             )
 
             log.debug("Login result: %s", login_result)
@@ -333,8 +335,6 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
     ) -> FlowResult:
         """First screen for configuration options. Sets arming mode profiles."""
         errors: dict = {}
-
-        # TODO: Update interval will not take effect until HA reboots. We need to either force reboot message or find a way around this, maybe updating the coordinator directly.
 
         if user_input is not None:
             self.options.update(user_input)
