@@ -82,6 +82,8 @@ async def async_setup_entry(
 class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
     """Alarm.com Alarm Control Panel entity."""
 
+    device_type_name: str = "Alarm Control Panel"
+
     def __init__(
         self, controller: ADCIController, device_data: ADCIPartitionData
     ) -> None:
@@ -173,6 +175,7 @@ class ADCIControlPanel(ADCIEntity, AlarmControlPanelEntity):  # type: ignore
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
+
         return (
             int(SUPPORT_ALARM_ARM_HOME)
             | int(SUPPORT_ALARM_ARM_AWAY)

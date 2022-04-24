@@ -73,6 +73,8 @@ async def async_setup_entry(
 class ADCILock(ADCIEntity, LockEntity):  # type: ignore
     """Integration Lock Entity."""
 
+    _device_type_name: str = "Lock"
+
     def __init__(
         self, controller: ADCIController, device_data: adci.ADCILockData
     ) -> None:

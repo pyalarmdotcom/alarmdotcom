@@ -264,6 +264,8 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 class ADCIEntity(CoordinatorEntity):  # type: ignore
     """Base class for ADC entities."""
 
+    _device_type_name: str = "Device"
+
     def __init__(
         self,
         controller: ADCIController,
@@ -276,6 +278,12 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
 
         self._attr_unique_id = device_data["unique_id"]
         self._attr_name = device_data["name"]
+
+    @property
+    def device_type_name(self) -> str:
+        """Return human readable device type name."""
+
+        return self._device_type_name
 
     @property
     def extra_state_attributes(self) -> dict | None:
@@ -340,10 +348,9 @@ class ADCIEntity(CoordinatorEntity):  # type: ignore
     def _show_permission_error(self, action: str = "") -> None:
         """Show Home Assistant notification to alert user that they lack permission to perform action."""
 
-        # TODO: This notification needs work. Actions should be user-readable. Device type should be a HA device type (alarm control panel instead of partition). Device name should be shown.
         error_msg = (
             "Your Alarm.com user does not have permission to"
-            f" {action} your {self._attr_device_class.lower()}. Please log"
+            f" {action} the {self.device_type_name.lower()}, {self.name}. Please log"
             " in to Alarm.com to grant the appropriate permissions to your"
             " account."
         )

@@ -54,7 +54,7 @@ CONF_ARM_HOME = "arm_home_options"
 CONF_ARM_AWAY = "arm_away_options"
 CONF_ARM_NIGHT = "arm_night_options"
 
-CONF_UPDATE_INTERVAL_DEFAULT = 60
+CONF_UPDATE_INTERVAL_DEFAULT = 30
 CONF_ARM_MODE_OPTIONS = {
     "bypass": "Force Bypass",
     "silent": "Arm Silently",
@@ -74,6 +74,8 @@ SENSOR_SUBTYPE_BLACKLIST = [
     ADCSensorSubtype.MOBILE_PHONE,  # No purpose
     ADCSensorSubtype.PANEL_IMAGE_SENSOR,  # No support yet
 ]
+
+MAX_LOGIN_TIMEOUT_ATTEMPTS = 10
 
 
 # #
