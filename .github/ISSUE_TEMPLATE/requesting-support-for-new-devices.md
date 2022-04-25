@@ -27,7 +27,7 @@ E.g.: Alarm Net, ADT, Surety Home, etc.
 This is an important step. It's helpful for us to see how this device is represented on the Alarm.com server. We have a tool for dumping this data via the command line.
 
 1. Install [Python >= 3.9](https://www.python.org/downloads/).
-2. Install [pyalarmdotcomajax](https://github.com/uvjustin/pyalarmdotcomajax) v0.2.0-beta via pip: `pip install pyalarmdotcomajax==0.2.0b0`.
+2. Install [pyalarmdotcomajax](https://github.com/uvjustin/pyalarmdotcomajax) via pip: `pip install pyalarmdotcomajax`.
 3. Run `adc -u YOUR_USERNAME -p YOUR_PASSWORD -c YOUR_2FA_COOKIE -vx`
 4. The above command dumps server data for all devices that are known to ADC developers, including a few devices that are currently unsupported. **Heads Up!** This command may leak sensitive information. It does _not_ dump your email address, address, or any other account information, but it may output coordinates from GPS devices (like an Alarm.com car sensor) and names of family members (e.g.: Michael's Room Window Sensor). Be sure to review the data before posting to scrub anything that you're not comfortable posting online.
 
