@@ -15,13 +15,13 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from pyalarmdotcomajax.const import AuthResult
-from pyalarmdotcomajax.errors import AuthenticationFailed
-from pyalarmdotcomajax.errors import DataFetchFailed
+from pyalarmdotcomajax import AuthResult as pyadcAuthResult
+from pyalarmdotcomajax.errors import AuthenticationFailed as pyadcAuthenticationFailed
+from pyalarmdotcomajax.errors import DataFetchFailed as pyadcDataFetchFailed
 import voluptuous as vol
 
 from . import const as adci
-from .controller import ADCIController
+from .controller import IntController
 
 log = logging.getLogger(__name__)
 LegacyArmingOptions = Literal["home", "away", "true", "false"]
@@ -41,7 +41,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self._config_title: str | None = None
         self._existing_entry: config_entries.ConfigEntry | None = None
         self._imported_options = None
-        self._controller: ADCIController | None = None
+        self._controller: IntController | None = None
 
         self._force_generic_name: bool = False
 
@@ -67,7 +67,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
             }
 
             try:
-                self._controller = ADCIController(self.hass)
+                self._controller = IntController(self.hass)
 
                 log.debug("Logging in to Alarm.com...")
 
@@ -80,14 +80,14 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
 
                 log.debug("Login result: %s", login_result)
 
-                if login_result == AuthResult.ENABLE_TWO_FACTOR:
+                if login_result == pyadcAuthResult.ENABLE_TWO_FACTOR:
                     return self.async_abort(reason="must_enable_2fa")
 
-                if login_result == AuthResult.OTP_REQUIRED:
+                if login_result == pyadcAuthResult.OTP_REQUIRED:
                     log.debug("OTP code required.")
                     return await self.async_step_otp()
 
-                if login_result == AuthResult.SUCCESS:
+                if login_result == pyadcAuthResult.SUCCESS:
                     return await self.async_step_final()
 
                 errors["base"] = "unknown"
@@ -127,7 +127,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
 
             try:
 
-                if not isinstance(self._controller, ADCIController):
+                if not isinstance(self._controller, IntController):
                     raise ConnectionError("Failed to get ADC controller.")
 
                 await self._controller.async_send_otp(user_input[adci.CONF_OTP])
@@ -135,11 +135,11 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 if cookie := self._controller.two_factor_cookie:
                     self.config[adci.CONF_2FA_COOKIE] = cookie
                 else:
-                    raise AuthenticationFailed(
+                    raise pyadcAuthenticationFailed(
                         "OTP submission failed. Two-factor cookie not found."
                     )
 
-            except (ConnectionError, DataFetchFailed) as err:
+            except (ConnectionError, pyadcDataFetchFailed) as err:
                 log.error(
                     "%s: OTP submission failed with CannotConnect exception: %s",
                     __name__,
@@ -147,7 +147,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 )
                 errors["base"] = "cannot_connect"
 
-            except AuthenticationFailed as err:
+            except pyadcAuthenticationFailed as err:
                 log.error(
                     "%s: Incorrect OTP: %s",
                     __name__,
@@ -173,7 +173,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
     ) -> FlowResult:
         """Create configuration entry using entered data."""
 
-        if not isinstance(self._controller, ADCIController):
+        if not isinstance(self._controller, IntController):
             raise ConnectionError("Failed to get ADC controller.")
 
         self._config_title = (
@@ -225,7 +225,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         self._async_abort_entries_match({**self.config})
 
         try:
-            self._controller = ADCIController(self.hass)
+            self._controller = IntController(self.hass)
 
             login_result = await self._controller.async_login(
                 username=self.config[adci.CONF_USERNAME],
@@ -237,7 +237,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
             log.debug("Login result: %s", login_result)
 
             # If provider requires 2FA, create config entry anyway. Will fail on update and prompt for reauth.
-            if login_result != AuthResult.SUCCESS:
+            if login_result != pyadcAuthResult.SUCCESS:
                 self._force_generic_name = True
 
             return await self.async_step_final()

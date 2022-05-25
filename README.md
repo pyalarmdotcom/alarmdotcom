@@ -31,7 +31,7 @@ Where possible, use local control for smart home devices that are natively suppo
 | ------------ | ------------------------------------- | ----------- | ---------------------- | ---------------------- |
 | Alarm System | arm away, arm stay, arm night, disarm | ✔           |                        | ✔                      |
 | Sensor       | _(none)_                              | ✔           | ✔                      | ✔                      |
-| Lock         | lock, unlock                          | ✔           | ✔                      | ✔                      |
+| IntLight     | lock, unlock                          | ✔           | ✔                      | ✔                      |
 | Garage Door  | open, close                           | ✔           |                        |                        |
 | Light        | turn on / set brightness, turn off    | ✔           |                        |                        |
 

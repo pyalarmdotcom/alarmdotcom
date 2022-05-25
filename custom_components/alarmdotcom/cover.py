@@ -2,22 +2,22 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from enum import Enum
 import logging
 from typing import Any
 
 from homeassistant import core
 from homeassistant.components.cover import CoverDeviceClass
 from homeassistant.components.cover import CoverEntity
-from homeassistant.components.cover import SUPPORT_CLOSE
-from homeassistant.components.cover import SUPPORT_OPEN
+from homeassistant.components.cover import CoverEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.entities import ADCGarageDoor
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pyalarmdotcomajax.devices import GarageDoor as pyadcGarageDoor
 
-from . import ADCIEntity
-from . import const as adci
-from .controller import ADCIController
+from .base_device import IntBaseDevice
+from .const import DOMAIN
 
 log = logging.getLogger(__name__)
 
@@ -30,28 +30,50 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    controller: ADCIController = hass.data[adci.DOMAIN][config_entry.entry_id]
+    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        ADCICover(controller, controller.devices.get("entity_data", {}).get(garage_id))  # type: ignore
-        for garage_id in controller.devices.get("garage_door_ids", [])
+        IntCover(
+            coordinator=coordinator,
+            device_data=coordinator.data.get("entity_data", {}).get(device_id),
+        )
+        for device_id in coordinator.data.get("garage_door_ids", [])
     )
 
 
-class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
+class IntCover(IntBaseDevice, CoverEntity):  # type: ignore
     """Integration Cover Entity."""
 
     _device_type_name: str = "Garage Door"
 
+    # class GarageDoorState(Enum):
+    #     """Enum of garage door states."""
+
+    #     OPEN = "OPEN"
+    #     CLOSED = "CLOSED"
+
+    class DataStructure(IntBaseDevice.DataStructure):
+        """Dict for an ADCI garage door."""
+
+        desired_state: Enum
+        raw_state_text: str
+        state: pyadcGarageDoor.DeviceState
+        async_open_callback: Callable
+        async_close_callback: Callable
+        parent_id: str
+        read_only: bool
+
     def __init__(
-        self, controller: ADCIController, device_data: adci.ADCIGarageDoorData
+        self, coordinator: DataUpdateCoordinator, device_data: DataStructure
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device_data)
+        super().__init__(coordinator, device_data)
 
-        self._device: adci.ADCIGarageDoorData = device_data
+        self._device = device_data
         self._attr_device_class: CoverDeviceClass = CoverDeviceClass.GARAGE
-        self._attr_supported_features = SUPPORT_OPEN | SUPPORT_CLOSE
+        self._attr_supported_features = (
+            CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
+        )
 
         try:
             self.async_open_callback: Callable = self._device["async_open_callback"]
@@ -70,10 +92,10 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
     def is_closed(self) -> bool | None:
         """Return if the cover is closed or not."""
 
-        if self._device.get("state") == ADCGarageDoor.DeviceState.OPEN:
+        if self._device.get("state") == pyadcGarageDoor.DeviceState.OPEN:
             return False
 
-        if self._device.get("state") == ADCGarageDoor.DeviceState.CLOSED:
+        if self._device.get("state") == pyadcGarageDoor.DeviceState.CLOSED:
             return True
 
         return None
@@ -85,7 +107,7 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("open")
 
-        await self._controller.async_coordinator_update(critical=False)
+        await self.coordinator.async_update()
 
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the cover."""
@@ -94,4 +116,4 @@ class ADCICover(ADCIEntity, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("close")
 
-        await self._controller.async_coordinator_update(critical=False)
+        await self.coordinator.async_update()

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from enum import Enum
 import logging
 from typing import Any
 
@@ -12,11 +13,11 @@ from homeassistant.components.light import LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.entities import ADCLight
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pyalarmdotcomajax.devices import Light as pyadcLight
 
-from . import ADCIEntity
-from . import const as adci
-from .controller import ADCIController
+from .base_device import IntBaseDevice
+from .const import DOMAIN
 
 log = logging.getLogger(__name__)
 
@@ -27,28 +28,50 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
-    """Set up the sensor platform."""
+    """Set up the light platform."""
 
-    controller: ADCIController = hass.data[adci.DOMAIN][config_entry.entry_id]
+    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        ADCILight(controller, controller.devices.get("entity_data", {}).get(light_id))  # type: ignore
-        for light_id in controller.devices.get("light_ids", [])
+        IntLight(
+            coordinator=coordinator,
+            device_data=coordinator.data.get("entity_data", {}).get(device_id),
+        )
+        for device_id in coordinator.data.get("light_ids", [])
     )
 
 
-class ADCILight(ADCIEntity, LightEntity):  # type: ignore
+class IntLight(IntBaseDevice, LightEntity):  # type: ignore
     """Integration Light Entity."""
 
     _device_type_name: str = "Light"
 
+    # class States(Enum):
+    #     """Enum of light states."""
+
+    #     ON = "ON"
+    #     OFF = "OFF"
+    class DataStructure(IntBaseDevice.DataStructure):
+        """Dict for an ADCI Light."""
+
+        brightness: int | None
+
+        desired_state: Enum
+        raw_state_text: str
+        state: pyadcLight.DeviceState
+        parent_id: str
+        async_turn_on_callback: Callable
+        async_turn_off_callback: Callable
+        read_only: bool
+        supports_state_tracking: bool
+
     def __init__(
-        self, controller: ADCIController, device_data: adci.ADCILightData
+        self, coordinator: DataUpdateCoordinator, device_data: DataStructure
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device_data)
+        super().__init__(coordinator, device_data)
 
-        self._device: adci.ADCILightData = device_data
+        self._device = device_data
         self._attr_supported_color_modes = (
             [light.COLOR_MODE_BRIGHTNESS]
             if self._device.get("brightness")
@@ -88,12 +111,12 @@ class ADCILight(ADCIEntity, LightEntity):  # type: ignore
     def is_on(self) -> bool | None:
         """Return True if entity is on."""
         if self._device.get("state") in [
-            ADCLight.DeviceState.ON,
-            ADCLight.DeviceState.LEVELCHANGE,
+            pyadcLight.DeviceState.ON,
+            pyadcLight.DeviceState.LEVELCHANGE,
         ]:
             return True
 
-        if self._device.get("state") == ADCLight.DeviceState.OFF:
+        if self._device.get("state") == pyadcLight.DeviceState.OFF:
             return False
 
         log.error(
@@ -130,7 +153,7 @@ class ADCILight(ADCIEntity, LightEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("turn on")
 
-        await self._controller.async_coordinator_update(critical=False)
+        await self.coordinator.async_update()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
@@ -140,4 +163,4 @@ class ADCILight(ADCIEntity, LightEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("turn off")
 
-        await self._controller.async_coordinator_update(critical=False)
+        await self.coordinator.async_update()
