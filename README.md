@@ -27,13 +27,14 @@ Where possible, use local control for smart home devices that are natively suppo
 
 ### Supported Devices
 
-| Device Type  | Actions                               | View Status | Low Battery Sub-Sensor | Malfunction Sub-Sensor |
-| ------------ | ------------------------------------- | ----------- | ---------------------- | ---------------------- |
-| Alarm System | arm away, arm stay, arm night, disarm | ✔           |                        | ✔                      |
-| Sensor       | _(none)_                              | ✔           | ✔                      | ✔                      |
-| IntLight     | lock, unlock                          | ✔           | ✔                      | ✔                      |
-| Garage Door  | open, close                           | ✔           |                        |                        |
-| Light        | turn on / set brightness, turn off    | ✔           |                        |                        |
+| Device Type       | Actions                               | View Status | Low Battery Sub-Sensor | Malfunction Sub-Sensor | Configuration Options                                                                | Notes             |
+| ----------------- | ------------------------------------- | ----------- | ---------------------- | ---------------------- | ------------------------------------------------------------------------------------ | ----------------- |
+| Alarm System      | arm away, arm stay, arm night, disarm | ✔           |                        | ✔                      |                                                                                      |                   |
+| Sensor            | _(none)_                              | ✔           | ✔                      | ✔                      |                                                                                      |                   |
+| IntLight          | lock, unlock                          | ✔           | ✔                      | ✔                      |                                                                                      |                   |
+| Garage Door       | open, close                           | ✔           |                        |                        |                                                                                      |                   |
+| Light             | turn on / set brightness, turn off    | ✔           |                        |                        |                                                                                      |                   |
+| Skybell HD Camera | _(none)_                              |             |                        |                        | Indoor Chime On/Off, Outdoor Chime Volume, LED Brightness, Motion Sensor Sensitivity | No video support! |
 
 As of v0.2.0, multiples of all of the above devices are supported.
 
