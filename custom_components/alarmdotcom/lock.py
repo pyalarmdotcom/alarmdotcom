@@ -81,13 +81,6 @@ class IntLock(IntBaseDevice, LockEntity):  # type: ignore
 
     _device_type_name: str = "Lock"
 
-    # class DeviceState(Enum):
-    #     """Enum of lock states."""
-
-    #     FAILED = "FAILED"
-    #     LOCKED = "LOCKED"
-    #     UNLOCKED = "UNLOCKED"
-
     class DataStructure(IntBaseDevice.DataStructure):
         """Dict for an ADCI Lock."""
 
@@ -157,7 +150,7 @@ class IntLock(IntBaseDevice, LockEntity):  # type: ignore
             except PermissionError:
                 self._show_permission_error("lock")
 
-            await self.coordinator.async_update()
+            await self.coordinator.async_refresh()
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Lock the lock."""
@@ -167,7 +160,7 @@ class IntLock(IntBaseDevice, LockEntity):  # type: ignore
             except PermissionError:
                 self._show_permission_error("unlock")
 
-            await self.coordinator.async_update()
+            await self.coordinator.async_refresh()
 
     def _validate_code(self, code: str | None) -> bool:
         """Validate given code."""

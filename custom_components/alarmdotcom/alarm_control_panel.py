@@ -93,14 +93,6 @@ class IntAlarmControlPanel(IntBaseDevice, AlarmControlPanelEntity):  # type: ign
 
     device_type_name: str = "Alarm Control Panel"
 
-    # class PartitionState(Enum):
-    #     """Enum of arming states."""
-
-    #     UNKNOWN = "UNKNOWN"
-    #     DISARMED = "DISARMED"
-    #     ARMED_STAY = "ARMED_STAY"
-    #     ARMED_AWAY = "ARMED_AWAY"
-    #     ARMED_NIGHT = "ARMED_NIGHT"
     class DataStructure(IntBaseDevice.DataStructure):
         """Dict for an ADCI partition."""
 
@@ -215,7 +207,7 @@ class IntAlarmControlPanel(IntBaseDevice, AlarmControlPanelEntity):  # type: ign
             except PermissionError:
                 self._show_permission_error("disarm")
 
-            await self.coordinator.async_update()
+            await self.coordinator.async_refresh()
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         """Send arm night command."""
@@ -230,7 +222,7 @@ class IntAlarmControlPanel(IntBaseDevice, AlarmControlPanelEntity):  # type: ign
             except PermissionError:
                 self._show_permission_error("arm_night")
 
-            await self.coordinator.async_update()
+            await self.coordinator.async_refresh()
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
@@ -245,7 +237,7 @@ class IntAlarmControlPanel(IntBaseDevice, AlarmControlPanelEntity):  # type: ign
             except PermissionError:
                 self._show_permission_error("arm_home")
 
-            await self.coordinator.async_update()
+            await self.coordinator.async_refresh()
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
@@ -259,7 +251,7 @@ class IntAlarmControlPanel(IntBaseDevice, AlarmControlPanelEntity):  # type: ign
             except PermissionError:
                 self._show_permission_error("arm_away")
 
-            await self.coordinator.async_update()
+            await self.coordinator.async_refresh()
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""

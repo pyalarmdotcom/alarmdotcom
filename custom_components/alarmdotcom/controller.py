@@ -58,7 +58,7 @@ class IntCoordinatorDataStructure(TypedDict):
     malfunction_ids: set[str]
     debug_ids: set[str]
     config_switch_ids: set[str]
-    config_light_ids: set[str]
+    # config_light_ids: set[str]
     config_select_ids: set[str]
     config_number_ids: set[str]
 
@@ -279,7 +279,7 @@ class IntController:
         malfunction_ids: set[str] = set()
         debug_ids: set[str] = set()
         config_switch_ids: set[str] = set()
-        config_light_ids: set[str] = set()
+        # config_light_ids: set[str] = set()
         config_select_ids: set[str] = set()
         config_number_ids: set[str] = set()
 
@@ -612,11 +612,11 @@ class IntController:
                 ]:
                     config_select_ids.add(dest_config["unique_id"])
 
-                elif (
-                    config_option.get("option_type")
-                    == pyadcConfigurationOptionType.COLOR
-                ):
-                    config_light_ids.add(dest_config["unique_id"])
+                # elif (
+                #     config_option.get("option_type")
+                #     == pyadcConfigurationOptionType.COLOR
+                # ):
+                #     config_light_ids.add(dest_config["unique_id"])
 
                 elif (
                     config_option.get("option_type")
@@ -641,7 +641,7 @@ class IntController:
             "malfunction_ids": malfunction_ids,
             "debug_ids": debug_ids,
             "config_switch_ids": config_switch_ids,
-            "config_light_ids": config_light_ids,
+            # "config_light_ids": config_light_ids,
             "config_select_ids": config_select_ids,
             "config_number_ids": config_number_ids,
         }

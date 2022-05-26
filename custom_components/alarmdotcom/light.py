@@ -46,11 +46,6 @@ class IntLight(IntBaseDevice, LightEntity):  # type: ignore
 
     _device_type_name: str = "Light"
 
-    # class States(Enum):
-    #     """Enum of light states."""
-
-    #     ON = "ON"
-    #     OFF = "OFF"
     class DataStructure(IntBaseDevice.DataStructure):
         """Dict for an ADCI Light."""
 
@@ -153,7 +148,7 @@ class IntLight(IntBaseDevice, LightEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("turn on")
 
-        await self.coordinator.async_update()
+        await self.coordinator.async_refresh()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
@@ -163,4 +158,4 @@ class IntLight(IntBaseDevice, LightEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("turn off")
 
-        await self.coordinator.async_update()
+        await self.coordinator.async_refresh()

@@ -20,14 +20,26 @@ from pyalarmdotcomajax.errors import AuthenticationFailed as pyadcAuthentication
 from pyalarmdotcomajax.errors import DataFetchFailed as pyadcDataFetchFailed
 import voluptuous as vol
 
-from . import const as adci
+from .const import CONF_2FA_COOKIE
+from .const import CONF_ARM_AWAY
+from .const import CONF_ARM_CODE
+from .const import CONF_ARM_HOME
+from .const import CONF_ARM_MODE_OPTIONS
+from .const import CONF_ARM_NIGHT
+from .const import CONF_OPTIONS_DEFAULT
+from .const import CONF_OTP
+from .const import CONF_PASSWORD
+from .const import CONF_UPDATE_INTERVAL
+from .const import CONF_UPDATE_INTERVAL_DEFAULT
+from .const import CONF_USERNAME
+from .const import DOMAIN
 from .controller import IntController
 
 log = logging.getLogger(__name__)
 LegacyArmingOptions = Literal["home", "away", "true", "false"]
 
 
-class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ignore
+class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     """Handle a Alarmdotcom config flow."""
 
     VERSION = 3
@@ -61,9 +73,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
         if user_input is not None:
 
             self.config = {
-                adci.CONF_USERNAME: user_input[adci.CONF_USERNAME],
-                adci.CONF_PASSWORD: user_input[adci.CONF_PASSWORD],
-                adci.CONF_2FA_COOKIE: user_input.get(adci.CONF_2FA_COOKIE),
+                CONF_USERNAME: user_input[CONF_USERNAME],
+                CONF_PASSWORD: user_input[CONF_PASSWORD],
+                CONF_2FA_COOKIE: user_input.get(CONF_2FA_COOKIE),
             }
 
             try:
@@ -72,9 +84,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 log.debug("Logging in to Alarm.com...")
 
                 login_result = await self._controller.async_login(
-                    username=self.config[adci.CONF_USERNAME],
-                    password=self.config[adci.CONF_PASSWORD],
-                    twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
+                    username=self.config[CONF_USERNAME],
+                    password=self.config[CONF_PASSWORD],
+                    twofactorcookie=self.config[CONF_2FA_COOKIE],
                     new_websession=True,
                 )
 
@@ -109,8 +121,8 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
 
         creds_schema = vol.Schema(
             {
-                vol.Required(adci.CONF_USERNAME): str,
-                vol.Required(adci.CONF_PASSWORD): str,
+                vol.Required(CONF_USERNAME): str,
+                vol.Required(CONF_PASSWORD): str,
             }
         )
 
@@ -130,10 +142,10 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
                 if not isinstance(self._controller, IntController):
                     raise ConnectionError("Failed to get ADC controller.")
 
-                await self._controller.async_send_otp(user_input[adci.CONF_OTP])
+                await self._controller.async_send_otp(user_input[CONF_OTP])
 
                 if cookie := self._controller.two_factor_cookie:
-                    self.config[adci.CONF_2FA_COOKIE] = cookie
+                    self.config[CONF_2FA_COOKIE] = cookie
                 else:
                     raise pyadcAuthenticationFailed(
                         "OTP submission failed. Two-factor cookie not found."
@@ -160,7 +172,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
 
         creds_schema = vol.Schema(
             {
-                vol.Required(adci.CONF_OTP): str,
+                vol.Required(CONF_OTP): str,
             }
         )
 
@@ -197,9 +209,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
             return self.async_abort(reason="reauth_successful")
 
         options = (
-            self._imported_options
-            if self._imported_options
-            else adci.CONF_OPTIONS_DEFAULT
+            self._imported_options if self._imported_options else CONF_OPTIONS_DEFAULT
         )
 
         # Named async_ but doesn't require await!
@@ -228,9 +238,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=adci.DOMAIN):  # type: ig
             self._controller = IntController(self.hass)
 
             login_result = await self._controller.async_login(
-                username=self.config[adci.CONF_USERNAME],
-                password=self.config[adci.CONF_PASSWORD],
-                twofactorcookie=self.config[adci.CONF_2FA_COOKIE],
+                username=self.config[CONF_USERNAME],
+                password=self.config[CONF_PASSWORD],
+                twofactorcookie=self.config[CONF_2FA_COOKIE],
                 new_websession=True,
             )
 
@@ -294,23 +304,23 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
         errors: dict = {}
 
         if user_input is not None:
-            if user_input.get(adci.CONF_ARM_CODE) == "CLEAR!":
-                user_input[adci.CONF_ARM_CODE] = ""
+            if user_input.get(CONF_ARM_CODE) == "CLEAR!":
+                user_input[CONF_ARM_CODE] = ""
             self.options.update(user_input)
             return await self.async_step_modes()
 
         schema = vol.Schema(
             {
                 vol.Optional(
-                    adci.CONF_ARM_CODE,
+                    CONF_ARM_CODE,
                     default=""
-                    if not (arm_code_raw := self.options.get(adci.CONF_ARM_CODE))
+                    if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
                     else arm_code_raw,
                 ): selector.selector({"text": {"type": "password"}}),
                 vol.Required(
-                    adci.CONF_UPDATE_INTERVAL,
+                    CONF_UPDATE_INTERVAL,
                     default=self.options.get(
-                        adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT
+                        CONF_UPDATE_INTERVAL, CONF_UPDATE_INTERVAL_DEFAULT
                     ),
                 ): selector.selector(
                     {
@@ -343,23 +353,23 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
         schema = vol.Schema(
             {
                 vol.Required(
-                    adci.CONF_ARM_HOME,
+                    CONF_ARM_HOME,
                     default=self.options.get(
-                        adci.CONF_ARM_HOME, adci.CONF_ARM_MODE_OPTIONS_DEFAULT
+                        CONF_ARM_HOME, CONF_OPTIONS_DEFAULT["CONF_ARM_HOME"]
                     ),
-                ): cv.multi_select(adci.CONF_ARM_MODE_OPTIONS),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
                 vol.Required(
-                    adci.CONF_ARM_AWAY,
+                    CONF_ARM_AWAY,
                     default=self.options.get(
-                        adci.CONF_ARM_AWAY, adci.CONF_ARM_MODE_OPTIONS_DEFAULT
+                        CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT["CONF_ARM_AWAY"]
                     ),
-                ): cv.multi_select(adci.CONF_ARM_MODE_OPTIONS),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
                 vol.Required(
-                    adci.CONF_ARM_NIGHT,
+                    CONF_ARM_NIGHT,
                     default=self.options.get(
-                        adci.CONF_ARM_NIGHT, adci.CONF_ARM_MODE_OPTIONS_DEFAULT
+                        CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT["CONF_ARM_NIGHT"]
                     ),
-                ): cv.multi_select(adci.CONF_ARM_MODE_OPTIONS),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
             }
         )
 
@@ -380,9 +390,9 @@ def _convert_v_0_1_imported_configuration(config: dict[str, Any | None]) -> Any:
 
     data: dict = {}
 
-    data[adci.CONF_USERNAME] = username
-    data[adci.CONF_PASSWORD] = password
-    data[adci.CONF_2FA_COOKIE] = two_factor_cookie if two_factor_cookie else None
+    data[CONF_USERNAME] = username
+    data[CONF_PASSWORD] = password
+    data[CONF_2FA_COOKIE] = two_factor_cookie if two_factor_cookie else None
 
     return data
 
@@ -398,7 +408,7 @@ def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
     data: dict = {}
 
     if code:
-        data[adci.CONF_ARM_CODE] = str(code)
+        data[CONF_ARM_CODE] = str(code)
 
     # Populate Arm Home
     new_arm_home = []
@@ -410,7 +420,7 @@ def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
     if no_entry_delay not in ["home", "true"]:
         new_arm_home.append("delay")
 
-    data[adci.CONF_ARM_HOME] = new_arm_home
+    data[CONF_ARM_HOME] = new_arm_home
 
     # Populate Arm Away
     new_arm_away = []
@@ -422,7 +432,7 @@ def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
     if no_entry_delay not in ["away", "true"]:
         new_arm_away.append("delay")
 
-    data[adci.CONF_ARM_AWAY] = new_arm_away
+    data[CONF_ARM_AWAY] = new_arm_away
 
     # Populate Arm Night
     new_arm_night = []
@@ -434,6 +444,6 @@ def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
     if no_entry_delay != "true":
         new_arm_night.append("delay")
 
-    data[adci.CONF_ARM_NIGHT] = new_arm_night
+    data[CONF_ARM_NIGHT] = new_arm_night
 
     return data

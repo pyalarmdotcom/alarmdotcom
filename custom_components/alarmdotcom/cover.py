@@ -46,12 +46,6 @@ class IntCover(IntBaseDevice, CoverEntity):  # type: ignore
 
     _device_type_name: str = "Garage Door"
 
-    # class GarageDoorState(Enum):
-    #     """Enum of garage door states."""
-
-    #     OPEN = "OPEN"
-    #     CLOSED = "CLOSED"
-
     class DataStructure(IntBaseDevice.DataStructure):
         """Dict for an ADCI garage door."""
 
@@ -107,7 +101,7 @@ class IntCover(IntBaseDevice, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("open")
 
-        await self.coordinator.async_update()
+        await self.coordinator.async_refresh()
 
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the cover."""
@@ -116,4 +110,4 @@ class IntCover(IntBaseDevice, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("close")
 
-        await self.coordinator.async_update()
+        await self.coordinator.async_refresh()

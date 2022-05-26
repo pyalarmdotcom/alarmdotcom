@@ -1,17 +1,20 @@
-"""Alarmdotcom implementation of an HA number."""
+"""Alarmdotcom implementation of an HA switch."""
 from __future__ import annotations
 
 from collections.abc import Callable
 import logging
 
 from homeassistant import core
-from homeassistant.components.number import NumberEntity
-from homeassistant.components.number import NumberMode
+from homeassistant.components.switch import SwitchDeviceClass
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pyalarmdotcomajax.extensions import (
+    CameraSkybellControllerExtension as pyadcCameraSkybellControllerExtension,
+)
 from pyalarmdotcomajax.extensions import (
     ConfigurationOption as pyadcConfigurationOption,
 )
@@ -37,16 +40,18 @@ async def async_setup_entry(
     coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        IntConfigNumber(
+        IntConfigSwitch(
             coordinator=coordinator,
             device_data=coordinator.data.get("entity_data", {}).get(device_id),
         )
-        for device_id in coordinator.data.get("config_number_ids", [])
+        for device_id in coordinator.data.get("config_switch_ids", [])
     )
 
 
-class IntConfigNumber(IntBaseDevice, NumberEntity):  # type: ignore
+class IntConfigSwitch(IntBaseDevice, SwitchEntity):  # type: ignore
     """Integration Number Entity."""
+
+    _attr_device_class = SwitchDeviceClass.SWITCH
 
     def __init__(
         self,
@@ -61,9 +66,6 @@ class IntConfigNumber(IntBaseDevice, NumberEntity):  # type: ignore
             "config_option", {}
         )
 
-        self._attr_max_value: float = self._config_option.get("value_max")
-        self._attr_min_value: float = self._config_option.get("value_min")
-        self._attr_mode = NumberMode.SLIDER
         self._attr_entity_category = EntityCategory.CONFIG
 
         try:
@@ -81,23 +83,24 @@ class IntConfigNumber(IntBaseDevice, NumberEntity):  # type: ignore
         )
 
     @property
+    def is_on(self) -> bool:
+        """Return the entity value to represent the entity state."""
+
+        return (
+            self._config_option.get("current_value")
+            is pyadcCameraSkybellControllerExtension.ChimeOnOff.ON
+        )
+
+    @property
     def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
         if (
             self._config_option.get("option_type")
-            == pyadcConfigurationOptionType.BRIGHTNESS
+            is pyadcConfigurationOptionType.BINARY_CHIME
         ):
-            return "mdi:brightness-5"
+            return "mdi:bell" if self.is_on else "mdi:bell-off"
 
         return super().icon if isinstance(super().icon, str) else None
-
-    @property
-    def value(self) -> float | None:
-        """Return the entity value to represent the entity state."""
-        if current_value := self._config_option.get("current_value"):
-            return float(current_value)
-
-        return None
 
     @property
     def device_info(self) -> dict:
@@ -108,8 +111,20 @@ class IntConfigNumber(IntBaseDevice, NumberEntity):  # type: ignore
             "identifiers": {(DOMAIN, self._device.get("parent_id"))},
         }
 
-    async def async_set_value(self, value: float) -> None:
-        """Set new value."""
+    async def async_turn_on(self, **kwargs) -> None:  # type: ignore
+        """Turn on."""
         await self.async_change_setting_callback(
-            self._config_option.get("slug"), int(value)
+            self._config_option.get("slug"),
+            pyadcCameraSkybellControllerExtension.ChimeOnOff.ON,
         )
+
+        await self.coordinator.async_refresh()
+
+    async def async_turn_off(self, **kwargs) -> None:  # type: ignore
+        """Turn off."""
+        await self.async_change_setting_callback(
+            self._config_option.get("slug"),
+            pyadcCameraSkybellControllerExtension.ChimeOnOff.OFF,
+        )
+
+        await self.coordinator.async_refresh()

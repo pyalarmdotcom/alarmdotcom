@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event
@@ -37,6 +38,8 @@ PLATFORMS: list[str] = [
     "light",
     "button",
     "number",
+    "switch",
+    "select",
 ]
 
 
@@ -109,7 +112,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         device_registry, config_entry.entry_id
     ):
         for identifier in device_entry.identifiers:
-            if identifier[0] == DOMAIN and identifier[1] in device_ids_via_adc:
+
+            # Remove _debug, _malfunction, etc from IDs
+            id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
+
+            if (
+                id_matches is not None
+                and identifier[0] == DOMAIN
+                and id_matches.group(1) in device_ids_via_adc
+            ):
                 device_ids_via_hass.add(identifier[1])
                 break
 

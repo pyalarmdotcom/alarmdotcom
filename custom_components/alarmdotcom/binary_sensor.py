@@ -67,17 +67,6 @@ async def async_setup_entry(
 class IntBinarySensor(IntBaseDevice, BinarySensorEntity):  # type: ignore
     """Binary sensor device class."""
 
-    # class SensorState(Enum):
-    #     """Enum of sensor states."""
-
-    #     UNKNOWN = "UNKNOWN"
-    #     CLOSED = "CLOSED"
-    #     OPEN = "OPEN"
-    #     IDLE = "IDLE"
-    #     ACTIVE = "ACTIVE"
-    #     DRY = "DRY"
-    #     WET = "WET"
-
     class DataStructure(IntBaseDevice.DataStructure):
         """Dict for an ADCI sensor."""
 
