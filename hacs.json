@@ -1,6 +1,6 @@
 {
   "name": "Alarmdotcom",
   "content_in_root": false,
-  "country": ["US"],
+  "country": "US",
   "homeassistant": "2022.5"
 }
