@@ -19,4 +19,4 @@ class UnexpectedDataFormat(HomeAssistantError):  # type: ignore
 
 
 class PartialInitialization(HomeAssistantError):  # type: ignore
-    """Error for ADCIController to indicate that integration has not yet been set up."""
+    """Error for IntController to indicate that integration has not yet been set up."""

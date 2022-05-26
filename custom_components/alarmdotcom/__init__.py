@@ -2,18 +2,31 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+import re
 
-from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from . import const as adci
-from .controller import ADCIController
+from .alarm_control_panel import IntAlarmControlPanel
+from .base_device import IntConfigOnlyDeviceDataStructure
+from .base_device import IntSystemDataStructure
+from .binary_sensor import IntBinarySensor
+from .const import CONF_ARM_AWAY
+from .const import CONF_ARM_CODE
+from .const import CONF_ARM_HOME
+from .const import CONF_ARM_NIGHT
+from .const import DEBUG_REQ_EVENT
+from .const import DOMAIN
+from .const import SENSOR_SUBTYPE_BLACKLIST
+from .const import STARTUP_MESSAGE
+from .controller import IntController
+from .controller import IntCoordinatorDataStructure
+from .cover import IntCover
+from .light import IntLight
+from .lock import IntLock
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +37,9 @@ PLATFORMS: list[str] = [
     "cover",
     "light",
     "button",
+    "number",
+    "switch",
+    "select",
 ]
 
 
@@ -38,14 +54,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # they are missing from the options.
     _async_import_options_from_data_if_missing(hass, config_entry)
 
-    hass.data.setdefault(adci.DOMAIN, {})
+    hass.data.setdefault(DOMAIN, {})
 
-    if adci.DOMAIN not in hass.data:
+    if DOMAIN not in hass.data:
         # Print startup message
-        log.info(adci.STARTUP_MESSAGE)
+        log.info(STARTUP_MESSAGE)
 
-    controller = ADCIController(hass, config_entry)
-    if not await controller.async_setup():
+    controller = IntController(hass, config_entry)
+    coordinator: DataUpdateCoordinator = await controller.async_setup()
+    if not coordinator:
         log.error("%s: Failed to initialize controller.", __name__)
         return False
 
@@ -56,35 +73,38 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #
 
     # Get devices from Alarm.com
-    current_device_ids: set[str] = set()
-    for device_id in controller.devices.get("entity_data", []):
-        current_device_ids.add(device_id)
+    device_ids_via_adc: set[str] = set()
+    for device_id in coordinator.data.get("entity_data", []):
+        device_ids_via_adc.add(device_id)
 
-    log.debug(current_device_ids)
+    log.debug(device_ids_via_adc)
 
-    # Delete mobile phones from current_device_ids.
+    # Delete mobile phones from device_ids_via_adc.
     # These devices may have been added to Home Assistant before v0.2.3. Mobile phones are used for pin-less disarming on some panels but provide no value in Home Assistant.
-    for sensor_id in controller.devices.get("sensor_ids", []):
+    for sensor_id in coordinator.data.get("sensor_ids", []):
         device: (
-            adci.ADCIGarageDoorData
-            | adci.ADCISystemData
-            | adci.ADCISensorData
-            | adci.ADCILockData
-            | adci.ADCILightData
-            | adci.ADCIPartitionData
+            IntCover.DataStructure
+            | IntSystemDataStructure
+            | IntBinarySensor.DataStructure
+            | IntLock.DataStructure
+            | IntLight.DataStructure
+            | IntAlarmControlPanel.DataStructure
             | None
-        ) = controller.devices.get("entity_data", {}).get(sensor_id)
+        ) = coordinator.data.get("entity_data", {}).get(sensor_id)
 
         if (
             device is not None
-            and device.get("device_subtype") in adci.SENSOR_SUBTYPE_BLACKLIST
+            and device.get("device_subtype") in SENSOR_SUBTYPE_BLACKLIST
         ):
             log.debug(
                 "Removing blacklisted sensor %s (%s) from Home Assistant.",
                 device.get("name"),
                 device.get("unique_id"),
             )
-            current_device_ids.remove(sensor_id)
+            device_ids_via_adc.remove(sensor_id)
+
+    # Will be used during virtual device creation.
+    device_ids_via_hass: set[str] = set()
 
     # Compare against device registry
     device_registry = dr.async_get(hass)
@@ -92,34 +112,66 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         device_registry, config_entry.entry_id
     ):
         for identifier in device_entry.identifiers:
-            if identifier[0] == adci.DOMAIN:
-                if (
-                    identifier[1] in current_device_ids
-                    or f"{identifier[1]}_low_battery" in current_device_ids
-                    or f"{identifier[1]}_malfunction" in current_device_ids
-                    or f"{identifier[1]}_debug" in current_device_ids
-                ):
 
-                    break
+            # Remove _debug, _malfunction, etc from IDs
+            id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
 
-                log.debug(
-                    "Removing orphaned device %s (%s | %s)",
-                    device_entry.name,
-                    device_entry.identifiers,
-                    device_entry.id,
-                )
+            if (
+                id_matches is not None
+                and identifier[0] == DOMAIN
+                and id_matches.group(1) in device_ids_via_adc
+            ):
+                device_ids_via_hass.add(identifier[1])
+                break
 
-                device_registry.async_remove_device(device_entry.id)
+            log.debug(
+                "Removing orphaned device %s (%s | %s)",
+                device_entry.name,
+                device_entry.identifiers,
+                device_entry.id,
+            )
 
-    # Store controller
-    hass.data[adci.DOMAIN][config_entry.entry_id] = controller
+            device_registry.async_remove_device(device_entry.id)
 
+    # Store coordinator
+    hass.data[DOMAIN][config_entry.entry_id] = coordinator
+
+    # Create virtual DEVICES.
+    # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.
+    master_device_data: IntCoordinatorDataStructure = coordinator.data
+    for camera_id in master_device_data.get("camera_ids", []):
+        camera_data: IntConfigOnlyDeviceDataStructure | None = master_device_data.get(
+            "entity_data", {}
+        ).get(camera_id)
+
+        # Check if camera already created.
+        if camera_id in device_ids_via_hass:
+            continue
+
+        if not camera_data:
+            log.warning("Couldn't find data for camera ID %s", camera_id)
+            continue
+
+        device_registry.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            connections={(dr.CONNECTION_NETWORK_MAC, mac_address)}
+            if (mac_address := camera_data.get("mac_address"))
+            else None,
+            identifiers={(DOMAIN, camera_data.get("unique_id"))},
+            name=camera_data.get("name"),
+            model=camera_data.get("model"),
+            manufacturer=camera_data.get("manufacturer"),
+        )
+
+    # Create real devices
     hass.config_entries.async_setup_platforms(config_entry, PLATFORMS)
 
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        entity_data = controller.devices.get("entity_data", {}).get(event.data.get("device_id"), {})  # type: ignore
+        entity_data = coordinator.data.get("entity_data", {}).get(
+            event.data.get("device_id"), {}
+        )
 
         log.warning(
             "ALARM.COM DEBUG DATA FOR %s: %s",
@@ -127,7 +179,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             entity_data,
         )
 
-    hass.bus.async_listen(adci.DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
+    hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
 
     return True
 
@@ -141,11 +193,11 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         v2_options: ConfigEntry = {**config_entry.options}
 
-        v2_options["use_arm_code"] = bool(config_entry.options.get(adci.CONF_ARM_CODE))
+        v2_options["use_arm_code"] = bool(config_entry.options.get(CONF_ARM_CODE))
 
-        v2_options[adci.CONF_ARM_CODE] = (
+        v2_options[CONF_ARM_CODE] = (
             str(arm_code)
-            if (arm_code := config_entry.options.get(adci.CONF_ARM_CODE))
+            if (arm_code := config_entry.options.get(CONF_ARM_CODE))
             else ""
         )
 
@@ -164,7 +216,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         v3_options: ConfigEntry = {**config_entry.options}
 
         if not v3_options.get("use_arm_code"):
-            v3_options[adci.CONF_ARM_CODE] = None
+            v3_options[CONF_ARM_CODE] = None
 
         # Populate Arm Home
         new_arm_home = []
@@ -176,7 +228,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         if v3_options.get("no_entry_delay") not in ["Stay Only", "Always"]:
             new_arm_home.append("delay")
 
-        v3_options[adci.CONF_ARM_HOME] = new_arm_home
+        v3_options[CONF_ARM_HOME] = new_arm_home
 
         # Populate Arm Away
         new_arm_away = []
@@ -188,7 +240,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         if v3_options.get("no_entry_delay") not in ["Away Only", "Always"]:
             new_arm_away.append("delay")
 
-        v3_options[adci.CONF_ARM_AWAY] = new_arm_away
+        v3_options[CONF_ARM_AWAY] = new_arm_away
 
         # Populate Arm Night
         new_arm_night = []
@@ -200,7 +252,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         if v3_options.get("no_entry_delay") != "Always":
             new_arm_night.append("delay")
 
-        v3_options[adci.CONF_ARM_NIGHT] = new_arm_night
+        v3_options[CONF_ARM_NIGHT] = new_arm_night
 
         config_entry.version = 3
 
@@ -256,107 +308,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     )
     if unload_ok:
         log.debug("%s: Unloaded Alarm.com config entry.", __name__)
-        hass.data[adci.DOMAIN].pop(config_entry.entry_id)
+        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
-
-
-class ADCIEntity(CoordinatorEntity):  # type: ignore
-    """Base class for ADC entities."""
-
-    _device_type_name: str = "Device"
-
-    def __init__(
-        self,
-        controller: ADCIController,
-        device_data: Any,
-    ) -> None:
-        """Initialize class."""
-        super().__init__(controller._coordinator)
-        self._controller: ADCIController = controller
-        self._device = device_data
-
-        self._attr_unique_id = device_data["unique_id"]
-        self._attr_name = device_data["name"]
-
-    @property
-    def device_type_name(self) -> str:
-        """Return human readable device type name."""
-
-        return self._device_type_name
-
-    @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return entity specific state attributes."""
-
-        return {
-            "mac_address": self._device.get("mac_address"),
-            "raw_state_text": self._device.get("raw_state_text"),
-        }
-
-    @property
-    def device_info(self) -> dict:
-        """Return the device information."""
-
-        return {
-            "default_manufacturer": "Alarm.com",
-            "name": self.name,
-            "identifiers": {(adci.DOMAIN, self._device.get("unique_id"))},
-            "via_device": (adci.DOMAIN, self._device.get("parent_id")),
-        }
-
-    async def async_added_to_hass(self) -> None:
-        """Register updater for self._device when entity is added to Home Assistant."""
-        # First, get updated state data.
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self._update_device_data)
-        )
-
-        # Second, ask super to announce state update.
-        await super().async_added_to_hass()
-
-    def _update_device_data(self) -> None:
-
-        updated = False
-
-        try:
-            device_data: dict | adci.ADCIGarageDoorData | adci.ADCILockData | adci.ADCIPartitionData | adci.ADCISensorData | adci.ADCISystemData | adci.ADCILightData = self._controller.devices.get(
-                "entity_data", {}
-            ).get(
-                self.unique_id, {}
-            )
-            self._device = device_data
-
-            updated = True
-
-        except KeyError as err:
-            log.error(
-                "%s: Device database update failed for %s.", __name__, self._device
-            )
-            raise UpdateFailed from err
-
-        if not updated:
-            err_msg = (
-                f"{__name__}: Failed to update data for {self._device.get('name')}."
-            )
-
-            log.error(err_msg)
-            log.debug(device_data)
-
-            raise UpdateFailed(err_msg)
-
-    def _show_permission_error(self, action: str = "") -> None:
-        """Show Home Assistant notification to alert user that they lack permission to perform action."""
-
-        error_msg = (
-            "Your Alarm.com user does not have permission to"
-            f" {action} the {self.device_type_name.lower()}, {self.name}. Please log"
-            " in to Alarm.com to grant the appropriate permissions to your"
-            " account."
-        )
-        persistent_notification.async_create(
-            self.hass,
-            error_msg,
-            title="Alarm.com Error",
-            notification_id="alarmcom_permission_error",
-        )

@@ -1,9 +1,7 @@
 {
   "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
   "name": "alarmdotcom",
-  "appPort": [
-    "8123:8123"
-  ],
+  "appPort": ["8123:8123"],
   "features": {
     "github-cli": "latest"
   },
@@ -21,6 +19,9 @@
     "marklarah.pre-commit-vscode",
     "davidanson.vscode-markdownlint",
     "yzhang.markdown-all-in-one",
+    "esbenp.prettier-vscode",
+    "janisdd.vscode-edit-csv",
+    "mechatroner.rainbow-csv"
   ],
   "settings": {
     "files.eol": "\n",
@@ -34,10 +35,7 @@
     "python.analysis.autoSearchPaths": false,
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "python.linting.pylintArgs": [
-      "--disable",
-      "import-error"
-    ],
+    "python.linting.pylintArgs": ["--disable", "import-error"],
     "python.formatting.provider": "black",
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,

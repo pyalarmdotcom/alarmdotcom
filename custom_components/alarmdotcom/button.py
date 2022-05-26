@@ -10,10 +10,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from typing_extensions import NotRequired
 
-from . import ADCIEntity
-from . import const as adci
-from .controller import ADCIController
+from .base_device import IntBaseDevice
+from .const import DEBUG_REQ_EVENT
+from .const import DOMAIN
 
 log = logging.getLogger(__name__)
 
@@ -26,28 +28,36 @@ async def async_setup_entry(
 ) -> None:
     """Set up the button platform."""
 
-    controller: ADCIController = hass.data[adci.DOMAIN][config_entry.entry_id]
+    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        ADCIDebugButton(controller, controller.devices.get("entity_data", {}).get(button_id))  # type: ignore
-        for button_id in controller.devices.get("debug_ids", [])
+        IntDebugButton(
+            coordinator=coordinator,
+            device_data=coordinator.data.get("entity_data", {}).get(device_id),
+        )
+        for device_id in coordinator.data.get("debug_ids", [])
     )
 
 
-class ADCIDebugButton(ADCIEntity, ButtonEntity):  # type: ignore
+class IntDebugButton(IntBaseDevice, ButtonEntity):  # type: ignore
     """Integration Light Entity."""
 
     _attr_icon = "mdi:bug"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
+    class DataStructure(IntBaseDevice.DataStructure):
+        """Dict for an ADCI debug button."""
+
+        system_id: NotRequired[str]
+        parent_id: str
+
     def __init__(
-        self, controller: ADCIController, device_data: adci.ADCIDebugButtonData
+        self, coordinator: DataUpdateCoordinator, device_data: DataStructure
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device_data)
+        super().__init__(coordinator, device_data)
 
-        self._device: adci.ADCIDebugButtonData = device_data
-        self._config_entry: ConfigEntry = controller.config_entry
+        self._device = device_data
 
         log.debug(
             "%s: Initializing Alarm.com debug entity for %s.",
@@ -61,12 +71,12 @@ class ADCIDebugButton(ADCIEntity, ButtonEntity):  # type: ignore
 
         # Associate with parent device.
         return {
-            "identifiers": {(adci.DOMAIN, self._device.get("parent_id"))},
+            "identifiers": {(DOMAIN, self._device.get("parent_id"))},
         }
 
     async def async_press(self) -> None:
         """Handle the button press."""
 
-        self._controller.hass.bus.async_fire(
-            adci.DEBUG_REQ_EVENT, {"device_id": self._device.get("parent_id")}
+        self.hass.bus.async_fire(
+            DEBUG_REQ_EVENT, {"device_id": self._device.get("parent_id")}
         )

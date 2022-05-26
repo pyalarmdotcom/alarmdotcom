@@ -1,7 +1,3 @@
 {
-  "name": "Alarmdotcom",
-  "content_in_root": false,
-  "domains": ["binary_sensor", "lock", "cover", "alarm_control_panel", "light"],
-  "country": ["US"],
-  "homeassistant": "2022.2"
+  "name": "Alarmdotcom"
 }

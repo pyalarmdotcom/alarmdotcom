@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from enum import Enum
 import logging
 import re
 from typing import Any
@@ -16,11 +17,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
-from pyalarmdotcomajax.entities import ADCLock
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pyalarmdotcomajax.devices import Lock as pyadcLock
 
-from . import ADCIEntity
-from . import const as adci
-from .controller import ADCIController
+from .base_device import IntBaseDevice
+from .const import DOMAIN
+from .const import MIGRATE_MSG_ALERT
 
 log = logging.getLogger(__name__)
 
@@ -40,15 +42,15 @@ async def async_setup_platform(
 
     hass.async_create_task(
         hass.config_entries.flow.async_init(
-            adci.DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
+            DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
         )
     )
 
-    log.warning(adci.MIGRATE_MSG_ALERT)
+    log.warning(MIGRATE_MSG_ALERT)
 
     persistent_notification.async_create(
         hass,
-        adci.MIGRATE_MSG_ALERT,
+        MIGRATE_MSG_ALERT,
         title="Alarm.com Updated",
         notification_id="alarmdotcom_migration",
     )
@@ -62,30 +64,47 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    controller: ADCIController = hass.data[adci.DOMAIN][config_entry.entry_id]
+    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        ADCILock(controller, controller.devices.get("entity_data", {}).get(lock_id))  # type: ignore
-        for lock_id in controller.devices.get("lock_ids", [])
+        IntLock(
+            coordinator=coordinator,
+            device_data=coordinator.data.get("entity_data", {}).get(lock_id),
+            arm_code=config_entry.options.get("arm_code"),
+        )
+        for lock_id in coordinator.data.get("lock_ids", [])
     )
 
 
-class ADCILock(ADCIEntity, LockEntity):  # type: ignore
-    """Integration Lock Entity."""
+class IntLock(IntBaseDevice, LockEntity):  # type: ignore
+    """Integration IntLight Entity."""
 
     _device_type_name: str = "Lock"
 
+    class DataStructure(IntBaseDevice.DataStructure):
+        """Dict for an ADCI Lock."""
+
+        desired_state: Enum
+        raw_state_text: str
+        state: pyadcLock.DeviceState
+        parent_id: str
+        read_only: bool
+
+        async_lock_callback: Callable
+        async_unlock_callback: Callable
+
     def __init__(
-        self, controller: ADCIController, device_data: adci.ADCILockData
+        self,
+        coordinator: DataUpdateCoordinator,
+        device_data: DataStructure,
+        arm_code: str | None,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device_data)
+        super().__init__(coordinator, device_data)
 
-        self._arm_code: str | None = self._controller.config_entry.options.get(
-            "arm_code"
-        )
+        self._arm_code = arm_code
 
-        self._device: adci.ADCILockData = device_data
+        self._device = device_data
 
         try:
             self.async_lock_callback: Callable = self._device["async_lock_callback"]
@@ -115,10 +134,10 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
 
         if not self._device.get("malfunction"):
 
-            if self._device.get("state") == ADCLock.DeviceState.LOCKED:
+            if self._device.get("state") == pyadcLock.DeviceState.LOCKED:
                 return True
 
-            if self._device.get("state") == ADCLock.DeviceState.UNLOCKED:
+            if self._device.get("state") == pyadcLock.DeviceState.UNLOCKED:
                 return False
 
         return None
@@ -131,7 +150,7 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
             except PermissionError:
                 self._show_permission_error("lock")
 
-            await self._controller.async_coordinator_update()
+            await self.coordinator.async_refresh()
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Lock the lock."""
@@ -141,7 +160,7 @@ class ADCILock(ADCIEntity, LockEntity):  # type: ignore
             except PermissionError:
                 self._show_permission_error("unlock")
 
-            await self._controller.async_coordinator_update()
+            await self.coordinator.async_refresh()
 
     def _validate_code(self, code: str | None) -> bool:
         """Validate given code."""

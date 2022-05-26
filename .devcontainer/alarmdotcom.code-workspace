@@ -1,11 +1,14 @@
 {
-	"folders": [
-		{
-			"path": ".."
-		},
-		{
-			"path": "../../pyalarmdotcomajax"
-		}
-	],
-	"settings": {}
+    "folders": [
+        {
+            "path": ".."
+        }, {
+            "path": "../../pyalarmdotcomajax"
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "*.yaml": "home-assistant"
+        }
+    }
 }
