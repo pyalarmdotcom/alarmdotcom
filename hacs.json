@@ -1,7 +1,6 @@
 {
   "name": "Alarmdotcom",
   "content_in_root": false,
-  "domains": ["binary_sensor", "lock", "cover", "alarm_control_panel", "light", "switch", "number", "select"],
   "country": ["US"],
   "homeassistant": "2022.5"
 }
