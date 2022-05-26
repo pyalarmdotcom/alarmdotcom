@@ -355,19 +355,19 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
                 vol.Required(
                     CONF_ARM_HOME,
                     default=self.options.get(
-                        CONF_ARM_HOME, CONF_OPTIONS_DEFAULT["CONF_ARM_HOME"]
+                        CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]
                     ),
                 ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
                 vol.Required(
                     CONF_ARM_AWAY,
                     default=self.options.get(
-                        CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT["CONF_ARM_AWAY"]
+                        CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]
                     ),
                 ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
                 vol.Required(
                     CONF_ARM_NIGHT,
                     default=self.options.get(
-                        CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT["CONF_ARM_NIGHT"]
+                        CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]
                     ),
                 ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
             }
