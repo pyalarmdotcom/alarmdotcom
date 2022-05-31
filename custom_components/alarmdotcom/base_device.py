@@ -1,62 +1,81 @@
 """Base device."""
 from __future__ import annotations
 
-from collections.abc import Callable
+from enum import Enum
 import logging
-from typing import Any
-from typing import TypedDict
+from typing import NamedTuple
 
 from homeassistant.components import persistent_notification
+from homeassistant.components.button import ButtonEntity
 from homeassistant.core import callback
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
+from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
 from pyalarmdotcomajax.extensions import (
     ConfigurationOption as pyadcConfigurationOption,
 )
-from typing_extensions import NotRequired
 
+from .alarmhub import AlarmHub
 from .const import DOMAIN
 
 log = logging.getLogger(__name__)
 
 
-class IntBaseDevice(CoordinatorEntity):  # type: ignore
+class SubdeviceMetadata(NamedTuple):
+    """Metadata for subdevice types."""
+
+    name: str
+    suffix: str
+
+
+class AttributeSubdevice(Enum):
+    """Attribute-subdevice type enum."""
+
+    DEBUG = SubdeviceMetadata("Debug", "debug")
+    MALFUNCTION = SubdeviceMetadata("Malfunction", "malfunction")
+    BATTERY = SubdeviceMetadata("Battery", "low_battery")
+
+
+class BaseDevice(CoordinatorEntity):  # type: ignore
     """Base class for ADC entities."""
-
-    class DataStructure(TypedDict):
-        """Base dict for an ADCI entity."""
-
-        unique_id: str
-        name: str
-        identifiers: NotRequired[list]
-        battery_low: NotRequired[bool]
-        malfunction: NotRequired[bool]
-        mac_address: NotRequired[str]
-        debug_data: NotRequired[str]
-        model: NotRequired[str]
-        manufacturer: NotRequired[str]
 
     _device_type_name: str = "Device"
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator,
-        device_data: Any,
+        alarmhub: AlarmHub,
+        device: pyadcBaseDevice,
+        parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
-        super().__init__(coordinator)
-        self._device = device_data
-        self.coordinator = coordinator
+        super().__init__(alarmhub.coordinator)
 
-        self._attr_unique_id = device_data["unique_id"]
-        self._attr_name = device_data["name"]
+        log.debug(
+            "%s: Initializing %s.",
+            __name__,
+            device.id_,
+        )
 
-        try:
-            self.coordinator.data
-        except KeyError:
-            log.error("Failed to initialize control functions for %s.", self.unique_id)
-            self._attr_available = False
+        self._device = device
+        self._alarmhub = alarmhub
+
+        self.parent_id = parent_id
+
+    @property
+    def available(self) -> bool:
+        """Return whether device is available."""
+
+        if isinstance(self, ButtonEntity):
+            return True
+
+        if hasattr(self, "is_on"):
+            return self.is_on is not None
+        if hasattr(self, "state"):
+            return self.state is not None
+        if hasattr(self, "is_locked"):
+            return self.is_locked is not None
+
+        return True  # Covers switches, numbers, etc.
 
     @property
     def device_type_name(self) -> str:
@@ -64,38 +83,30 @@ class IntBaseDevice(CoordinatorEntity):  # type: ignore
 
         return self._device_type_name
 
-    @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return entity specific state attributes."""
+    async def async_added_to_hass(self) -> None:
+        """Register callbacks."""
+        await super().async_added_to_hass()
 
-        return {
-            "mac_address": self._device.get("mac_address"),
-            "raw_state_text": self._device.get("raw_state_text"),
-        }
-
-    @property
-    def device_info(self) -> dict:
-        """Return the device information."""
-
-        return {
-            "default_manufacturer": "Alarm.com",
-            "name": self.name,
-            "identifiers": {(DOMAIN, self._device.get("unique_id"))},
-            "via_device": (DOMAIN, self._device.get("parent_id")),
-        }
+        self.update_device_data()
 
     @callback  # type: ignore
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        try:
-            self._device = self.coordinator.data["entity_data"][self.unique_id]
-            self.async_write_ha_state()
-        except KeyError as err:
-            log.debug(self.coordinator.data)
-            log.error(
-                "%s: Device database update failed for %s.", __name__, self._device
+        """Update the entity with new REST API data."""
+
+        if hasattr(self, "_attr_extra_state_attributes"):
+            self._attr_extra_state_attributes.update(
+                {
+                    "raw_state_text": self._device.raw_state_text,
+                }
             )
-            raise UpdateFailed from err
+
+        self.update_device_data()
+        self.async_write_ha_state()
+
+    @callback  # type: ignore
+    def update_device_data(self) -> None:
+        """Update the entity when new data comes from the REST API."""
+        raise NotImplementedError()
 
     def _show_permission_error(self, action: str = "") -> None:
         """Show Home Assistant notification to alert user that they lack permission to perform action."""
@@ -114,23 +125,88 @@ class IntBaseDevice(CoordinatorEntity):  # type: ignore
         )
 
 
-class IntSystemDataStructure(IntBaseDevice.DataStructure):
-    """Dict for an ADCI system."""
+class HardwareBaseDevice(BaseDevice):
+    """Base device for actual hardware: sensors, locks, control panels, etc."""
 
-    unit_id: str
+    def __init__(
+        self,
+        alarmhub: AlarmHub,
+        device: pyadcBaseDevice,
+        parent_id: str | None = None,
+    ) -> None:
+        """Initialize class."""
+        super().__init__(alarmhub, device, parent_id)
+
+        self._attr_unique_id = device.id_
+
+        self._attr_name = device.name
+
+        self._attr_extra_state_attributes = {
+            "mac_address": self._device.mac_address,
+            "raw_state_text": self._device.raw_state_text,
+        }
+
+        self._attr_device_info = {
+            "default_manufacturer": "Alarm.com",
+            "name": self.name,
+            "identifiers": {(DOMAIN, self.unique_id)},
+            "via_device": (DOMAIN, self.parent_id),
+        }
+
+    @callback  # type: ignore
+    def _handle_coordinator_update(self) -> None:
+        """Update the entity with new REST API data."""
+
+        self._device = self._alarmhub.system.get_device_by_id(self.unique_id)
+
+        super()._handle_coordinator_update()
 
 
-class IntConfigOnlyDeviceDataStructure(IntBaseDevice.DataStructure):
-    """Dict for an ADCI configuration-only device."""
+class AttributeBaseDevice(BaseDevice):
+    """Base device for attributes of real hardware: battery level, malfunction, debug, etc."""
 
-    parent_id: str
+    def __init__(
+        self,
+        alarmhub: AlarmHub,
+        device: pyadcBaseDevice,
+        subdevice_type: AttributeSubdevice,
+    ) -> None:
+        """Initialize class."""
+        super().__init__(alarmhub, device, device.id_)
+
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+
+        self._attr_unique_id = f"{device.id_}_{subdevice_type.value.suffix}"
+
+        self._attr_name = f"{device.name}: {subdevice_type.value.name}"
+
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, self._device.id_)},
+        }
 
 
-class IntConfigEntityDataStructure(TypedDict):
-    """Configuration entity data structure."""
+class ConfigBaseDevice(BaseDevice):
+    """Base device for devices based on configuration options."""
 
-    unique_id: str
-    parent_id: str
-    name: str
-    config_option: pyadcConfigurationOption
-    async_change_setting_callback: Callable
+    def __init__(
+        self,
+        alarmhub: AlarmHub,
+        device: pyadcBaseDevice,
+        config_option: pyadcConfigurationOption,
+    ) -> None:
+        """Initialize class."""
+        super().__init__(alarmhub, device, device.id_)
+
+        self._attr_entity_category = EntityCategory.CONFIG
+
+        self._attr_unique_id = f"{device.id_}_{config_option.slug.replace('-','_')}"
+
+        self._attr_name = f"{device.name}: {config_option.name}"
+
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, self._device.id_)},
+        }
+
+        self._config_option = config_option
+
+        self._device = device

@@ -2,20 +2,21 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant import core
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from typing_extensions import NotRequired
+from pyalarmdotcomajax.devices import Sensor as pyadcSensor
 
-from .base_device import IntBaseDevice
+from .alarmhub import AlarmHub
+from .base_device import AttributeBaseDevice
+from .base_device import AttributeSubdevice
 from .const import DEBUG_REQ_EVENT
 from .const import DOMAIN
+from .const import SENSOR_SUBTYPE_BLACKLIST
 
 log = logging.getLogger(__name__)
 
@@ -28,55 +29,31 @@ async def async_setup_entry(
 ) -> None:
     """Set up the button platform."""
 
-    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        IntDebugButton(
-            coordinator=coordinator,
-            device_data=coordinator.data.get("entity_data", {}).get(device_id),
+        DebugAttributeDevice(
+            alarmhub=alarmhub, device=device, subdevice_type=AttributeSubdevice.DEBUG
         )
-        for device_id in coordinator.data.get("debug_ids", [])
+        for device in alarmhub.devices
+        if None not in [device.battery_low, device.battery_critical]
+        and not (
+            isinstance(device, pyadcSensor)
+            and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
+        )
     )
 
 
-class IntDebugButton(IntBaseDevice, ButtonEntity):  # type: ignore
+class DebugAttributeDevice(AttributeBaseDevice, ButtonEntity):  # type: ignore
     """Integration Light Entity."""
 
     _attr_icon = "mdi:bug"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
-
-    class DataStructure(IntBaseDevice.DataStructure):
-        """Dict for an ADCI debug button."""
-
-        system_id: NotRequired[str]
-        parent_id: str
-
-    def __init__(
-        self, coordinator: DataUpdateCoordinator, device_data: DataStructure
-    ) -> None:
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, device_data)
-
-        self._device = device_data
-
-        log.debug(
-            "%s: Initializing Alarm.com debug entity for %s.",
-            __name__,
-            self.unique_id,
-        )
-
-    @property
-    def device_info(self) -> dict[str, Any]:
-        """Return info to categorize this entity as a device."""
-
-        # Associate with parent device.
-        return {
-            "identifiers": {(DOMAIN, self._device.get("parent_id"))},
-        }
 
     async def async_press(self) -> None:
         """Handle the button press."""
 
-        self.hass.bus.async_fire(
-            DEBUG_REQ_EVENT, {"device_id": self._device.get("parent_id")}
-        )
+        self.hass.bus.async_fire(DEBUG_REQ_EVENT, {"device_id": self._device.id_})
+
+    @callback  # type: ignore
+    def update_device_data(self) -> None:
+        """Update the entity when new data comes from the REST API."""

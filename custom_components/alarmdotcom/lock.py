@@ -1,26 +1,26 @@
 """Alarmdotcom implementation of an HA lock."""
 from __future__ import annotations
 
-from collections.abc import Callable
-from enum import Enum
 import logging
 import re
 from typing import Any
 
 from homeassistant import config_entries
 from homeassistant import core
-from homeassistant.components import lock
 from homeassistant.components import persistent_notification
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
 from pyalarmdotcomajax.devices import Lock as pyadcLock
 
-from .base_device import IntBaseDevice
+from .alarmhub import AlarmHub
+from .base_device import HardwareBaseDevice
+from .const import CONF_ARM_CODE
 from .const import DOMAIN
 from .const import MIGRATE_MSG_ALERT
 
@@ -62,82 +62,56 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
-    """Set up the sensor platform."""
+    """Set up the lock platform."""
 
-    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    alarmhub: Lock = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        IntLock(
-            coordinator=coordinator,
-            device_data=coordinator.data.get("entity_data", {}).get(lock_id),
-            arm_code=config_entry.options.get("arm_code"),
+        Lock(
+            alarmhub=alarmhub,
+            device=device,
         )
-        for lock_id in coordinator.data.get("lock_ids", [])
+        for device in alarmhub.system.locks
     )
 
 
-class IntLock(IntBaseDevice, LockEntity):  # type: ignore
-    """Integration IntLight Entity."""
+class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
+    """Integration Lock Entity."""
 
     _device_type_name: str = "Lock"
-
-    class DataStructure(IntBaseDevice.DataStructure):
-        """Dict for an ADCI Lock."""
-
-        desired_state: Enum
-        raw_state_text: str
-        state: pyadcLock.DeviceState
-        parent_id: str
-        read_only: bool
-
-        async_lock_callback: Callable
-        async_unlock_callback: Callable
+    _device: pyadcLock
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator,
-        device_data: DataStructure,
-        arm_code: str | None,
+        alarmhub: AlarmHub,
+        device: pyadcBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, device_data)
+        super().__init__(alarmhub, device, device.partition_id)
 
-        self._arm_code = arm_code
-
-        self._device = device_data
-
-        try:
-            self.async_lock_callback: Callable = self._device["async_lock_callback"]
-            self.async_unlock_callback: Callable = self._device["async_unlock_callback"]
-        except KeyError:
-            log.error("Failed to initialize control functions for %s.", self.unique_id)
-            self._attr_available = False
-
-        log.debug(
-            "%s: Initializing Alarm.com lock entity for lock %s.",
-            __name__,
-            self.unique_id,
+        self._attr_code_format = (
+            self._determine_code_format(code)
+            if (code := alarmhub.options.get(CONF_ARM_CODE))
+            else ""
         )
 
-    @property
-    def code_format(self) -> str | None:
-        """Return one or more digits/characters."""
-        if self._arm_code is None:
-            return None
-        if isinstance(self._arm_code, str) and re.search("^\\d+$", self._arm_code):
-            return str(lock.ATTR_CODE_FORMAT)
-        return str(lock.ATTR_CODE_FORMAT)
+    @callback  # type: ignore
+    def update_device_data(self) -> None:
+        """Update the entity when coordinator is updated."""
 
-    @property
-    def is_locked(self) -> bool | None:
+        self._attr_state = self._determine_is_locked(self._device.state)
+        self._attr_is_locking = False
+        self._attr_is_unlocking = False
+
+    def _determine_is_locked(self, state: pyadcLock.DeviceState) -> bool | None:
         """Return true if the lock is locked."""
 
-        if not self._device.get("malfunction"):
+        if not self._device.malfunction:
 
-            if self._device.get("state") == pyadcLock.DeviceState.LOCKED:
+            if state == pyadcLock.DeviceState.LOCKED:
                 return True
 
-            if self._device.get("state") == pyadcLock.DeviceState.UNLOCKED:
+            if state == pyadcLock.DeviceState.UNLOCKED:
                 return False
 
         return None
@@ -145,26 +119,56 @@ class IntLock(IntBaseDevice, LockEntity):  # type: ignore
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the lock."""
         if self._validate_code(kwargs.get("code")):
+
+            self._attr_is_locking = True
+
             try:
-                await self.async_lock_callback()
+                await self._device.async_lock()
             except PermissionError:
                 self._show_permission_error("lock")
 
-            await self.coordinator.async_refresh()
+            await self._alarmhub.coordinator.async_refresh()
 
     async def async_unlock(self, **kwargs: Any) -> None:
-        """Lock the lock."""
+        """Unlock the lock."""
         if self._validate_code(kwargs.get("code")):
+
+            self._attr_is_unlocking = True
+
             try:
-                await self.async_unlock_callback()
+                await self._device.async_unlock()
             except PermissionError:
                 self._show_permission_error("unlock")
 
-            await self.coordinator.async_refresh()
+            await self._alarmhub.coordinator.async_refresh()
 
-    def _validate_code(self, code: str | None) -> bool:
+    #
+    # Helpers
+    #
+
+    @classmethod
+    def _determine_code_format(cls, code: str) -> str:
+
+        if isinstance(code, str):
+
+            code_patterns = [
+                r"^\d+$",  # Only digits
+                r"^\w\D+$",  # Only alpha
+                r"^\w+$",  # Alphanumeric
+            ]
+
+            for pattern in code_patterns:
+                if re.findall(pattern, code):
+                    return pattern
+
+            return "."  # All characters
+
+    def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check: bool = self._arm_code in [None, ""] or code == self._arm_code
+        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_ARM_CODE)) in [
+            None,
+            "",
+        ] or code == arm_code
         if not check:
-            log.warning("Wrong code entered")
+            log.warning("Wrong code entered.")
         return check

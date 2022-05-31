@@ -20,6 +20,7 @@ from pyalarmdotcomajax.errors import AuthenticationFailed as pyadcAuthentication
 from pyalarmdotcomajax.errors import DataFetchFailed as pyadcDataFetchFailed
 import voluptuous as vol
 
+from .alarmhub import BasicAlarmHub
 from .const import CONF_2FA_COOKIE
 from .const import CONF_ARM_AWAY
 from .const import CONF_ARM_CODE
@@ -33,7 +34,6 @@ from .const import CONF_UPDATE_INTERVAL
 from .const import CONF_UPDATE_INTERVAL_DEFAULT
 from .const import CONF_USERNAME
 from .const import DOMAIN
-from .controller import IntController
 
 log = logging.getLogger(__name__)
 LegacyArmingOptions = Literal["home", "away", "true", "false"]
@@ -53,7 +53,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         self._config_title: str | None = None
         self._existing_entry: config_entries.ConfigEntry | None = None
         self._imported_options = None
-        self._controller: IntController | None = None
+        self._alarmhub: BasicAlarmHub | None = None
 
         self._force_generic_name: bool = False
 
@@ -79,11 +79,11 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             }
 
             try:
-                self._controller = IntController(self.hass)
+                self._alarmhub = BasicAlarmHub(self.hass)
 
                 log.debug("Logging in to Alarm.com...")
 
-                login_result = await self._controller.async_login(
+                login_result = await self._alarmhub.async_login(
                     username=self.config[CONF_USERNAME],
                     password=self.config[CONF_PASSWORD],
                     twofactorcookie=self.config[CONF_2FA_COOKIE],
@@ -139,12 +139,12 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
             try:
 
-                if not isinstance(self._controller, IntController):
-                    raise ConnectionError("Failed to get ADC controller.")
+                if not isinstance(self._alarmhub, BasicAlarmHub):
+                    raise ConnectionError("Failed to get ADC alarmhub.")
 
-                await self._controller.async_send_otp(user_input[CONF_OTP])
+                await self._alarmhub.async_send_otp(user_input[CONF_OTP])
 
-                if cookie := self._controller.two_factor_cookie:
+                if cookie := self._alarmhub.two_factor_cookie:
                     self.config[CONF_2FA_COOKIE] = cookie
                 else:
                     raise pyadcAuthenticationFailed(
@@ -185,13 +185,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     ) -> FlowResult:
         """Create configuration entry using entered data."""
 
-        if not isinstance(self._controller, IntController):
-            raise ConnectionError("Failed to get ADC controller.")
+        if not isinstance(self._alarmhub, BasicAlarmHub):
+            raise ConnectionError("Failed to get ADC alarmhub.")
 
         self._config_title = (
             "Alarm.com"
             if self._force_generic_name
-            else f"{self._controller.provider_name}:{self._controller.user_email}"
+            else f"{self._alarmhub.provider_name}:{self._alarmhub.user_email}"
         )
 
         self._existing_entry = await self.async_set_unique_id(self._config_title)
@@ -235,9 +235,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         self._async_abort_entries_match({**self.config})
 
         try:
-            self._controller = IntController(self.hass)
+            self._alarmhub = BasicAlarmHub(self.hass)
 
-            login_result = await self._controller.async_login(
+            login_result = await self._alarmhub.async_login(
                 username=self.config[CONF_USERNAME],
                 password=self.config[CONF_PASSWORD],
                 twofactorcookie=self.config[CONF_2FA_COOKIE],
