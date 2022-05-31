@@ -8,25 +8,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .alarm_control_panel import IntAlarmControlPanel
-from .base_device import IntConfigOnlyDeviceDataStructure
-from .base_device import IntSystemDataStructure
-from .binary_sensor import IntBinarySensor
+from .alarmhub import AlarmHub
 from .const import CONF_ARM_AWAY
-from .const import CONF_ARM_CODE
 from .const import CONF_ARM_HOME
 from .const import CONF_ARM_NIGHT
 from .const import DEBUG_REQ_EVENT
 from .const import DOMAIN
-from .const import SENSOR_SUBTYPE_BLACKLIST
 from .const import STARTUP_MESSAGE
-from .controller import IntController
-from .controller import IntCoordinatorDataStructure
-from .cover import IntCover
-from .light import IntLight
-from .lock import IntLock
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +33,7 @@ PLATFORMS: list[str] = [
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Set up alarmdotcom controller from a config entry."""
+    """Set up alarmdotcom alarmhub from a config entry."""
 
     log.debug("%s: Initializing Alarmdotcom from config entry.", __name__)
 
@@ -60,10 +49,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         # Print startup message
         log.info(STARTUP_MESSAGE)
 
-    controller = IntController(hass, config_entry)
-    coordinator: DataUpdateCoordinator = await controller.async_setup()
-    if not coordinator:
-        log.error("%s: Failed to initialize controller.", __name__)
+    alarmhub = AlarmHub(hass, config_entry)
+    await alarmhub.async_setup()
+
+    if not alarmhub.coordinator:
+        log.error("%s: Failed to initialize alarmhub.", __name__)
         return False
 
     log.debug("Alarmdotcom config options %s", dict(config_entry.options))
@@ -74,34 +64,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Get devices from Alarm.com
     device_ids_via_adc: set[str] = set()
-    for device_id in coordinator.data.get("entity_data", []):
-        device_ids_via_adc.add(device_id)
+    for device in alarmhub.devices:
+        device_ids_via_adc.add(device.id_)
 
     log.debug(device_ids_via_adc)
-
-    # Delete mobile phones from device_ids_via_adc.
-    # These devices may have been added to Home Assistant before v0.2.3. Mobile phones are used for pin-less disarming on some panels but provide no value in Home Assistant.
-    for sensor_id in coordinator.data.get("sensor_ids", []):
-        device: (
-            IntCover.DataStructure
-            | IntSystemDataStructure
-            | IntBinarySensor.DataStructure
-            | IntLock.DataStructure
-            | IntLight.DataStructure
-            | IntAlarmControlPanel.DataStructure
-            | None
-        ) = coordinator.data.get("entity_data", {}).get(sensor_id)
-
-        if (
-            device is not None
-            and device.get("device_subtype") in SENSOR_SUBTYPE_BLACKLIST
-        ):
-            log.debug(
-                "Removing blacklisted sensor %s (%s) from Home Assistant.",
-                device.get("name"),
-                device.get("unique_id"),
-            )
-            device_ids_via_adc.remove(sensor_id)
 
     # Will be used during virtual device creation.
     device_ids_via_hass: set[str] = set()
@@ -113,7 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     ):
         for identifier in device_entry.identifiers:
 
-            # Remove _debug, _malfunction, etc from IDs
+            # Remove _debug, _malfunction, etc. from IDs
             id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
 
             if (
@@ -133,34 +99,24 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
             device_registry.async_remove_device(device_entry.id)
 
-    # Store coordinator
-    hass.data[DOMAIN][config_entry.entry_id] = coordinator
+    # Store alarmhub
+    hass.data[DOMAIN][config_entry.entry_id] = alarmhub
 
     # Create virtual DEVICES.
     # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.
-    master_device_data: IntCoordinatorDataStructure = coordinator.data
-    for camera_id in master_device_data.get("camera_ids", []):
-        camera_data: IntConfigOnlyDeviceDataStructure | None = master_device_data.get(
-            "entity_data", {}
-        ).get(camera_id)
+    for camera in alarmhub.system.cameras:
 
         # Check if camera already created.
-        if camera_id in device_ids_via_hass:
-            continue
-
-        if not camera_data:
-            log.warning("Couldn't find data for camera ID %s", camera_id)
+        if camera.id_ in device_ids_via_hass:
             continue
 
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
-            connections={(dr.CONNECTION_NETWORK_MAC, mac_address)}
-            if (mac_address := camera_data.get("mac_address"))
-            else None,
-            identifiers={(DOMAIN, camera_data.get("unique_id"))},
-            name=camera_data.get("name"),
-            model=camera_data.get("model"),
-            manufacturer=camera_data.get("manufacturer"),
+            connections={(dr.CONNECTION_NETWORK_MAC, camera.mac_address)},
+            identifiers={(DOMAIN, camera.id_)},
+            name=camera.name,
+            model="Skybell HD",
+            manufacturer="Skybell",
         )
 
     # Create real devices
@@ -169,15 +125,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        entity_data = coordinator.data.get("entity_data", {}).get(
-            event.data.get("device_id"), {}
-        )
+        device = alarmhub.system.get_device_by_id(event.data.get("device_id"))
 
-        log.warning(
-            "ALARM.COM DEBUG DATA FOR %s: %s",
-            entity_data.get("name", "").upper(),
-            entity_data,
-        )
+        if device:
+            log.warning(
+                "ALARM.COM DEBUG DATA FOR %s: %s",
+                device.name.upper(),
+                device.debug_data,
+            )
 
     hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
 
@@ -187,18 +142,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
 
+    #
+    # To v2
+    #
+
     if config_entry.version == 1:
 
         log.debug("Migrating from version %s", config_entry.version)
 
         v2_options: ConfigEntry = {**config_entry.options}
 
-        v2_options["use_arm_code"] = bool(config_entry.options.get(CONF_ARM_CODE))
+        v2_options["use_arm_code"] = bool(config_entry.options.get("arm_code"))
 
-        v2_options[CONF_ARM_CODE] = (
-            str(arm_code)
-            if (arm_code := config_entry.options.get(CONF_ARM_CODE))
-            else ""
+        v2_options["arm_code"] = (
+            str(arm_code) if (arm_code := config_entry.options.get("arm_code")) else ""
         )
 
         config_entry.version = 2
@@ -209,6 +166,10 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         log.info("Migration to version %s successful", config_entry.version)
 
+    #
+    # To v3
+    #
+
     if config_entry.version == 2:
 
         log.debug("Migrating from version %s", config_entry.version)
@@ -216,7 +177,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         v3_options: ConfigEntry = {**config_entry.options}
 
         if not v3_options.get("use_arm_code"):
-            v3_options[CONF_ARM_CODE] = None
+            v3_options["arm_code"] = None
 
         # Populate Arm Home
         new_arm_home = []
@@ -272,6 +233,32 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         )
 
         log.info("Migration to version %s successful", config_entry.version)
+
+    #
+    # To v4
+    #
+
+    # Be sure to include the commented out cleanup code below when creating and migrating to config v4.
+
+    # if config_entry.version == 3:
+
+    #     log.debug("Migrating from version %s", config_entry.version)
+
+    #     v4_options: dict = {**config_entry.options}
+
+    #     # Purge config options deprecated and set to None in v3 migration.
+    #     v4_options.pop("use_arm_code", None)
+    #     v4_options.pop("force_bypass", None)
+    #     v4_options.pop("silent_arming", None)
+    #     v4_options.pop("no_entry_delay", None)
+
+    #     config_entry.version = 4
+
+    #     hass.config_entries.async_update_entry(
+    #         config_entry, data={**config_entry.data}, options=v4_options
+    #     )
+
+    #     log.info("Migration to version %s successful", config_entry.version)
 
     return True
 

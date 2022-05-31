@@ -1,17 +1,15 @@
 """Alarmdotcom implementation of an HA switch."""
 from __future__ import annotations
 
-from collections.abc import Callable
 import logging
 
 from homeassistant import core
 from homeassistant.components.switch import SwitchDeviceClass
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import EntityCategory
+from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as pyadcCameraSkybellControllerExtension,
 )
@@ -22,11 +20,13 @@ from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as pyadcConfigurationOptionType,
 )
 
-from .base_device import IntBaseDevice
-from .base_device import IntConfigEntityDataStructure
+from .alarmhub import AlarmHub
+from .base_device import ConfigBaseDevice
 from .const import DOMAIN
 
 log = logging.getLogger(__name__)
+
+# TODO: This device contains behavior to the Skybell HD. It needs to be made more generic as other devices are supported.
 
 
 async def async_setup_entry(
@@ -37,94 +37,58 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    coordinator: DataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
 
-    async_add_entities(
-        IntConfigSwitch(
-            coordinator=coordinator,
-            device_data=coordinator.data.get("entity_data", {}).get(device_id),
+    for device in alarmhub.system.cameras:
+        async_add_entities(
+            ConfigOptionSwitch(
+                alarmhub=alarmhub,
+                device=device,
+                config_option=config_option,
+            )
+            for config_option in device.settings.values()
+            if isinstance(config_option, pyadcConfigurationOption)
+            and config_option.option_type is pyadcConfigurationOptionType.BINARY_CHIME
         )
-        for device_id in coordinator.data.get("config_switch_ids", [])
-    )
 
 
-class IntConfigSwitch(IntBaseDevice, SwitchEntity):  # type: ignore
-    """Integration Number Entity."""
+class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
+    """Integration Switch Entity."""
 
     _attr_device_class = SwitchDeviceClass.SWITCH
 
-    def __init__(
-        self,
-        coordinator: DataUpdateCoordinator,
-        device_data: IntConfigEntityDataStructure,
-    ) -> None:
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, device_data)
+    @callback  # type: ignore
+    def update_device_data(self) -> None:
+        """Update the entity when coordinator is updated."""
 
-        self._device = device_data
-        self._config_option: pyadcConfigurationOption = self._device.get(
-            "config_option", {}
-        )
-
-        self._attr_entity_category = EntityCategory.CONFIG
-
-        try:
-            self.async_change_setting_callback: Callable = self._device[
-                "async_change_setting_callback"
-            ]
-        except KeyError:
-            log.error("Failed to initialize control functions for %s.", self.unique_id)
-            self._attr_available = False
-
-        log.debug(
-            "%s: Initializing Alarm.com configuration entity for %s.",
-            __name__,
-            self.unique_id,
-        )
-
-    @property
-    def is_on(self) -> bool:
-        """Return the entity value to represent the entity state."""
-
-        return (
-            self._config_option.get("current_value")
+        self._attr_is_on = (
+            self._config_option.current_value
             is pyadcCameraSkybellControllerExtension.ChimeOnOff.ON
         )
 
-    @property
-    def icon(self) -> str | None:
+        self._attr_icon = self._determine_icon()
+
+    def _determine_icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
-        if (
-            self._config_option.get("option_type")
-            is pyadcConfigurationOptionType.BINARY_CHIME
-        ):
+        if self._config_option.option_type is pyadcConfigurationOptionType.BINARY_CHIME:
             return "mdi:bell" if self.is_on else "mdi:bell-off"
 
         return super().icon if isinstance(super().icon, str) else None
 
-    @property
-    def device_info(self) -> dict:
-        """Return info to categorize this entity as a device."""
-
-        # Associate with parent device.
-        return {
-            "identifiers": {(DOMAIN, self._device.get("parent_id"))},
-        }
-
     async def async_turn_on(self, **kwargs) -> None:  # type: ignore
         """Turn on."""
-        await self.async_change_setting_callback(
-            self._config_option.get("slug"),
+        await self._device.async_change_setting(
+            self._config_option.slug,
             pyadcCameraSkybellControllerExtension.ChimeOnOff.ON,
         )
 
-        await self.coordinator.async_refresh()
+        await self._alarmhub.coordinator.async_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:  # type: ignore
         """Turn off."""
-        await self.async_change_setting_callback(
-            self._config_option.get("slug"),
+        await self._device.async_change_setting(
+            self._config_option.slug,
             pyadcCameraSkybellControllerExtension.ChimeOnOff.OFF,
         )
 
-        await self.coordinator.async_refresh()
+        await self._alarmhub.coordinator.async_refresh()
