@@ -5,13 +5,13 @@ import logging
 import re
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PIN
 from homeassistant.core import Event
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
 from .alarmhub import AlarmHub
 from .const import CONF_ARM_AWAY
-from .const import CONF_ARM_CODE
 from .const import CONF_ARM_HOME
 from .const import CONF_ARM_NIGHT
 from .const import DEBUG_REQ_EVENT
@@ -143,18 +143,20 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Migrate old entry."""
 
+    #
+    # To v2
+    #
+
     if config_entry.version == 1:
 
         log.debug("Migrating from version %s", config_entry.version)
 
         v2_options: ConfigEntry = {**config_entry.options}
 
-        v2_options["use_arm_code"] = bool(config_entry.options.get(CONF_ARM_CODE))
+        v2_options["use_arm_code"] = bool(config_entry.options.get("arm_code"))
 
-        v2_options[CONF_ARM_CODE] = (
-            str(arm_code)
-            if (arm_code := config_entry.options.get(CONF_ARM_CODE))
-            else ""
+        v2_options["arm_code"] = (
+            str(arm_code) if (arm_code := config_entry.options.get("arm_code")) else ""
         )
 
         config_entry.version = 2
@@ -165,6 +167,10 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         log.info("Migration to version %s successful", config_entry.version)
 
+    #
+    # To v3
+    #
+
     if config_entry.version == 2:
 
         log.debug("Migrating from version %s", config_entry.version)
@@ -172,7 +178,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         v3_options: ConfigEntry = {**config_entry.options}
 
         if not v3_options.get("use_arm_code"):
-            v3_options[CONF_ARM_CODE] = None
+            v3_options["arm_code"] = None
 
         # Populate Arm Home
         new_arm_home = []
@@ -225,6 +231,36 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         hass.config_entries.async_update_entry(
             config_entry, data={**config_entry.data}, options=v3_options
+        )
+
+        log.info("Migration to version %s successful", config_entry.version)
+
+    #
+    # To v4
+    #
+
+    if config_entry.version == 3:
+
+        log.debug("Migrating from version %s", config_entry.version)
+
+        v4_options: dict = {**config_entry.options}
+
+        # Use Home Assistant standard CONF_PIN constant instead of "arm_code". This should fix issue with arming/disarming from HomeKit (#126)
+        v4_options[CONF_PIN] = v4_options.get("arm_code", "")
+
+        # Purge old arm code config option.
+        v4_options.pop("arm_code", None)
+
+        # Purge config options deprecated and set to None in v3 migration.
+        v4_options.pop("use_arm_code", None)
+        v4_options.pop("force_bypass", None)
+        v4_options.pop("silent_arming", None)
+        v4_options.pop("no_entry_delay", None)
+
+        config_entry.version = 4
+
+        hass.config_entries.async_update_entry(
+            config_entry, data={**config_entry.data}, options=v4_options
         )
 
         log.info("Migration to version %s successful", config_entry.version)

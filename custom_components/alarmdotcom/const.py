@@ -1,6 +1,7 @@
 """Const for the Alarmdotcom integration."""
 from __future__ import annotations
 
+from homeassistant.const import CONF_PIN
 from pyalarmdotcomajax.devices import Sensor as pyadcSensor
 
 INTEGRATION_NAME = "Alarm.com"
@@ -35,7 +36,6 @@ CONF_PASSWORD = "password"  # nosec
 CONF_2FA_COOKIE = "2fa_cookie"
 CONF_OTP = "otp"
 
-CONF_ARM_CODE = "arm_code"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_ARM_HOME = "arm_home_options"
 CONF_ARM_AWAY = "arm_away_options"
@@ -49,10 +49,10 @@ CONF_ARM_MODE_OPTIONS = {
 }
 
 CONF_OPTIONS_DEFAULT = {
-    CONF_ARM_CODE: "",
-    CONF_ARM_HOME: [],
-    CONF_ARM_AWAY: ["delay"],
-    CONF_ARM_NIGHT: [],
+    CONF_PIN: "",
+    CONF_ARM_HOME: ["bypass"],
+    CONF_ARM_AWAY: ["bypass", "delay"],
+    CONF_ARM_NIGHT: ["bypass"],
     CONF_UPDATE_INTERVAL: CONF_UPDATE_INTERVAL_DEFAULT,
 }
 

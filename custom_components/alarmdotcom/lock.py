@@ -10,6 +10,7 @@ from homeassistant import core
 from homeassistant.components import persistent_notification
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PIN
 from homeassistant.core import callback
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -20,7 +21,6 @@ from pyalarmdotcomajax.devices import Lock as pyadcLock
 
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
-from .const import CONF_ARM_CODE
 from .const import DOMAIN
 from .const import MIGRATE_MSG_ALERT
 
@@ -91,7 +91,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
         self._attr_code_format = (
             self._determine_code_format(code)
-            if (code := alarmhub.options.get(CONF_ARM_CODE))
+            if (code := alarmhub.options.get(CONF_PIN))
             else ""
         )
 
@@ -165,7 +165,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_ARM_CODE)) in [
+        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_PIN)) in [
             None,
             "",
         ] or code == arm_code

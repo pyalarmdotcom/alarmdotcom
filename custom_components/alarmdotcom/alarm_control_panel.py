@@ -11,6 +11,7 @@ from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
 from homeassistant.components.alarm_control_panel import AlarmControlPanelEntityFeature
 from homeassistant.components.alarm_control_panel import CodeFormat
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PIN
 from homeassistant.const import STATE_ALARM_ARMED_AWAY
 from homeassistant.const import STATE_ALARM_ARMED_HOME
 from homeassistant.const import STATE_ALARM_ARMED_NIGHT
@@ -28,7 +29,6 @@ from pyalarmdotcomajax.devices import Partition as pyadcPartition
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
 from .const import CONF_ARM_AWAY
-from .const import CONF_ARM_CODE
 from .const import CONF_ARM_HOME
 from .const import CONF_ARM_NIGHT
 from .const import DOMAIN
@@ -106,7 +106,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                 if (isinstance(arm_code, str) and re.search("^\\d+$", arm_code))
                 else CodeFormat.TEXT
             )
-            if (arm_code := alarmhub.options.get(CONF_ARM_CODE))
+            if (arm_code := alarmhub.options.get(CONF_PIN))
             else None
         )
 
@@ -236,7 +236,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_ARM_CODE)) in [
+        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_PIN)) in [
             None,
             "",
         ] or code == arm_code

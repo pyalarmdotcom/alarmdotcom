@@ -8,6 +8,7 @@ from typing import Literal
 
 import aiohttp
 from homeassistant import config_entries
+from homeassistant.const import CONF_PIN
 from homeassistant.const import CONF_UNIT_OF_MEASUREMENT
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -23,7 +24,6 @@ import voluptuous as vol
 from .alarmhub import BasicAlarmHub
 from .const import CONF_2FA_COOKIE
 from .const import CONF_ARM_AWAY
-from .const import CONF_ARM_CODE
 from .const import CONF_ARM_HOME
 from .const import CONF_ARM_MODE_OPTIONS
 from .const import CONF_ARM_NIGHT
@@ -42,7 +42,7 @@ LegacyArmingOptions = Literal["home", "away", "true", "false"]
 class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     """Handle a Alarmdotcom config flow."""
 
-    VERSION = 3
+    VERSION = 4
 
     def __init__(self) -> None:
         """Initialize the Alarmdotcom flow."""
@@ -304,17 +304,17 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
         errors: dict = {}
 
         if user_input is not None:
-            if user_input.get(CONF_ARM_CODE) == "CLEAR!":
-                user_input[CONF_ARM_CODE] = ""
+            if user_input.get(CONF_PIN) == "CLEAR!":
+                user_input[CONF_PIN] = ""
             self.options.update(user_input)
             return await self.async_step_modes()
 
         schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_ARM_CODE,
+                    CONF_PIN,
                     default=""
-                    if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
+                    if not (arm_code_raw := self.options.get(CONF_PIN))
                     else arm_code_raw,
                 ): selector.selector({"text": {"type": "password"}}),
                 vol.Required(
@@ -408,7 +408,7 @@ def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
     data: dict = {}
 
     if code:
-        data[CONF_ARM_CODE] = str(code)
+        data["arm_code"] = str(code)
 
     # Populate Arm Home
     new_arm_home = []
