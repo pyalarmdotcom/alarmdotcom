@@ -2,7 +2,10 @@
 
 ![hacs installs](https://img.shields.io/endpoint?url=https%3A%2F%2Flauwbier.nl%2Fhacs%2Falarmdotcom)
 
-![image](https://user-images.githubusercontent.com/466460/150609027-55be3eba-8364-4508-ad8d-835407e8782e.png)
+![image](https://user-images.githubusercontent.com/466460/171702200-c5edd68b-c54f-4ca4-82b3-d5a0bb97702b.png)
+
+![image](https://user-images.githubusercontent.com/466460/171701963-e5b5f765-6817-4313-8fa1-6035f4c453e9.png)
+
 
 ## Intro
 
@@ -55,8 +58,6 @@ Note that Alarm.com can has multiple designations for each sensor and not all ar
 #### Subsensors
 
 Each sensor in your system is created as both a device and as an entity within Home Assistant. Each sensor and lock has an associated low battery sensor that activates when the device's battery is low. Each sensor, lock, and control panel has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
-
-![image](https://user-images.githubusercontent.com/466460/150608118-ac6fa640-48c0-41ca-8cbf-4cbc4b142b91.png)
 
 ### Future Support
 
