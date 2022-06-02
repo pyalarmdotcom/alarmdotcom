@@ -99,7 +99,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_state = self._determine_is_locked(self._device.state)
+        self._attr_is_locked = self._determine_is_locked(self._device.state)
         self._attr_is_locking = False
         self._attr_is_unlocking = False
 
