@@ -89,6 +89,6 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
 
         self._attr_icon = self._determine_icon()
 
-    async def async_set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
         await self._device.async_change_setting(self._config_option.slug, int(value))
