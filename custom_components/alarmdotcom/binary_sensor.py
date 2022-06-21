@@ -161,9 +161,10 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
         # Try to determine whether contact sensor is for a window or door by matching strings.
 
         derived_class: BinarySensorDeviceClass = None
-        if (
-            raw_subtype := self._device.device_subtype
-        ) == pyadcSensor.Subtype.CONTACT_SENSOR:
+        if (raw_subtype := self._device.device_subtype) in [
+            pyadcSensor.Subtype.CONTACT_SENSOR,
+            pyadcSensor.Subtype.CONTACT_SHOCK_SENSOR,
+        ]:
             for _, word in LANG_DOOR:
                 if (
                     re.search(
@@ -185,10 +186,10 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
                 ):
                     derived_class = BinarySensorDeviceClass.WINDOW
 
-        if (
-            derived_class is not None
-            and raw_subtype == pyadcSensor.Subtype.CONTACT_SENSOR
-        ):
+        if derived_class is not None and raw_subtype in [
+            pyadcSensor.Subtype.CONTACT_SENSOR,
+            pyadcSensor.Subtype.CONTACT_SHOCK_SENSOR,
+        ]:
             return derived_class
         if raw_subtype == pyadcSensor.Subtype.SMOKE_DETECTOR:
             return BinarySensorDeviceClass.SMOKE
