@@ -1,5 +1,8 @@
 # https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
 
+ci:
+  skip: [pylint]
+  
 repos:
   - repo: https://github.com/asottile/pyupgrade
     rev: v2.32.0
