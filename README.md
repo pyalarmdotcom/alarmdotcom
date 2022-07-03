@@ -1,3 +1,5 @@
+<h4 align="center">This repository has moved from it's old home in uvjustin/alarmdotcom to this new home at pyalarmdotcom/alarmdotcom.<br /><br />If you have already installed the Alarm.com integration in Home Assistant (from uvjustin's repo), you must install it again from this repo in order to obtain updates in the future.<br /><br />You will not need to reconfigure the integration.</h4>
+<hr />
 <p align="center"><img src="https://user-images.githubusercontent.com/466460/175781161-dd70c5b4-d45a-4cdb-bf57-d4fd7fbedb0b.png" width="125"></a>
 <h1 align="center">Alarm.com for Home Assistant</h1>
 <p align="center">This is an unofficial project that is not affiliated with Alarm.com</p>
