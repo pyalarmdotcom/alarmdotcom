@@ -1,4 +1,4 @@
-"""Alarmdotcom implementation of an HA light."""
+"""Alarmdotcom implementation of an HA button."""
 from __future__ import annotations
 
 import logging
@@ -45,7 +45,7 @@ async def async_setup_entry(
 
 
 class DebugAttributeDevice(AttributeBaseDevice, ButtonEntity):  # type: ignore
-    """Integration Light Entity."""
+    """Integration button entity."""
 
     _attr_icon = "mdi:bug"
 
