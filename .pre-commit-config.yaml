@@ -5,7 +5,7 @@ ci:
 
 repos:
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.34.0
+    rev: v2.37.1
     hooks:
       - id: pyupgrade
         args: [--py39-plus]
@@ -53,7 +53,7 @@ repos:
           - --exclude=examples
         files: ^(tests|custom_components)/.+\.py$
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.26.3
+    rev: v1.27.1
     hooks:
       - id: yamllint
         exclude: (.vscode|.devcontainer|pylint|.github)
