@@ -11,15 +11,13 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import (
-    CameraSkybellControllerExtension as pyadcCameraSkybellControllerExtension,
+    CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
 )
+from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 from pyalarmdotcomajax.extensions import (
-    ConfigurationOption as pyadcConfigurationOption,
-)
-from pyalarmdotcomajax.extensions import (
-    ConfigurationOptionType as pyadcConfigurationOptionType,
+    ConfigurationOptionType as libConfigurationOptionType,
 )
 
 from .alarmhub import AlarmHub
@@ -49,11 +47,11 @@ async def async_setup_entry(
                 config_option=config_option,
             )
             for config_option in device.settings.values()
-            if isinstance(config_option, pyadcConfigurationOption)
+            if isinstance(config_option, libConfigurationOption)
             and config_option.option_type
             in [
-                pyadcConfigurationOptionType.ADJUSTABLE_CHIME,
-                pyadcConfigurationOptionType.MOTION_SENSITIVITY,
+                libConfigurationOptionType.ADJUSTABLE_CHIME,
+                libConfigurationOptionType.MOTION_SENSITIVITY,
             ]
         )
 
@@ -64,8 +62,8 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
-        config_option: pyadcConfigurationOption,
+        device: libBaseDevice,
+        config_option: libConfigurationOption,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, config_option)
@@ -75,19 +73,19 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
         self._select_options_map = {}
         if (
             self._config_option.option_type
-            == pyadcConfigurationOptionType.ADJUSTABLE_CHIME
+            == libConfigurationOptionType.ADJUSTABLE_CHIME
         ):
             self._select_options_map = {
                 member.name.title().replace("_", " "): member
-                for member in pyadcCameraSkybellControllerExtension.ChimeAdjustableVolume
+                for member in libCameraSkybellControllerExtension.ChimeAdjustableVolume
             }
         elif (
             self._config_option.option_type
-            == pyadcConfigurationOptionType.MOTION_SENSITIVITY
+            == libConfigurationOptionType.MOTION_SENSITIVITY
         ):
             self._select_options_map = {
                 member.name.title().replace("_", " "): member
-                for member in pyadcCameraSkybellControllerExtension.MotionSensitivity
+                for member in libCameraSkybellControllerExtension.MotionSensitivity
             }
         else:
             log.error(
@@ -104,30 +102,30 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
         """Return the icon to use in the frontend, if any."""
         if (
             self._config_option.option_type
-            == pyadcConfigurationOptionType.ADJUSTABLE_CHIME
+            == libConfigurationOptionType.ADJUSTABLE_CHIME
         ):
             if (
                 current_value := self._config_option.current_value
-            ) == pyadcCameraSkybellControllerExtension.ChimeAdjustableVolume.OFF:
+            ) == libCameraSkybellControllerExtension.ChimeAdjustableVolume.OFF:
                 return "mdi:volume-mute"
             if (
                 current_value
-                == pyadcCameraSkybellControllerExtension.ChimeAdjustableVolume.LOW
+                == libCameraSkybellControllerExtension.ChimeAdjustableVolume.LOW
             ):
                 return "mdi:volume-low"
             if (
                 current_value
-                == pyadcCameraSkybellControllerExtension.ChimeAdjustableVolume.MEDIUM
+                == libCameraSkybellControllerExtension.ChimeAdjustableVolume.MEDIUM
             ):
                 return "mdi:volume-medium"
             if (
                 current_value
-                == pyadcCameraSkybellControllerExtension.ChimeAdjustableVolume.HIGH
+                == libCameraSkybellControllerExtension.ChimeAdjustableVolume.HIGH
             ):
                 return "mdi:volume-high"
         elif (
             self._config_option.option_type
-            == pyadcConfigurationOptionType.MOTION_SENSITIVITY
+            == libConfigurationOptionType.MOTION_SENSITIVITY
         ):
             return "mdi:tune"
 

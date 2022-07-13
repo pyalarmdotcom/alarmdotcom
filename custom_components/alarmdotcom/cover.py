@@ -12,8 +12,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
-from pyalarmdotcomajax.devices import GarageDoor as pyadcGarageDoor
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
@@ -45,12 +45,12 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     """Integration Cover Entity."""
 
     _device_type_name: str = "Garage Door"
-    _device: pyadcGarageDoor
+    _device: libGarageDoor
 
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
@@ -96,15 +96,15 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     # Helpers
     #
 
-    def _determine_is_closed(self, state: pyadcGarageDoor.DeviceState) -> bool | None:
+    def _determine_is_closed(self, state: libGarageDoor.DeviceState) -> bool | None:
         """Return if the cover is closed or not."""
 
         if not self._device.malfunction:
 
-            if state == pyadcGarageDoor.DeviceState.OPEN:
+            if state == libGarageDoor.DeviceState.OPEN:
                 return False
 
-            if state == pyadcGarageDoor.DeviceState.CLOSED:
+            if state == libGarageDoor.DeviceState.CLOSED:
                 return True
 
             log.error(

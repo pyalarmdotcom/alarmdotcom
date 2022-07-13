@@ -15,9 +15,9 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from pyalarmdotcomajax import AuthResult as pyadcAuthResult
-from pyalarmdotcomajax.errors import AuthenticationFailed as pyadcAuthenticationFailed
-from pyalarmdotcomajax.errors import DataFetchFailed as pyadcDataFetchFailed
+from pyalarmdotcomajax import AuthResult as libAuthResult
+from pyalarmdotcomajax.errors import AuthenticationFailed as libAuthenticationFailed
+from pyalarmdotcomajax.errors import DataFetchFailed as libDataFetchFailed
 import voluptuous as vol
 
 from .alarmhub import BasicAlarmHub
@@ -92,14 +92,14 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
                 log.debug("Login result: %s", login_result)
 
-                if login_result == pyadcAuthResult.ENABLE_TWO_FACTOR:
+                if login_result == libAuthResult.ENABLE_TWO_FACTOR:
                     return self.async_abort(reason="must_enable_2fa")
 
-                if login_result == pyadcAuthResult.OTP_REQUIRED:
+                if login_result == libAuthResult.OTP_REQUIRED:
                     log.debug("OTP code required.")
                     return await self.async_step_otp()
 
-                if login_result == pyadcAuthResult.SUCCESS:
+                if login_result == libAuthResult.SUCCESS:
                     return await self.async_step_final()
 
                 errors["base"] = "unknown"
@@ -147,11 +147,11 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 if cookie := self._alarmhub.two_factor_cookie:
                     self.config[CONF_2FA_COOKIE] = cookie
                 else:
-                    raise pyadcAuthenticationFailed(
+                    raise libAuthenticationFailed(
                         "OTP submission failed. Two-factor cookie not found."
                     )
 
-            except (ConnectionError, pyadcDataFetchFailed) as err:
+            except (ConnectionError, libDataFetchFailed) as err:
                 log.error(
                     "%s: OTP submission failed with CannotConnect exception: %s",
                     __name__,
@@ -159,7 +159,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 )
                 errors["base"] = "cannot_connect"
 
-            except pyadcAuthenticationFailed as err:
+            except libAuthenticationFailed as err:
                 log.error(
                     "%s: Incorrect OTP: %s",
                     __name__,
@@ -247,7 +247,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             log.debug("Login result: %s", login_result)
 
             # If provider requires 2FA, create config entry anyway. Will fail on update and prompt for reauth.
-            if login_result != pyadcAuthResult.SUCCESS:
+            if login_result != libAuthResult.SUCCESS:
                 self._force_generic_name = True
 
             return await self.async_step_final()

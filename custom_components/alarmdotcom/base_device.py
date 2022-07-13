@@ -10,10 +10,8 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
-from pyalarmdotcomajax.extensions import (
-    ConfigurationOption as pyadcConfigurationOption,
-)
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 
 from .alarmhub import AlarmHub
 from .const import DOMAIN
@@ -44,7 +42,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
         parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
@@ -131,7 +129,7 @@ class HardwareBaseDevice(BaseDevice):
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
         parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
@@ -168,7 +166,7 @@ class AttributeBaseDevice(BaseDevice):
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
         subdevice_type: AttributeSubdevice,
     ) -> None:
         """Initialize class."""
@@ -191,8 +189,8 @@ class ConfigBaseDevice(BaseDevice):
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
-        config_option: pyadcConfigurationOption,
+        device: libBaseDevice,
+        config_option: libConfigurationOption,
     ) -> None:
         """Initialize class."""
         super().__init__(alarmhub, device, device.id_)

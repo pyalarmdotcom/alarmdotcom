@@ -10,12 +10,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 from pyalarmdotcomajax.extensions import (
-    ConfigurationOption as pyadcConfigurationOption,
-)
-from pyalarmdotcomajax.extensions import (
-    ConfigurationOptionType as pyadcConfigurationOptionType,
+    ConfigurationOptionType as libConfigurationOptionType,
 )
 
 from .alarmhub import AlarmHub
@@ -45,8 +43,8 @@ async def async_setup_entry(
                 config_option=config_option,
             )
             for config_option in device.settings.values()
-            if isinstance(config_option, pyadcConfigurationOption)
-            and config_option.option_type is pyadcConfigurationOptionType.BRIGHTNESS
+            if isinstance(config_option, libConfigurationOption)
+            and config_option.option_type is libConfigurationOptionType.BRIGHTNESS
         )
 
 
@@ -56,8 +54,8 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
-        config_option: pyadcConfigurationOption,
+        device: libBaseDevice,
+        config_option: libConfigurationOption,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, config_option)
@@ -75,7 +73,7 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
 
     def _determine_icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
-        if self._config_option.option_type == pyadcConfigurationOptionType.BRIGHTNESS:
+        if self._config_option.option_type == libConfigurationOptionType.BRIGHTNESS:
             return "mdi:brightness-5"
 
         return super().icon if isinstance(super().icon, str) else None

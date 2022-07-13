@@ -11,13 +11,11 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from pyalarmdotcomajax.extensions import (
-    CameraSkybellControllerExtension as pyadcCameraSkybellControllerExtension,
+    CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
 )
+from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 from pyalarmdotcomajax.extensions import (
-    ConfigurationOption as pyadcConfigurationOption,
-)
-from pyalarmdotcomajax.extensions import (
-    ConfigurationOptionType as pyadcConfigurationOptionType,
+    ConfigurationOptionType as libConfigurationOptionType,
 )
 
 from .alarmhub import AlarmHub
@@ -47,8 +45,8 @@ async def async_setup_entry(
                 config_option=config_option,
             )
             for config_option in device.settings.values()
-            if isinstance(config_option, pyadcConfigurationOption)
-            and config_option.option_type is pyadcConfigurationOptionType.BINARY_CHIME
+            if isinstance(config_option, libConfigurationOption)
+            and config_option.option_type is libConfigurationOptionType.BINARY_CHIME
         )
 
 
@@ -63,14 +61,14 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
 
         self._attr_is_on = (
             self._config_option.current_value
-            is pyadcCameraSkybellControllerExtension.ChimeOnOff.ON
+            is libCameraSkybellControllerExtension.ChimeOnOff.ON
         )
 
         self._attr_icon = self._determine_icon()
 
     def _determine_icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
-        if self._config_option.option_type is pyadcConfigurationOptionType.BINARY_CHIME:
+        if self._config_option.option_type is libConfigurationOptionType.BINARY_CHIME:
             return "mdi:bell" if self.is_on else "mdi:bell-off"
 
         return super().icon if isinstance(super().icon, str) else None
@@ -79,7 +77,7 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
         """Turn on."""
         await self._device.async_change_setting(
             self._config_option.slug,
-            pyadcCameraSkybellControllerExtension.ChimeOnOff.ON,
+            libCameraSkybellControllerExtension.ChimeOnOff.ON,
         )
 
         await self._alarmhub.coordinator.async_refresh()
@@ -88,7 +86,7 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
         """Turn off."""
         await self._device.async_change_setting(
             self._config_option.slug,
-            pyadcCameraSkybellControllerExtension.ChimeOnOff.OFF,
+            libCameraSkybellControllerExtension.ChimeOnOff.OFF,
         )
 
         await self._alarmhub.coordinator.async_refresh()

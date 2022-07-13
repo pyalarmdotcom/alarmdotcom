@@ -12,8 +12,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
-from pyalarmdotcomajax.devices import Light as pyadcLight
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.light import Light as libLight
 
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
@@ -45,12 +45,12 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
     """Integration Light Entity."""
 
     _device_type_name: str = "Light"
-    _device: pyadcLight
+    _device: libLight
 
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
@@ -110,19 +110,19 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
     # Helpers
     #
 
-    def _determine_is_on(self, state: pyadcLight.DeviceState) -> bool | None:
+    def _determine_is_on(self, state: libLight.DeviceState) -> bool | None:
         """Return True if entity is on."""
 
         log.debug("Processing state %s for %s", state, self.name)
 
         if not self._device.malfunction:
             if state in [
-                pyadcLight.DeviceState.ON,
-                pyadcLight.DeviceState.LEVELCHANGE,
+                libLight.DeviceState.ON,
+                libLight.DeviceState.LEVELCHANGE,
             ]:
                 return True
 
-            if state == pyadcLight.DeviceState.OFF:
+            if state == libLight.DeviceState.OFF:
                 return False
 
             log.error(

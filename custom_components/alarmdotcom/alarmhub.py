@@ -17,9 +17,9 @@ from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from pyalarmdotcomajax import AlarmController as pyadcController
-from pyalarmdotcomajax import AuthResult as pyadcAuthResult
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
+from pyalarmdotcomajax import AlarmController as libController
+from pyalarmdotcomajax import AuthResult as libAuthResult
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.errors import AuthenticationFailed
 from pyalarmdotcomajax.errors import DataFetchFailed
 from pyalarmdotcomajax.errors import UnexpectedDataStructure
@@ -33,7 +33,7 @@ log = logging.getLogger(__name__)
 class BasicAlarmHub:
     """Manages a single Alarm.com instance."""
 
-    system: pyadcController
+    system: libController
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the system."""
@@ -60,11 +60,11 @@ class BasicAlarmHub:
         password: str,
         twofactorcookie: str,
         new_websession: bool = False,
-    ) -> pyadcAuthResult:
+    ) -> libAuthResult:
         """Log into Alarm.com."""
 
         try:
-            self.system = pyadcController(
+            self.system = libController(
                 username=username,
                 password=password,
                 websession=async_create_clientsession(self.hass)
@@ -124,7 +124,7 @@ class AlarmHub(BasicAlarmHub):
         self.options: MappingProxyType[str, Any] = config_entry.options
 
     @property
-    def devices(self) -> list[pyadcBaseDevice]:
+    def devices(self) -> list[libBaseDevice]:
         """Return dictionary of sensors for this alarmhub."""
 
         return list(
@@ -135,6 +135,7 @@ class AlarmHub(BasicAlarmHub):
             + self.system.locks
             + self.system.garage_doors
             + self.system.systems
+            + self.system.thermostats
         )
 
     @property

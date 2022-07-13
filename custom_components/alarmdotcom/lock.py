@@ -15,8 +15,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
-from pyalarmdotcomajax.devices import Lock as pyadcLock
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.lock import Lock as libLock
 
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
@@ -79,12 +79,12 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     """Integration Lock Entity."""
 
     _device_type_name: str = "Lock"
-    _device: pyadcLock
+    _device: libLock
 
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
@@ -103,15 +103,15 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
         self._attr_is_locking = False
         self._attr_is_unlocking = False
 
-    def _determine_is_locked(self, state: pyadcLock.DeviceState) -> bool | None:
+    def _determine_is_locked(self, state: libLock.DeviceState) -> bool | None:
         """Return true if the lock is locked."""
 
         if not self._device.malfunction:
 
-            if state == pyadcLock.DeviceState.LOCKED:
+            if state == libLock.DeviceState.LOCKED:
                 return True
 
-            if state == pyadcLock.DeviceState.UNLOCKED:
+            if state == libLock.DeviceState.UNLOCKED:
                 return False
 
         return None
