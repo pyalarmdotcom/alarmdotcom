@@ -1,7 +1,7 @@
 """Const for the Alarmdotcom integration."""
 from __future__ import annotations
 
-from pyalarmdotcomajax.devices import Sensor as pyadcSensor
+from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 INTEGRATION_NAME = "Alarm.com"
 DOMAIN = "alarmdotcom"
@@ -57,6 +57,6 @@ CONF_OPTIONS_DEFAULT = {
 }
 
 SENSOR_SUBTYPE_BLACKLIST = [
-    pyadcSensor.Subtype.MOBILE_PHONE,  # No purpose
-    pyadcSensor.Subtype.PANEL_IMAGE_SENSOR,  # No support yet
+    libSensor.Subtype.MOBILE_PHONE,  # No purpose
+    libSensor.Subtype.PANEL_IMAGE_SENSOR,  # No support yet
 ]

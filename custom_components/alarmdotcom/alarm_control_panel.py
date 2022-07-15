@@ -22,8 +22,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
-from pyalarmdotcomajax.devices import Partition as pyadcPartition
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.partition import Partition as libPartition
 
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
@@ -89,12 +89,12 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     """Alarm.com Alarm Control Panel entity."""
 
     device_type_name: str = "Alarm Control Panel"
-    _device: pyadcPartition
+    _device: libPartition
 
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
 
@@ -127,7 +127,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                 "desired_state": self._device.desired_state.name.title()
                 if isinstance(
                     self._device.desired_state,
-                    pyadcPartition.DeviceState,
+                    libPartition.DeviceState,
                 )
                 else None,
                 "uncleared_issues": self._device.uncleared_issues,
@@ -211,20 +211,20 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     # Helpers
     #
 
-    def _determine_state(self, state: pyadcPartition.DeviceState) -> str | None:
+    def _determine_state(self, state: libPartition.DeviceState) -> str | None:
         """Return the state of the device."""
 
         log.debug("Processing state %s for %s", state, self.name)
 
         if not self._device.malfunction:
 
-            if state == pyadcPartition.DeviceState.DISARMED:
+            if state == libPartition.DeviceState.DISARMED:
                 return str(STATE_ALARM_DISARMED)
-            if state == pyadcPartition.DeviceState.ARMED_STAY:
+            if state == libPartition.DeviceState.ARMED_STAY:
                 return str(STATE_ALARM_ARMED_HOME)
-            if state == pyadcPartition.DeviceState.ARMED_AWAY:
+            if state == libPartition.DeviceState.ARMED_AWAY:
                 return str(STATE_ALARM_ARMED_AWAY)
-            if state == pyadcPartition.DeviceState.ARMED_NIGHT:
+            if state == libPartition.DeviceState.ARMED_NIGHT:
                 return str(STATE_ALARM_ARMED_NIGHT)
 
             log.error(

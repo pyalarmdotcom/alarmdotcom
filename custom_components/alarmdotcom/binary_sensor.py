@@ -12,8 +12,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as pyadcBaseDevice
-from pyalarmdotcomajax.devices import Sensor as pyadcSensor
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 from .alarmhub import AlarmHub
 from .base_device import AttributeBaseDevice
@@ -56,7 +56,7 @@ async def async_setup_entry(
         for device in alarmhub.devices
         if None not in [device.battery_low, device.battery_critical]
         and not (
-            isinstance(device, pyadcSensor)
+            isinstance(device, libSensor)
             and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
         )
     )
@@ -70,7 +70,7 @@ async def async_setup_entry(
         for device in alarmhub.devices
         if device.malfunction is not None
         and not (
-            isinstance(device, pyadcSensor)
+            isinstance(device, libSensor)
             and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
         )
     )
@@ -79,9 +79,9 @@ async def async_setup_entry(
 class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     """Binary sensor device class."""
 
-    _device: pyadcSensor
+    _device: libSensor
 
-    def __init__(self, alarmhub: AlarmHub, device: pyadcBaseDevice) -> None:
+    def __init__(self, alarmhub: AlarmHub, device: libBaseDevice) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
 
@@ -112,25 +112,25 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     # Helpers
     #
 
-    def _determine_is_on(self, state: pyadcSensor.DeviceState) -> bool | None:
+    def _determine_is_on(self, state: libSensor.DeviceState) -> bool | None:
 
         log.debug("Processing state %s for %s", state, self.name)
 
         if state in [
-            pyadcSensor.DeviceState.CLOSED,
-            pyadcSensor.DeviceState.IDLE,
-            pyadcSensor.DeviceState.DRY,
+            libSensor.DeviceState.CLOSED,
+            libSensor.DeviceState.IDLE,
+            libSensor.DeviceState.DRY,
         ]:
             return False
 
         if state in [
-            pyadcSensor.DeviceState.OPEN,
-            pyadcSensor.DeviceState.ACTIVE,
-            pyadcSensor.DeviceState.WET,
+            libSensor.DeviceState.OPEN,
+            libSensor.DeviceState.ACTIVE,
+            libSensor.DeviceState.WET,
         ]:
             return True
 
-        if state == pyadcSensor.DeviceState.UNKNOWN:
+        if state == libSensor.DeviceState.UNKNOWN:
             return None
 
         log.error(
@@ -162,8 +162,8 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
 
         derived_class: BinarySensorDeviceClass = None
         if (raw_subtype := self._device.device_subtype) in [
-            pyadcSensor.Subtype.CONTACT_SENSOR,
-            pyadcSensor.Subtype.CONTACT_SHOCK_SENSOR,
+            libSensor.Subtype.CONTACT_SENSOR,
+            libSensor.Subtype.CONTACT_SHOCK_SENSOR,
         ]:
             for _, word in LANG_DOOR:
                 if (
@@ -187,27 +187,27 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
                     derived_class = BinarySensorDeviceClass.WINDOW
 
         if derived_class is not None and raw_subtype in [
-            pyadcSensor.Subtype.CONTACT_SENSOR,
-            pyadcSensor.Subtype.CONTACT_SHOCK_SENSOR,
+            libSensor.Subtype.CONTACT_SENSOR,
+            libSensor.Subtype.CONTACT_SHOCK_SENSOR,
         ]:
             return derived_class
-        if raw_subtype == pyadcSensor.Subtype.SMOKE_DETECTOR:
+        if raw_subtype == libSensor.Subtype.SMOKE_DETECTOR:
             return BinarySensorDeviceClass.SMOKE
-        if raw_subtype == pyadcSensor.Subtype.CO_DETECTOR:
+        if raw_subtype == libSensor.Subtype.CO_DETECTOR:
             return BinarySensorDeviceClass.CO
-        if raw_subtype == pyadcSensor.Subtype.PANIC_BUTTON:
+        if raw_subtype == libSensor.Subtype.PANIC_BUTTON:
             return BinarySensorDeviceClass.SAFETY
         if raw_subtype in [
-            pyadcSensor.Subtype.GLASS_BREAK_DETECTOR,
-            pyadcSensor.Subtype.PANEL_GLASS_BREAK_DETECTOR,
+            libSensor.Subtype.GLASS_BREAK_DETECTOR,
+            libSensor.Subtype.PANEL_GLASS_BREAK_DETECTOR,
         ]:
             return BinarySensorDeviceClass.VIBRATION
         if raw_subtype in [
-            pyadcSensor.Subtype.MOTION_SENSOR,
-            pyadcSensor.Subtype.PANEL_MOTION_SENSOR,
+            libSensor.Subtype.MOTION_SENSOR,
+            libSensor.Subtype.PANEL_MOTION_SENSOR,
         ]:
             return BinarySensorDeviceClass.MOTION
-        if raw_subtype == pyadcSensor.Subtype.FREEZE_SENSOR:
+        if raw_subtype == libSensor.Subtype.FREEZE_SENSOR:
             return BinarySensorDeviceClass.COLD
 
         return None
@@ -225,7 +225,7 @@ class BatteryAttributeSensor(AttributeBaseDevice, BinarySensorEntity):  # type: 
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, self.subdevice_type)
@@ -270,7 +270,7 @@ class MalfunctionAttributeSensor(AttributeBaseDevice, BinarySensorEntity):  # ty
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: pyadcBaseDevice,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, self.subdevice_type)

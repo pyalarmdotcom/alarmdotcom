@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from pyalarmdotcomajax.devices import Sensor as pyadcSensor
+from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 from .alarmhub import AlarmHub
 from .base_device import AttributeBaseDevice
@@ -38,7 +38,7 @@ async def async_setup_entry(
         for device in alarmhub.devices
         if None not in [device.battery_low, device.battery_critical]
         and not (
-            isinstance(device, pyadcSensor)
+            isinstance(device, libSensor)
             and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
         )
     )
