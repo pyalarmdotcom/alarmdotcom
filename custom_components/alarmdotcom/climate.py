@@ -46,7 +46,7 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.lights
+        for device in alarmhub.system.thermostats
     )
 
 
@@ -69,6 +69,8 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         self._raw_attribs = self._device.attributes
 
         self._attr_target_temperature_step = self._raw_attribs.step_value
+
+        self._determine_features()
 
     @callback  # type: ignore
     def update_device_data(self) -> None:
@@ -105,7 +107,7 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         elif self._device.state == libThermostat.DeviceState.OFF:
             self._attr_hvac_mode = HVACMode.OFF
         else:
-            self._device.state = None
+            self._attr_hvac_mode = None
 
         #
         # Target Temps
@@ -144,18 +146,18 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
         if not self._raw_attribs.supports_fan_mode:
             self._attr_fan_mode = None
-        if self._raw_attribs.fan_duration is None:
-            self._attr_fan_mode = FAN_OFF
-        if self._raw_attribs.fan_mode is libThermostat.FanMode.AUTO_LOW:
+        if self._raw_attribs.fan_mode in [
+            libThermostat.FanMode.AUTO_LOW,
+            libThermostat.FanMode.CIRCULATE,
+        ]:
             self._attr_fan_mode = FAN_AUTO
         if self._raw_attribs.fan_mode is libThermostat.FanMode.ON_LOW:
             self._attr_fan_mode = FAN_ON
-        if self._raw_attribs.fan_mode is libThermostat.FanMode.CIRCULATE:
-            self._attr_fan_mode = FAN_CIRCULATE
 
         #
         # Aux Heat
         #
+
         self._attr_is_aux_heat = (
             self._device.state == libThermostat.DeviceState.AUX_HEAT
         )
@@ -291,4 +293,4 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         #
 
         if self._raw_attribs.supports_fan_mode:
-            self._attr_fan_modes = [FAN_AUTO, FAN_ON, FAN_CIRCULATE]
+            self._attr_fan_modes = [FAN_AUTO, FAN_ON]

@@ -12,6 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.thermostat import Thermostat as libThermostat
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
 )
@@ -21,6 +22,7 @@ from pyalarmdotcomajax.extensions import (
 )
 
 from .alarmhub import AlarmHub
+from .base_device import BaseDevice
 from .base_device import ConfigBaseDevice
 from .const import DOMAIN
 
@@ -55,9 +57,18 @@ async def async_setup_entry(
             ]
         )
 
+    async_add_entities(
+        ClimateFanDurationSelect(
+            alarmhub=alarmhub,
+            device=device,
+        )
+        for device in alarmhub.system.thermostats
+        if device.attributes.supported_fan_durations
+    )
+
 
 class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
-    """Integration Number Entity."""
+    """Integration configuration option entity."""
 
     def __init__(
         self,
@@ -65,7 +76,7 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
         device: libBaseDevice,
         config_option: libConfigurationOption,
     ) -> None:
-        """Pass coordinator to CoordinatorEntity."""
+        """Initialize."""
         super().__init__(alarmhub, device, config_option)
 
         self._attr_entity_category = EntityCategory.CONFIG
@@ -146,3 +157,65 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
         await self._device.async_change_setting(
             self._config_option.slug, self._select_options_map[option]
         )
+
+
+class ClimateFanDurationSelect(BaseDevice, SelectEntity):  # type: ignore
+    """Fan duration selector for Alarm.com thermostats."""
+
+    # If more select options are implemented, consider making generic in the style of ConfigOptionSelect.
+
+    def __init__(
+        self,
+        alarmhub: AlarmHub,
+        device: libThermostat,
+    ) -> None:
+        """Initialize."""
+        super().__init__(alarmhub, device, device.id_)
+
+        self._attr_unique_id = f"{device.id_}_fan_duration"
+
+        self._attr_name = f"{device.name}: Fan Duration"
+
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, self._device.id_)},
+        }
+
+        self._device = device
+
+        self._attr_icon = "mdi:fan-clock"
+
+        #
+        # Populate list of fan durations
+        #
+        self._fan_duration_map: dict = {None: "Auto"}  # duration_int: duration_label
+        for option in self._device.attributes.supported_fan_durations:
+            self._fan_duration_map[
+                option
+            ] = f"On for {option} hour{'s' if option > 1 else ''}"
+
+        if self._device.attributes.supports_fan_indefinite:
+            self._fan_duration_map[0] = "Always On"
+
+        # End Populate list of fan durations
+
+        self._attr_options: list = list(self._fan_duration_map.values())
+
+    @callback  # type: ignore
+    def update_device_data(self) -> None:
+        """Update the entity when coordinator is updated."""
+
+        self._attr_current_option = self._fan_duration_map.get(
+            self._device.attributes.fan_duration
+        )
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
+
+        for key, value in self._fan_duration_map.items():
+            if option == value:
+                await self._device.async_set_attribute(
+                    fan=(libThermostat.FanMode.ON_LOW, key)
+                )
+                return None
+
+        log.warning("Error setting fan duration for %s", self.name)

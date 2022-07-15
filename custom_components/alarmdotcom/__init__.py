@@ -1,6 +1,7 @@
 """The alarmdotcom integration."""
 from __future__ import annotations
 
+import json
 import logging
 import re
 
@@ -29,6 +30,7 @@ PLATFORMS: list[str] = [
     "number",
     "switch",
     "select",
+    "climate",
 ]
 
 
@@ -131,7 +133,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             log.warning(
                 "ALARM.COM DEBUG DATA FOR %s: %s",
                 device.name.upper(),
-                device.debug_data,
+                json.dumps(device.debug_data),
             )
 
     hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
