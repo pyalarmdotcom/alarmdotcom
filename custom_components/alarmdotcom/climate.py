@@ -11,7 +11,6 @@ from homeassistant.components.climate.const import ATTR_HVAC_MODE
 from homeassistant.components.climate.const import ATTR_TARGET_TEMP_HIGH
 from homeassistant.components.climate.const import ATTR_TARGET_TEMP_LOW
 from homeassistant.components.climate.const import FAN_AUTO
-from homeassistant.components.climate.const import FAN_OFF
 from homeassistant.components.climate.const import FAN_ON
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE
@@ -68,13 +67,15 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
         self._raw_attribs = self._device.attributes
 
-        self._attr_target_temperature_step = self._raw_attribs.step_value
+        self._attr_target_temperature_step = 1.0
 
         self._determine_features()
 
     @callback  # type: ignore
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
+
+        self._raw_attribs = self._device.attributes
 
         #
         # Reported Values
@@ -101,7 +102,7 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
             self._attr_hvac_mode = HVACMode.HEAT_COOL
         elif (
             self._device.state == libThermostat.DeviceState.OFF
-            and self._raw_attribs.fan_mode is not None
+            and self._raw_attribs.fan_mode == libThermostat.FanMode.ON
         ):
             self._attr_hvac_mode = HVACMode.FAN_ONLY
         elif self._device.state == libThermostat.DeviceState.OFF:
@@ -144,15 +145,12 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         # Fan Mode
         #
 
-        if not self._raw_attribs.supports_fan_mode:
-            self._attr_fan_mode = None
-        if self._raw_attribs.fan_mode in [
-            libThermostat.FanMode.AUTO_LOW,
-            libThermostat.FanMode.CIRCULATE,
-        ]:
+        if self._raw_attribs.fan_mode == libThermostat.FanMode.AUTO:
             self._attr_fan_mode = FAN_AUTO
-        if self._raw_attribs.fan_mode is libThermostat.FanMode.ON_LOW:
+        elif self._raw_attribs.fan_mode == libThermostat.FanMode.ON:
             self._attr_fan_mode = FAN_ON
+        else:
+            self._attr_fan_mode = None
 
         #
         # Aux Heat
@@ -178,17 +176,23 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
                 await self._device.async_set_attribute(
                     state=libThermostat.DeviceState.AUTO
                 )
-            elif hvac_mode in [HVACMode.FAN_ONLY, HVACMode.OFF]:
+            elif hvac_mode == HVACMode.FAN_ONLY:
                 await self._device.async_set_attribute(
                     state=libThermostat.DeviceState.OFF
                 )
+                await self.async_set_fan_mode(FAN_ON)
+            elif hvac_mode == HVACMode.OFF:
+                await self._device.async_set_attribute(
+                    state=libThermostat.DeviceState.OFF
+                )
+                await self.async_set_fan_mode(FAN_AUTO)
         except PermissionError:
             self._show_permission_error("set")
 
         await self._alarmhub.coordinator.async_refresh()
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
-        """Turn on the light or adjust brightness."""
+        """Change fan mode."""
 
         max_fan_duration = (
             0
@@ -197,21 +201,13 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         )
 
         try:
-            if fan_mode == FAN_OFF:
+            if fan_mode == FAN_ON:
                 await self._device.async_set_attribute(
-                    fan=(libThermostat.FanMode.AUTO_LOW, None)
-                )
-            elif fan_mode == FAN_ON:
-                await self._device.async_set_attribute(
-                    fan=(libThermostat.FanMode.ON_LOW, max_fan_duration)
+                    fan=(libThermostat.FanMode.ON, max_fan_duration)
                 )
             elif fan_mode == FAN_AUTO:
                 await self._device.async_set_attribute(
-                    fan=(libThermostat.FanMode.AUTO_LOW, max_fan_duration)
-                )
-            elif fan_mode == FAN_CIRCULATE:
-                await self._device.async_set_attribute(
-                    fan=(libThermostat.FanMode.CIRCULATE, max_fan_duration)
+                    fan=(libThermostat.FanMode.AUTO, 0)
                 )
         except PermissionError:
             self._show_permission_error("set")
@@ -270,9 +266,6 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         #
 
         hvac_modes = [HVACMode.OFF]
-
-        if self._raw_attribs.supports_auto:
-            hvac_modes.append(HVACMode.AUTO)
 
         if self._raw_attribs.supports_heat:
             hvac_modes.append(HVACMode.HEAT)

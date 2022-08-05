@@ -4,10 +4,10 @@
     "documentation": "https://www.github.com/uvjustin/alarmdotcom",
     "issue_tracker": "https://www.github.com/uvjustin/alarmdotcom/issues",
     "requirements": [
-        "beautifulsoup4==4.10.0", "pyalarmdotcomajax==0.4.2"
+        "beautifulsoup4==4.10.0", "pyalarmdotcomajax==0.4.3"
     ],
     "dependencies": [],
-    "version": "0.2.12-beta.2",
+    "version": "0.2.12",
     "codeowners": [
         "@uvjustin", "@elahd"
     ],
