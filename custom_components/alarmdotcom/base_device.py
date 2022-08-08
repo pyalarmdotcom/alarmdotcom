@@ -91,12 +91,21 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     def _handle_coordinator_update(self) -> None:
         """Update the entity with new REST API data."""
 
-        if hasattr(self, "_attr_extra_state_attributes"):
-            self._attr_extra_state_attributes.update(
-                {
-                    "raw_state_text": self._device.raw_state_text,
-                }
+        # Try/Except added to debug #157
+        try:
+            if hasattr(self, "_attr_extra_state_attributes"):
+                self._attr_extra_state_attributes.update(
+                    {
+                        "raw_state_text": self._device.raw_state_text,
+                    }
+                )
+        except AttributeError as err:
+            log.error(
+                "Could not find raw_state_text for %s %s.",
+                self._device_type_name,
+                self.name,
             )
+            raise err
 
         self.update_device_data()
         self.async_write_ha_state()
