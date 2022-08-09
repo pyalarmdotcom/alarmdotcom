@@ -55,7 +55,7 @@ Where possible, use local control for smart home devices that are natively suppo
 | Lock              | lock, unlock                             | ✔           | ✔                      | ✔                      |                                                                                      |                   |
 | Garage Door       | open, close                              | ✔           |                        |                        |                                                                                      |                   |
 | Light             | turn on / set brightness, turn off       | ✔           |                        |                        |                                                                                      |                   |
-| Thermostat        | heat, cool, heat/cool, fan, fan duration | ✔           | ✔                      | ✔                      |                                                                                      |
+| Thermostat        | heat, cool, auto heat/cool, fan only | ✔           | ✔                      | ✔                      |                                                                                      |
 | Skybell HD Camera | _(none)_                                 |             |                        |                        | Indoor Chime On/Off, Outdoor Chime Volume, LED Brightness, Motion Sensor Sensitivity | No video support! |
 
 As of v0.2.0, multiples of all of the above devices are supported.
