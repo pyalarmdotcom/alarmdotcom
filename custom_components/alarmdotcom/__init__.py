@@ -138,6 +138,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
 
+    log.debug("%s: Finished initializing Alarmdotcom from config entry.", __name__)
+
     return True
 
 

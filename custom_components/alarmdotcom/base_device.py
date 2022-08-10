@@ -48,20 +48,25 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         """Initialize class."""
         super().__init__(alarmhub.coordinator)
 
-        log.debug(
-            "%s: Initializing %s.",
-            __name__,
-            device.id_,
-        )
-
+        self._adc_id = device.id_
         self._device = device
         self._alarmhub = alarmhub
+        self._attr_has_entity_name = True
 
         self.parent_id = parent_id
 
     @property
     def available(self) -> bool:
         """Return whether device is available."""
+
+        if not self._device:
+            log.error(
+                "%s: No device data available for %s (%s).",
+                __name__,
+                self.name,
+                self._adc_id,
+            )
+            return False
 
         if isinstance(self, ButtonEntity):
             return True
@@ -91,21 +96,14 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     def _handle_coordinator_update(self) -> None:
         """Update the entity with new REST API data."""
 
-        # Try/Except added to debug #157
-        try:
-            if hasattr(self, "_attr_extra_state_attributes"):
-                self._attr_extra_state_attributes.update(
-                    {
-                        "raw_state_text": self._device.raw_state_text,
-                    }
-                )
-        except AttributeError as err:
-            log.error(
-                "Could not find raw_state_text for %s %s.",
-                self._device_type_name,
-                self.name,
+        self._device = self._alarmhub.system.get_device_by_id(self._adc_id)
+
+        if hasattr(self, "_attr_extra_state_attributes"):
+            self._attr_extra_state_attributes.update(
+                {
+                    "raw_state_text": self._device.raw_state_text,
+                }
             )
-            raise err
 
         self.update_device_data()
         self.async_write_ha_state()
@@ -144,9 +142,15 @@ class HardwareBaseDevice(BaseDevice):
         """Initialize class."""
         super().__init__(alarmhub, device, parent_id)
 
-        self._attr_unique_id = device.id_
+        log.debug(
+            "%s: Initializing [%s: %s (%s)].",
+            __name__,
+            device.__class__.__name__.lower(),
+            device.name,
+            device.id_,
+        )
 
-        self._attr_name = device.name
+        self._attr_unique_id = device.id_
 
         self._attr_extra_state_attributes = {
             "mac_address": self._device.mac_address,
@@ -155,18 +159,10 @@ class HardwareBaseDevice(BaseDevice):
 
         self._attr_device_info = {
             "default_manufacturer": "Alarm.com",
-            "name": self.name,
+            "name": device.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "via_device": (DOMAIN, self.parent_id),
         }
-
-    @callback  # type: ignore
-    def _handle_coordinator_update(self) -> None:
-        """Update the entity with new REST API data."""
-
-        self._device = self._alarmhub.system.get_device_by_id(self.unique_id)
-
-        super()._handle_coordinator_update()
 
 
 class AttributeBaseDevice(BaseDevice):
@@ -181,11 +177,20 @@ class AttributeBaseDevice(BaseDevice):
         """Initialize class."""
         super().__init__(alarmhub, device, device.id_)
 
+        log.debug(
+            "%s: Initializing [%s: %s (%s)] [Attribute: %s].",
+            __name__,
+            device.__class__.__name__.title(),
+            device.name,
+            device.id_,
+            subdevice_type.name.title(),
+        )
+
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
         self._attr_unique_id = f"{device.id_}_{subdevice_type.value.suffix}"
 
-        self._attr_name = f"{device.name}: {subdevice_type.value.name}"
+        self._attr_name = f"{subdevice_type.value.name}"
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, self._device.id_)},
@@ -204,11 +209,20 @@ class ConfigBaseDevice(BaseDevice):
         """Initialize class."""
         super().__init__(alarmhub, device, device.id_)
 
+        log.debug(
+            "%s: Initializing [%s: %s (%s)] [Config Option: %s].",
+            __name__,
+            device.__class__.__name__.title(),
+            device.name,
+            device.id_,
+            config_option.name.title(),
+        )
+
         self._attr_entity_category = EntityCategory.CONFIG
 
         self._attr_unique_id = f"{device.id_}_{config_option.slug.replace('-','_')}"
 
-        self._attr_name = f"{device.name}: {config_option.name}"
+        self._attr_name = f"{config_option.name}"
 
         self._attr_device_info = {
             "identifiers": {(DOMAIN, self._device.id_)},
