@@ -3,9 +3,12 @@
   "name": "Alarm.com",
   "documentation": "https://www.github.com/uvjustin/alarmdotcom",
   "issue_tracker": "https://www.github.com/uvjustin/alarmdotcom/issues",
-  "requirements": ["beautifulsoup4==4.10.0", "pyalarmdotcomajax==0.4.5"],
+  "requirements": [
+    "beautifulsoup4==4.10.0",
+    "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax.git@fix-arm_stay#pyalarmdotcomajax==0.4.6-beta"
+  ],
   "dependencies": [],
-  "version": "0.2.14",
+  "version": "0.2.15-beta.0",
   "codeowners": ["@uvjustin", "@elahd"],
   "iot_class": "cloud_polling",
   "config_flow": true
