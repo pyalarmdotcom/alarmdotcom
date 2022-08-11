@@ -55,7 +55,7 @@ Where possible, use local control for smart home devices that are natively suppo
 | Lock              | lock, unlock                             | ✔           | ✔                      | ✔                      |                                                                                      |                   |
 | Garage Door       | open, close                              | ✔           |                        |                        |                                                                                      |                   |
 | Light             | turn on / set brightness, turn off       | ✔           |                        |                        |                                                                                      |                   |
-| Thermostat        | heat, cool, auto heat/cool, fan only | ✔           | ✔                      | ✔                      |                                                                                      |
+| Thermostat        | heat, cool, auto heat/cool, fan only     | ✔           | ✔                      | ✔                      |                                                                                      | Fan only mode turns on the fan for the maximum duration available through Alarm.com. There is no option to turn on the fan for a shorter duration. Also, no support for remote temperature sensors. |
 | Skybell HD Camera | _(none)_                                 |             |                        |                        | Indoor Chime On/Off, Outdoor Chime Volume, LED Brightness, Motion Sensor Sensitivity | No video support! |
 
 As of v0.2.0, multiples of all of the above devices are supported.
@@ -98,7 +98,6 @@ If you own one of the below devices and want to help build support, [open an iss
 | RGB Light          | e.g.: [Inovelli RGBW Smart Bulb](https://inovelli.com/rgbw-smart-bulb-z-wave/)                                           | A lot.      |
 | Video Camera       | e.g.: [Alarm.com ADC-V515](https://www.alarmgrid.com/products/alarm-com-adc-v515)                                        | A lot.      |
 | Water Valve        | e.g.: [Dome Water Main Shut-off](https://www.domeha.com/z-wave-water-main-shut-off-valve)                                | A lot.      |
-| Thermostat         | e.g.: [Alarm.com Intelligent Thermostat](https://suretyhome.com/product/intelligent-thermostat/)                         | A lot.      |
 | Leak Sensor        | e.g.: [Dome Leak Sensor](https://www.domeha.com/z-wave-leak-sensor)                                                      | A little.   |
 | Temperature Sensor | e.g.: [Alarm.com PowerG Wireless Temperature Sensor](https://suretyhome.com/product/powerg-wireless-temperature-sensor/) | A little.   |
 
