@@ -1,3 +1,5 @@
 {
-  "name": "Alarmdotcom"
+  "name": "Alarm.com",
+  "render_readme": true,
+  "homeassistant": "2022.06"
 }
