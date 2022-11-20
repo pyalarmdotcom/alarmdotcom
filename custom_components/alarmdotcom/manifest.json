@@ -8,7 +8,7 @@
     "pyalarmdotcomajax==0.4.6"
   ],
   "dependencies": [],
-  "version": "0.2.15",
+  "version": "0.2.16",
   "codeowners": ["@uvjustin", "@elahd"],
   "iot_class": "cloud_polling",
   "config_flow": true
