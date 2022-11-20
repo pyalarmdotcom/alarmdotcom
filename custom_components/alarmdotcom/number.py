@@ -61,10 +61,10 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
         super().__init__(alarmhub, device, config_option)
 
         if self._config_option.value_max:
-            self._attr_max_value: float = self._config_option.value_max
+            self._attr_native_max_value: float = self._config_option.value_max
 
         if self._config_option.value_min:
-            self._attr_min_value: float = self._config_option.value_min
+            self._attr_native_min_value: float = self._config_option.value_min
 
         if self._config_option.value_max and self._config_option.value_min:
             self._attr_mode = NumberMode.SLIDER
@@ -83,7 +83,7 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
         """Update the entity when coordinator is updated."""
 
         if current_value := self._config_option.current_value:
-            self._attr_value = float(current_value)
+            self.native_value = float(current_value)
 
         self._attr_icon = self._determine_icon()
 
