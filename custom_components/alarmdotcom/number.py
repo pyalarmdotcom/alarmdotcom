@@ -83,7 +83,7 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
         """Update the entity when coordinator is updated."""
 
         if current_value := self._config_option.current_value:
-            self.native_value = float(current_value)
+            self._attr_native_value = float(current_value)
 
         self._attr_icon = self._determine_icon()
 

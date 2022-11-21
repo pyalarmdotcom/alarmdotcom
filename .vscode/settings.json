@@ -18,7 +18,7 @@
   "python.linting.mypyPath": "/usr/local/python/bin/mypy",
   "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
   "python.linting.pylintPath": "/usr/local/python/bin/pylint",
-  "python.sortImports.path": "/usr/local/python/bin/isort",
+  "python.isort.path": "/usr/local/python/bin/isort",
   "npm.autoDetect": "off",
   "files.associations": {
     "*.yaml": "home-assistant"
