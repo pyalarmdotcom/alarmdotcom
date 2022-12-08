@@ -9,7 +9,7 @@
     "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom",
     "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh"
   },
-  "postCreateCommand": "container install && pip install --upgrade pip && pip install -r requirements-dev.txt && pre-commit install && pre-commit install-hooks",
+  "postCreateCommand": "chmod +x /workspaces/alarmdotcom/.devcontainer/post-create-script.sh && sh /workspaces/alarmdotcom/.devcontainer/post-create-script.sh",
   "extensions": [
     "ms-python.vscode-pylance",
     "github.vscode-pull-request-github",
@@ -40,7 +40,7 @@
     "editor.formatOnPaste": false,
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
-    "files.trimTrailingWhitespace": true,
+    "files.trimTrailingWhitespace": false,
     "python.linting.mypyEnabled": true,
     "python.defaultInterpreterPath": "/usr/local/python/bin/python",
     "python.formatting.blackPath": "/usr/local/python/bin/black",
@@ -49,7 +49,8 @@
     "python.linting.mypyPath": "/usr/local/python/bin/mypy",
     "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
     "python.linting.pylintPath": "/usr/local/python/bin/pylint",
-    "python.sortImports.path": "/usr/local/python/bin/isort",
+    "isort.path": ["/usr/local/python/bin/isort"],
+    "python.pythonPath": "/usr/local/python/bin/python",
     "typescript.tsc.autoDetect": "off",
     "grunt.autoDetect": "off",
     "jake.autoDetect": "off",

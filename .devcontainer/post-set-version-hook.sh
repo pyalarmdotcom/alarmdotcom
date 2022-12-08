@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "Running HA post-set-version-hook."
+
 git_dir="/tmp/ver"
 dev_dir="/workspaces/alarmdotcom"
 repo_url="https://github.com/home-assistant/core.git"

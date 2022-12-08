@@ -1,14 +1,16 @@
 {
-    "folders": [
-        {
-            "path": ".."
-        }, {
-            "path": "../../pyalarmdotcomajax"
-        }
-    ],
-    "settings": {
-        "files.associations": {
-            "*.yaml": "home-assistant"
-        }
+  "folders": [
+    {
+      "path": ".."
+    },
+    {
+      "path": "../../pyalarmdotcomajax"
     }
+  ],
+  "settings": {
+    "files.associations": {
+      "*.yaml": "home-assistant"
+    },
+    "githubPullRequests.ignoredPullRequestBranches": ["master"]
+  }
 }
