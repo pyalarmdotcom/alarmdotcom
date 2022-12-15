@@ -10,7 +10,6 @@
   "settings": {
     "files.associations": {
       "*.yaml": "home-assistant"
-    },
-    "githubPullRequests.ignoredPullRequestBranches": ["master", "master"]
+    }
   }
 }

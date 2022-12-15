@@ -88,3 +88,9 @@ repos:
           - --output-format=colorized
           - -d W0511
           - --fail-on=all
+      - id: hassfest
+        name: hassfest
+        entry: .devcontainer/run-hassfest.sh
+        pass_filenames: false
+        language: script
+        types: [text]
