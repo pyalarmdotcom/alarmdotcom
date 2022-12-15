@@ -5,7 +5,7 @@
   "issue_tracker": "https://www.github.com/uvjustin/alarmdotcom/issues",
   "requirements": [
     "beautifulsoup4>=4.10.0",
-    "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax#gate-support==0.4.8-beta"
+    "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax@gate-support#pyalarmdotcomajax==0.4.8-beta"
   ],
   "dependencies": [],
   "version": "0.2.18-beta",
