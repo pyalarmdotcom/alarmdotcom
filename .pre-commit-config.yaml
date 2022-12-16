@@ -86,7 +86,7 @@ repos:
         exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/alarmdotcom/__pycache__|pylint)
         args:
           - --output-format=colorized
-          - -d W0511
+          - -d W0511, R6102
           - --fail-on=all
       - id: hassfest
         name: hassfest
