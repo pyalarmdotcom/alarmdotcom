@@ -95,6 +95,11 @@ GETTING HOME ASSISTANT SOURCE CODE
 EOF
 
 ha_version=$(pip show homeassistant | grep -Po '^(?:Version\: )(.*)$' | grep -Po '(\d+\.\d+\..*$)')
+
+if [[ $ha_version == *"dev"* ]]; then
+  ha_version="dev"
+fi
+
 /workspaces/"$integration_name"/.devcontainer/post-set-version-hook.sh "$ha_version"
 
 cat << EOF
