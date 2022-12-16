@@ -2,7 +2,7 @@
 
 echo "Running hassfest."
 
-if [[ -z "${INTEGRATION_NAME}" ]]; then
+if [[ -z "${INTEGRATION_NAME}" ]] || [[ -z "${WORKSPACE_DIRECTORY}" ]]; then
   exit 1
 fi
 
