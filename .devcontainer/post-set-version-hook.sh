@@ -2,7 +2,7 @@
 
 echo "Running HA post-set-version-hook."
 
-if [ -z "${INTEGRATION_NAME}" ]; then
+if [ -z "${INTEGRATION_NAME}" ] || [ -z "${WORKSPACE_DIRECTORY}" ]; then
   exit 1
 else
   integration_name=${INTEGRATION_NAME}
@@ -10,7 +10,7 @@ fi
 
 repo_url="https://github.com/home-assistant/core.git"
 git_root="/workspaces/core"
-dev_dir="/workspaces/$integration_name"
+workspace_dir=${WORKSPACE_DIRECTORY}
 
 # Delete integration pylint directory if no version entered.
 if [ -z "$1" ]; then
