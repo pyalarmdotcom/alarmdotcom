@@ -102,6 +102,8 @@ fi
 
 /workspaces/"$integration_name"/.devcontainer/post-set-version-hook.sh "$ha_version"
 
+/workspaces/core/script/setup
+
 cat << EOF
 
 #####
