@@ -19,8 +19,8 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# Workspaces directory already created. Uncomment if copying somewhere else.
-# mkdir -p "$git_root"
+# Create folder for git repo
+mkdir -p "$git_root"
 
 # Fetch requested version from git.
 if [ "$(git -C "$git_root" config --get remote.origin.url)" == "$repo_url" ]; then
