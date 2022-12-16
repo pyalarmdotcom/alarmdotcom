@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-if [ -z "${LIBRARY_NAME}" ] || [ -z "${LIBRARY_GIT_URL}" ] || [ -z "${INTEGRATION_NAME}" ]; then
+if [ -z "${LIBRARY_NAME}" ] || [ -z "${LIBRARY_GIT_URL}" ] || [ -z "${INTEGRATION_NAME}" ] || [ -z "${WORKSPACE_DIRECTORY}" ]; then
   exit 1
 else
   library_name=${LIBRARY_NAME}
   integration_name=${INTEGRATION_NAME}
   repo_url=${LIBRARY_GIT_URL}
   lib_dir="/workspaces/"$library_name
+  workspace_dir=${WORKSPACE_DIRECTORY}
 fi
 
 cat << EOF
@@ -49,9 +50,9 @@ INITIALIZING DEVCONTAINER SCRIPTS
 
 EOF
 
-chmod +x /workspaces/"$integration_name"/.devcontainer/post-create-script.sh
-chmod +x /workspaces/"$integration_name"/.devcontainer/post-set-version-hook.sh
-chmod +x /workspaces/"$integration_name"/.devcontainer/run-hassfest.sh
+chmod +x "$(workspace_dir)"/.devcontainer/post-create-script.sh
+chmod +x "$(workspace_dir)"/.devcontainer/post-set-version-hook.sh
+chmod +x "$(workspace_dir)"/.devcontainer/run-hassfest.sh
 
 cat << EOF
 
@@ -83,7 +84,7 @@ EOF
 
 if test -f ".devcontainer/configuration.yaml"; then
   echo "Copy configuration.yaml"
-  ln -sf "$(workspacePath).devcontainer/configuration.yaml" /config/configuration.yaml || echo ".devcontainer/configuration.yaml are missing"
+  ln -sf "$(workspace_dir)/.devcontainer/configuration.yaml" /config/configuration.yaml || echo ".devcontainer/configuration.yaml are missing"
 fi
 
 cat << EOF
@@ -100,7 +101,7 @@ if [[ $ha_version == *"dev"* ]]; then
   ha_version="dev"
 fi
 
-/workspaces/"$integration_name"/.devcontainer/post-set-version-hook.sh "$ha_version"
+"$(workspace_dir)"/.devcontainer/post-set-version-hook.sh "$ha_version"
 
 /workspaces/core/script/setup
 
