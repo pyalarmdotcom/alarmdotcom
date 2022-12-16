@@ -134,6 +134,7 @@ class AlarmHub(BasicAlarmHub):
             + self.system.lights
             + self.system.locks
             + self.system.garage_doors
+            + self.system.gates
             + self.system.systems
             + self.system.thermostats
         )

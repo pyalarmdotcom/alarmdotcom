@@ -11,6 +11,6 @@
     "files.associations": {
       "*.yaml": "home-assistant"
     },
-    "githubPullRequests.ignoredPullRequestBranches": ["master"]
+    "githubPullRequests.ignoredPullRequestBranches": ["master", "master"]
   }
 }

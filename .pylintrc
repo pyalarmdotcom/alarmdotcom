@@ -16,7 +16,7 @@ max-line-length = 88
 py-version = 3.9
 ignore = tests
 jobs = 2
-load-plugins = pylint.extensions.code_style, pylint.extensions.typing, pylint_strict_informational
+load-plugins = pylint.extensions.code_style, pylint.extensions.typing
 persistent = false
 
 [MESSAGES CONTROL]
