@@ -83,7 +83,7 @@ repos:
         entry: pylint
         language: system
         types: [python]
-        exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/alarmdotcom/__pycache__|pylint)
+        exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/.*/__pycache__|pylint)
         args:
           - --output-format=colorized
           - -d W0511
