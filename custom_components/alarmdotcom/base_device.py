@@ -118,10 +118,11 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         error_msg = (
             "Your Alarm.com user does not have permission to"
-            f" {action} the {self.device_type_name.lower()}, {self.name}. Please log"
+            f" {action} the {self.device_type_name.lower()}, {self._device.name} ({self._adc_id}). Please log"
             " in to Alarm.com to grant the appropriate permissions to your"
             " account."
         )
+
         persistent_notification.async_create(
             self.hass,
             error_msg,
