@@ -731,7 +731,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
             matches=[
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["BinarySensorDeviceClass", "str", None],
+                    return_type=["BinarySensorDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="is_on",
@@ -1085,7 +1085,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
             matches=[
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["CoverDeviceClass", "str", None],
+                    return_type=["CoverDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="current_cover_position",
@@ -1372,6 +1372,10 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
                     return_type=["float", None],
                 ),
                 TypeHintMatch(
+                    function_name="device_class",
+                    return_type=["ImageProcessingDeviceClass", None],
+                ),
+                TypeHintMatch(
                     function_name="process_image",
                     arg_types={1: "bytes"},
                     return_type=None,
@@ -1412,7 +1416,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
                 ),
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["HumidifierDeviceClass", "str", None],
+                    return_type=["HumidifierDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="min_humidity",
@@ -1648,7 +1652,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
             matches=[
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["MediaPlayerDeviceClass", "str", None],
+                    return_type=["MediaPlayerDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="state",
@@ -1986,7 +1990,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
             matches=[
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["NumberDeviceClass", "str", None],
+                    return_type=["NumberDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="capability_attributes",
@@ -2152,7 +2156,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
             matches=[
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["SensorDeviceClass", "str", None],
+                    return_type=["SensorDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="state_class",
@@ -2268,7 +2272,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
             matches=[
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["SwitchDeviceClass", "str", None],
+                    return_type=["SwitchDeviceClass", None],
                 ),
             ],
         ),
@@ -2324,7 +2328,7 @@ _INHERITANCE_MATCH: dict[str, list[ClassTypeHintMatch]] = {
                 ),
                 TypeHintMatch(
                     function_name="device_class",
-                    return_type=["UpdateDeviceClass", "str", None],
+                    return_type=["UpdateDeviceClass", None],
                 ),
                 TypeHintMatch(
                     function_name="in_progress",

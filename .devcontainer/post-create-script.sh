@@ -100,7 +100,7 @@ if [[ "$ha_version" == *"dev"* ]]; then
   ha_version="dev"
 fi
 
-"$(workspace_dir)"/.devcontainer/post-set-version-hook.sh "$ha_version"
+"$workspace_dir"/.devcontainer/post-set-version-hook.sh "$ha_version"
 
 /workspaces/core/script/setup
 

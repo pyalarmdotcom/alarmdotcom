@@ -65,8 +65,8 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         self._attr_supported_features = CoverEntityFeature.OPEN
 
         if (
-            hasattr(device.attributes, "supports_remote_close")
-            and device.attributes.supports_remote_close
+            hasattr(self._device.attributes, "supports_remote_close")
+            and self._device.attributes.supports_remote_close
         ):
             self._attr_supported_features |= CoverEntityFeature.CLOSE
 
@@ -116,7 +116,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
             if state in [libGarageDoor.DeviceState.OPEN, libGate.DeviceState.OPEN]:
                 return False
 
-            if state == [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]:
+            if state in [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]:
                 return True
 
             log.error(

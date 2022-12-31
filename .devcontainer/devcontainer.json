@@ -12,7 +12,7 @@
     "LIBRARY_NAME": "pyalarmdotcomajax",
     "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git"
   },
-  "postCreateCommand": "chmod +x /workspaces/${containerEnv:INTEGRATION_NAME}/.devcontainer/post-create-script.sh && sh /workspaces/${containerEnv:INTEGRATION_NAME}/.devcontainer/post-create-script.sh",
+  "postCreateCommand": "chmod +x /workspaces/${containerEnv:INTEGRATION_NAME}/.devcontainer/post-create-script.sh && bash /workspaces/${containerEnv:INTEGRATION_NAME}/.devcontainer/post-create-script.sh",
   "extensions": [
     "ms-python.vscode-pylance",
     "github.vscode-pull-request-github",
