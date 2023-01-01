@@ -7,9 +7,12 @@
   },
   "containerEnv": {
     "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom",
-    "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh"
+    "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh",
+    "INTEGRATION_NAME": "alarmdotcom",
+    "LIBRARY_NAME": "pyalarmdotcomajax",
+    "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git"
   },
-  "postCreateCommand": "chmod +x /workspaces/alarmdotcom/.devcontainer/post-create-script.sh && sh /workspaces/alarmdotcom/.devcontainer/post-create-script.sh",
+  "postCreateCommand": "chmod +x /workspaces/${containerEnv:INTEGRATION_NAME}/.devcontainer/post-create-script.sh && bash /workspaces/${containerEnv:INTEGRATION_NAME}/.devcontainer/post-create-script.sh",
   "extensions": [
     "ms-python.vscode-pylance",
     "github.vscode-pull-request-github",

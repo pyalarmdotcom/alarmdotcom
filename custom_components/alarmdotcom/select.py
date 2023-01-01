@@ -9,14 +9,11 @@ from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
-)
-from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
-from pyalarmdotcomajax.extensions import (
+    ConfigurationOption as libConfigurationOption,
     ConfigurationOptionType as libConfigurationOptionType,
 )
 

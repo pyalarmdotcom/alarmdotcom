@@ -4,15 +4,13 @@ from __future__ import annotations
 import logging
 
 from homeassistant import core
-from homeassistant.components.number import NumberEntity
-from homeassistant.components.number import NumberMode
+from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
-from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 from pyalarmdotcomajax.extensions import (
+    ConfigurationOption as libConfigurationOption,
     ConfigurationOptionType as libConfigurationOptionType,
 )
 

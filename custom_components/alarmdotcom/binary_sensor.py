@@ -6,23 +6,20 @@ import re
 from typing import cast
 
 from homeassistant import core
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 from .alarmhub import AlarmHub
-from .base_device import AttributeBaseDevice
-from .base_device import AttributeSubdevice
-from .base_device import HardwareBaseDevice
-from .const import DOMAIN
-from .const import SENSOR_SUBTYPE_BLACKLIST
-from .device_type_langs import LANG_DOOR
-from .device_type_langs import LANG_WINDOW
+from .base_device import AttributeBaseDevice, AttributeSubdevice, HardwareBaseDevice
+from .const import DOMAIN, SENSOR_SUBTYPE_BLACKLIST
+from .device_type_langs import LANG_DOOR, LANG_WINDOW
 
 log = logging.getLogger(__name__)
 

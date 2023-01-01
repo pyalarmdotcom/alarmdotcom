@@ -5,13 +5,14 @@ import logging
 from typing import Any
 
 from homeassistant import core
-from homeassistant.components.cover import CoverDeviceClass
-from homeassistant.components.cover import CoverEntity
-from homeassistant.components.cover import CoverEntityFeature
+from homeassistant.components.cover import (
+    CoverDeviceClass,
+    CoverEntity,
+    CoverEntityFeature,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
@@ -65,8 +66,8 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         self._attr_supported_features = CoverEntityFeature.OPEN
 
         if (
-            hasattr(device.attributes, "supports_remote_close")
-            and device.attributes.supports_remote_close
+            hasattr(self._device.attributes, "supports_remote_close")
+            and self._device.attributes.supports_remote_close
         ):
             self._attr_supported_features |= CoverEntityFeature.CLOSE
 
@@ -116,7 +117,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
             if state in [libGarageDoor.DeviceState.OPEN, libGate.DeviceState.OPEN]:
                 return False
 
-            if state == [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]:
+            if state in [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]:
                 return True
 
             log.error(

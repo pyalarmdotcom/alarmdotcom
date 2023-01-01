@@ -26,6 +26,12 @@
       "problemMatcher": []
     },
     {
+      "label": "Run pre-commit: hassfest.",
+      "type": "shell",
+      "command": "pre-commit run hassfest --all-files",
+      "problemMatcher": []
+    },
+    {
       "label": "Run pre-commit: auto-update.",
       "type": "shell",
       "command": "pre-commit autoupdate",

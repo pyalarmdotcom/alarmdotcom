@@ -2,28 +2,43 @@
 
 echo "Running HA post-set-version-hook."
 
-git_dir="/tmp/ver"
-dev_dir="/workspaces/alarmdotcom"
-repo_url="https://github.com/home-assistant/core.git"
+if [ -z "${INTEGRATION_NAME}" ] || [ -z "${WORKSPACE_DIRECTORY}" ]; then
+  exit 1
+else
+  integration_name=${INTEGRATION_NAME}
+fi
 
+repo_url="https://github.com/home-assistant/core.git"
+git_root="/workspaces/core"
+workspace_dir="${WORKSPACE_DIRECTORY}"
+
+# Delete integration pylint directory if no version entered.
 if [ -z "$1" ]; then
     echo "No version supplied. Deleting existing development files."
-    rm -rf $dev_dir/pylint
+    rm -rf "$workspace_dir/pylint"
     exit 1
 fi
 
-mkdir -p "$git_dir"
+# Create folder for git repo
+mkdir -p "$git_root"
 
-if [ "$(git -C "$git_dir" config --get remote.origin.url)" == "$repo_url" ]; then
-    git -C "$git_dir" fetch
-    git -C "$git_dir" checkout tags/"$1"
+# Fetch requested version from git.
+if [ "$(git -C "$git_root" config --get remote.origin.url)" == "$repo_url" ]; then
+    git -C "$git_root" fetch
+    git -C "$git_root" checkout tags/"$1"
 else
-    git clone "$repo_url" --branch "$1" "$git_dir"
+    git clone "$repo_url" --branch "$1" "$git_root"
 fi
 
-mkdir -p "$dev_dir"/pylint/plugins
+# Move pylint fiiles to integration pylint directory
+mkdir -p "$workspace_dir/pylint/plugins"
 
-if [ "$(readlink "$dev_dir"/pylint)" != "$git_dir"/pylint ]; then
-    rm -rf "$dev_dir"/pylint/plugins
-    cp -r "$git_dir"/pylint/plugins "$dev_dir"/pylint/plugins
+if [ "$(readlink "$workspace_dir"/pylint\")" != "$git_root/pylint" ]; then
+    rm -rf "$workspace_dir/pylint/plugins"
+    cp -r "$git_root/pylint/plugins" "$workspace_dir/pylint/plugins"
+fi
+
+# Symlink integration's custom_components folder into checked out code to enable hassfest.
+if [ "$(readlink "$git_root"/homeassistant/components/"$integration_name")" != "$workspace_dir"/custom_components/"$integration_name" ]; then
+    ln -s "$workspace_dir""/custom_components/""$integration_name" "$git_root""/homeassistant/components/""$integration_name"
 fi

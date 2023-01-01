@@ -6,12 +6,10 @@ from typing import Any
 
 from homeassistant import core
 from homeassistant.components import light
-from homeassistant.components.light import ATTR_BRIGHTNESS
-from homeassistant.components.light import LightEntity
+from homeassistant.components.light import ATTR_BRIGHTNESS, LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.light import Light as libLight
 
