@@ -4,17 +4,13 @@ from __future__ import annotations
 import logging
 
 from homeassistant import core
-from homeassistant.components.switch import SwitchDeviceClass
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
-)
-from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
-from pyalarmdotcomajax.extensions import (
+    ConfigurationOption as libConfigurationOption,
     ConfigurationOptionType as libConfigurationOptionType,
 )
 

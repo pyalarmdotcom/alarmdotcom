@@ -5,13 +5,14 @@ import logging
 from typing import Any
 
 from homeassistant import core
-from homeassistant.components.cover import CoverDeviceClass
-from homeassistant.components.cover import CoverEntity
-from homeassistant.components.cover import CoverEntityFeature
+from homeassistant.components.cover import (
+    CoverDeviceClass,
+    CoverEntity,
+    CoverEntityFeature,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate

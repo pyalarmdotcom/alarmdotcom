@@ -4,20 +4,22 @@ from __future__ import annotations
 import logging
 
 from homeassistant import core
-from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate import ClimateEntityFeature
-from homeassistant.components.climate import HVACMode
-from homeassistant.components.climate.const import ATTR_HVAC_MODE
-from homeassistant.components.climate.const import ATTR_TARGET_TEMP_HIGH
-from homeassistant.components.climate.const import ATTR_TARGET_TEMP_LOW
-from homeassistant.components.climate.const import FAN_AUTO
-from homeassistant.components.climate.const import FAN_ON
+from homeassistant.components.climate import (
+    ClimateEntity,
+    ClimateEntityFeature,
+    HVACMode,
+)
+from homeassistant.components.climate.const import (
+    ATTR_HVAC_MODE,
+    ATTR_TARGET_TEMP_HIGH,
+    ATTR_TARGET_TEMP_LOW,
+    FAN_AUTO,
+    FAN_ON,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE
-from homeassistant.const import TEMP_FAHRENHEIT
+from homeassistant.const import ATTR_TEMPERATURE, TEMP_FAHRENHEIT
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.thermostat import Thermostat as libThermostat
 

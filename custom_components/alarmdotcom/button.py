@@ -7,16 +7,12 @@ from homeassistant import core
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 from .alarmhub import AlarmHub
-from .base_device import AttributeBaseDevice
-from .base_device import AttributeSubdevice
-from .const import DEBUG_REQ_EVENT
-from .const import DOMAIN
-from .const import SENSOR_SUBTYPE_BLACKLIST
+from .base_device import AttributeBaseDevice, AttributeSubdevice
+from .const import DEBUG_REQ_EVENT, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
 
 log = logging.getLogger(__name__)
 

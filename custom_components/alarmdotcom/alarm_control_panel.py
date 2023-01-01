@@ -4,35 +4,38 @@ from __future__ import annotations
 import logging
 import re
 
-from homeassistant import config_entries
-from homeassistant import core
+from homeassistant import config_entries, core
 from homeassistant.components import persistent_notification
-from homeassistant.components.alarm_control_panel import AlarmControlPanelEntity
-from homeassistant.components.alarm_control_panel import AlarmControlPanelEntityFeature
-from homeassistant.components.alarm_control_panel import CodeFormat
+from homeassistant.components.alarm_control_panel import (
+    AlarmControlPanelEntity,
+    AlarmControlPanelEntityFeature,
+    CodeFormat,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_ALARM_ARMED_AWAY
-from homeassistant.const import STATE_ALARM_ARMED_HOME
-from homeassistant.const import STATE_ALARM_ARMED_NIGHT
-from homeassistant.const import STATE_ALARM_ARMING
-from homeassistant.const import STATE_ALARM_DISARMED
-from homeassistant.const import STATE_ALARM_DISARMING
-from homeassistant.core import callback
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
+from homeassistant.const import (
+    STATE_ALARM_ARMED_AWAY,
+    STATE_ALARM_ARMED_HOME,
+    STATE_ALARM_ARMED_NIGHT,
+    STATE_ALARM_ARMING,
+    STATE_ALARM_DISARMED,
+    STATE_ALARM_DISARMING,
+)
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
 
 from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
-from .const import CONF_ARM_AWAY
-from .const import CONF_ARM_CODE
-from .const import CONF_ARM_HOME
-from .const import CONF_ARM_NIGHT
-from .const import DOMAIN
-from .const import MIGRATE_MSG_ALERT
+from .const import (
+    CONF_ARM_AWAY,
+    CONF_ARM_CODE,
+    CONF_ARM_HOME,
+    CONF_ARM_NIGHT,
+    DOMAIN,
+    MIGRATE_MSG_ALERT,
+)
 
 log = logging.getLogger(__name__)
 

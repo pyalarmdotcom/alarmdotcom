@@ -1,7 +1,7 @@
-# https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
+# https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
 
 ci:
-  skip: [pylint, hassfest]
+  skip: [pylint]
 
 repos:
   - repo: https://github.com/asottile/pyupgrade
@@ -9,15 +9,15 @@ repos:
     hooks:
       - id: pyupgrade
         args: [--py39-plus]
-  - repo: https://github.com/sqlalchemyorg/zimports/
-    rev: v0.6.0
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.11.4
     hooks:
-      - id: zimports
+      - id: isort
   - repo: https://github.com/myint/autoflake/
     rev: v2.0.0
     hooks:
       - id: autoflake
-        files: ^(tests|custom_components)/.+\.py$
+        files: ^((alarmdotcom)/.+)?[^/]+\.py$
   - repo: https://github.com/psf/black
     rev: 22.12.0
     hooks:
@@ -25,14 +25,14 @@ repos:
         args:
           - --safe
           - --quiet
-        files: ^(tests|custom_components)/.+\.py$
+        files: ^((alarmdotcom)/.+)?[^/]+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:
       - id: codespell
         args:
           - --ignore-words-list=hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo
-          - --skip="./.*,*.csv,*.json"
+          - --skip="./.*,*.csv,*.json",*.html
           - --quiet-level=2
         exclude_types: [csv, json]
   - repo: https://github.com/PyCQA/flake8
@@ -42,7 +42,8 @@ repos:
         additional_dependencies:
           - flake8-docstrings==1.5.0
           - pydocstyle==5.1.1
-        files: ^(tests|custom_components)/.+\.py$
+          - Flake8-pyproject==1.2.2
+        files: ^((alarmdotcom)/.+)?[^/]+\.py$
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
@@ -51,12 +52,7 @@ repos:
           - --quiet
           - --format=custom
           - --exclude=examples
-        files: ^(tests|custom_components)/.+\.py$
-  - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.28.0
-    hooks:
-      - id: yamllint
-        exclude: (.vscode|.devcontainer|pylint|.github)
+        files: ^((alarmdotcom)/.+)?[^/]+\.py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -70,12 +66,17 @@ repos:
     rev: v0.991
     hooks:
       - id: mypy
-        exclude: (.vscode|.devcontainer|pylint)
         additional_dependencies: [types-all]
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.28.0
+    hooks:
+      - id: yamllint
+        exclude: (.vscode|.devcontainer|.github)
   - repo: https://github.com/pappasam/toml-sort
     rev: v0.20.1
     hooks:
       - id: toml-sort
+        args: []
   - repo: local
     hooks:
       - id: pylint
@@ -86,11 +87,5 @@ repos:
         exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/.*/__pycache__|pylint)
         args:
           - --output-format=colorized
-          - -d W0511, R6102
+          - -d W0511
           - --fail-on=all
-      - id: hassfest
-        name: hassfest
-        entry: .devcontainer/run-hassfest.sh
-        pass_filenames: false
-        language: script
-        types: [text]
