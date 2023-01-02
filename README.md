@@ -36,7 +36,7 @@ Please note that Alarm.com may break functionality at any time.
 This integration is great for casual use within Home Assistant but... **do not rely on this integration to keep you safe.**
 
 1. This integration communicates with Alarm.com over an unofficial channel that can be broken or shut down at any time.
-2. It may take several minutes for this device to receive a status update from Alarm.com's servers.
+2. It may take several minutes for this integration to receive a status update from Alarm.com's servers.
 3. Your automations may be buggy.
 4. This code may be buggy. It's written by volunteers in their free time and testing is spotty.
 
