@@ -86,7 +86,10 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
             }
         else:
             log.error(
-                "%s: Encountered unknown select configuration type when initializing %s.",
+                (
+                    "%s: Encountered unknown select configuration type when"
+                    " initializing %s."
+                ),
                 __name__,
                 self.unique_id,
             )

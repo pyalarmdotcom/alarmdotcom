@@ -72,7 +72,6 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         errors = {}
 
         if user_input is not None:
-
             self.config = {
                 CONF_USERNAME: user_input[CONF_USERNAME],
                 CONF_PASSWORD: user_input[CONF_PASSWORD],
@@ -137,9 +136,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         """Gather OTP when integration configured through UI."""
         errors = {}
         if user_input is not None:
-
             try:
-
                 if not isinstance(self._alarmhub, BasicAlarmHub):
                     raise ConnectionError("Failed to get ADC alarmhub.")
 

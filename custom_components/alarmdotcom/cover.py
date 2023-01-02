@@ -113,7 +113,6 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         """Return if the cover is closed or not."""
 
         if not self._device.malfunction:
-
             if state in [libGarageDoor.DeviceState.OPEN, libGate.DeviceState.OPEN]:
                 return False
 

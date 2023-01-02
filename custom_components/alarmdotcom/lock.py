@@ -102,7 +102,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
         """Return true if the lock is locked."""
 
         if not self._device.malfunction:
-
             if state == libLock.DeviceState.LOCKED:
                 return True
 
@@ -114,7 +113,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the lock."""
         if self._validate_code(kwargs.get("code")):
-
             self._attr_is_locking = True
 
             try:
@@ -127,7 +125,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the lock."""
         if self._validate_code(kwargs.get("code")):
-
             self._attr_is_unlocking = True
 
             try:
@@ -143,9 +140,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
     @classmethod
     def _determine_code_format(cls, code: str) -> str:
-
         if isinstance(code, str):
-
             code_patterns = [
                 r"^\d+$",  # Only digits
                 r"^\w\D+$",  # Only alpha

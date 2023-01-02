@@ -81,7 +81,7 @@ class-const-naming-style = "any"
 good-names = ["_", "ev", "ex", "fp", "i", "id", "j", "k", "Run", "ip"]
 
 [tool.pylint.CODE_STYLE]
-max-line-length-suggestions = 72
+max-line-length-suggestions = 88
 
 [tool.pylint.EXCEPTIONS]
 overgeneral-exceptions = ["BaseException", "Exception", "HomeAssistantError"]

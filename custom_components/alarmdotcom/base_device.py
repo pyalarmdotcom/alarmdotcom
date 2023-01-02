@@ -114,12 +114,15 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         raise NotImplementedError()
 
     def _show_permission_error(self, action: str = "") -> None:
-        """Show Home Assistant notification to alert user that they lack permission to perform action."""
+        """Show Home Assistant notification.
+
+        Alerts user that they lack permission to perform action.
+        """
 
         error_msg = (
-            "Your Alarm.com user does not have permission to"
-            f" {action} the {self.device_type_name.lower()}, {self._device.name} ({self._adc_id}). Please log"
-            " in to Alarm.com to grant the appropriate permissions to your"
+            f"Your Alarm.com user does not have permission to {action} the"
+            f" {self.device_type_name.lower()}, {self._device.name} ({self._adc_id})."
+            " Please log in to Alarm.com to grant the appropriate permissions to your"
             " account."
         )
 
@@ -167,7 +170,10 @@ class HardwareBaseDevice(BaseDevice):
 
 
 class AttributeBaseDevice(BaseDevice):
-    """Base device for attributes of real hardware: battery level, malfunction, debug, etc."""
+    """Base device for attributes of real hardware.
+
+    Includes battery level, malfunction, debug, etc.
+    """
 
     def __init__(
         self,

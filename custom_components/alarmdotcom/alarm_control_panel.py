@@ -140,7 +140,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
         if self._validate_code(code):
-
             self._attr_state = STATE_ALARM_DISARMING
 
             try:
@@ -156,7 +155,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         arm_profile = self._alarmhub.options.get(CONF_ARM_NIGHT, {})
 
         if self._validate_code(code):
-
             self._attr_state = STATE_ALARM_ARMING
 
             try:
@@ -176,7 +174,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         arm_profile = self._alarmhub.options.get(CONF_ARM_HOME, {})
 
         if self._validate_code(code):
-
             self._attr_state = STATE_ALARM_ARMING
 
             try:
@@ -196,7 +193,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         arm_profile = self._alarmhub.options.get(CONF_ARM_AWAY, {})
 
         if self._validate_code(code):
-
             self._attr_state = STATE_ALARM_ARMING
 
             try:
@@ -220,7 +216,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         log.debug("Processing state %s for %s", state, self.name)
 
         if not self._device.malfunction:
-
             if state == libPartition.DeviceState.DISARMED:
                 return str(STATE_ALARM_DISARMED)
             if state == libPartition.DeviceState.ARMED_STAY:

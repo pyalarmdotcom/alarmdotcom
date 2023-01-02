@@ -78,7 +78,6 @@ class BasicAlarmHub:
             )
 
             async with async_timeout.timeout(60):
-
                 login_result = await self.system.async_login()
 
                 return login_result
@@ -103,7 +102,7 @@ class BasicAlarmHub:
             raise err
 
     async def async_send_otp(self, code: int) -> None:
-        """Submit two-factor authentication code and return two factor authentication cookie."""
+        """Submit 2FA code and return two factor authentication cookie."""
 
         try:
             await self.system.async_submit_otp(
@@ -196,7 +195,7 @@ class AlarmHub(BasicAlarmHub):
         return None
 
     async def async_coordinator_update(self, critical: bool = True) -> None:
-        """Force coordinator refresh. Used to force refresh after alarm control panel command."""
+        """Force coordinator refresh after alarm control panel command."""
 
         if critical:
             await self.coordinator.async_refresh()

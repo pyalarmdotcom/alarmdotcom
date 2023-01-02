@@ -81,7 +81,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         device_registry, config_entry.entry_id
     ):
         for identifier in device_entry.identifiers:
-
             # Remove _debug, _malfunction, etc. from IDs
             id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
 
@@ -108,7 +107,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Create virtual DEVICES.
     # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.
     for camera in alarmhub.system.cameras:
-
         # Check if camera already created.
         if camera.id_ in device_ids_via_hass:
             continue
@@ -128,9 +126,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        device = alarmhub.system.get_device_by_id(event.data.get("device_id"))
-
-        if device:
+        if device := alarmhub.system.get_device_by_id(event.data.get("device_id")):
             log.warning(
                 "ALARM.COM DEBUG DATA FOR %s: %s",
                 device.name.upper(),
@@ -152,7 +148,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     #
 
     if config_entry.version == 1:
-
         log.debug("Migrating from version %s", config_entry.version)
 
         v2_options: ConfigEntry = {**config_entry.options}
@@ -176,7 +171,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     #
 
     if config_entry.version == 2:
-
         log.debug("Migrating from version %s", config_entry.version)
 
         v3_options: ConfigEntry = {**config_entry.options}

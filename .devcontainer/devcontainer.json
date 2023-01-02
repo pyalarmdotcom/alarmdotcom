@@ -22,7 +22,6 @@
     "marklarah.pre-commit-vscode",
     "davidanson.vscode-markdownlint",
     "yzhang.markdown-all-in-one",
-    "esbenp.prettier-vscode",
     "janisdd.vscode-edit-csv",
     "mechatroner.rainbow-csv"
   ],
