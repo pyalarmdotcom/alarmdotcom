@@ -6,7 +6,7 @@
 <br />
 <p align="center">
   <a href="https://www.codacy.com/gh/pyalarmdotcom/alarmdotcom/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pyalarmdotcom/alarmdotcom&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/6f557fbc58914ef5914a81ed5e1c3391"/></a>
-  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hacs-validation.yaml"><img src="https://img.shields.io/github/workflow/status/pyalarmdotcom/alarmdotcom/HACS%20Validation.svg" /></a>
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hassfest.yaml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/pyalarmdotcom/alarmdotcom/hassfest.yaml"></a>
   <a href="https://results.pre-commit.ci/latest/github/pyalarmdotcom/alarmdotcom/main"><img src="https://results.pre-commit.ci/badge/github/pyalarmdotcom/alarmdotcom/master.svg" /></a>
   <a href="https://github.com/pyalarmdotcom/alarmdotcom/commits/master"><img src="https://img.shields.io/github/commit-activity/y/pyalarmdotcom/alarmdotcom.svg" /></a>
 </p>
