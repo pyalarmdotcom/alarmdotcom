@@ -4,24 +4,24 @@ build-backend = "setuptools.build_meta"
 
 [tool.bandit]
 tests = [
-    "B103",
-    "B108",
-    "B306",
-    "B307",
-    "B313",
-    "B314",
-    "B315",
-    "B316",
-    "B317",
-    "B318",
-    "B319",
-    "B320",
-    "B325",
-    "B601",
-    "B602",
-    "B604",
-    "B608",
-    "B609"
+  "B103",
+  "B108",
+  "B306",
+  "B307",
+  "B313",
+  "B314",
+  "B315",
+  "B316",
+  "B317",
+  "B318",
+  "B319",
+  "B320",
+  "B325",
+  "B601",
+  "B602",
+  "B604",
+  "B608",
+  "B609"
 ]
 
 [tool.black]
@@ -31,24 +31,24 @@ exclude = 'generated'
 preview = "True"
 
 [tool.flake8]
-exclude = [".venv",".git",".tox","docs","venv","bin","lib","deps","build"]
+exclude = [".venv", ".git", ".tox", "docs", "venv", "bin", "lib", "deps", "build"]
 doctests = true
 max-line-length = 88
 extend-ignore = ["E203"]
-ignore = ["E501","W503","E203","D202","W504","A003","E203","E305","E711","E712","E721","E722","E741","F841","N801","N802","N806","W503","W504"]
+ignore = ["E501", "W503", "E203", "D202", "W504", "A003", "E203", "E305", "E711", "E712", "E721", "E722", "E741", "F841", "N801", "N802", "N806", "W503", "W504"]
 import-order-style = "google"
-application-import-names = ["sqlalchemy","test","alarmdotcom"]
+application-import-names = ["sqlalchemy", "test", "alarmdotcom"]
 enable-extensions = "G"
 
 [tool.isort]
 profile = "black"
 force_sort_within_sections = true
 known_first_party = [
-    "alarmdotcom",
-    "tests",
+  "alarmdotcom",
+  "tests"
 ]
 forced_separate = [
-    "tests",
+  "tests"
 ]
 combine_as_imports = true
 
@@ -99,35 +99,31 @@ fail-on = ["I"]
 
 [tool.pylint."MESSAGES CONTROL"]
 disable = [
-    "format",
-    "abstract-method",
-    "cyclic-import",
-    "duplicate-code",
-    "inconsistent-return-statements",
-    "locally-disabled",
-    "not-context-manager",
-    "too-few-public-methods",
-    "too-many-ancestors",
-    "too-many-arguments",
-    "too-many-branches",
-    "too-many-instance-attributes",
-    "too-many-lines",
-    "too-many-locals",
-    "too-many-public-methods",
-    "too-many-return-statements",
-    "too-many-statements",
-    "too-many-boolean-expressions",
-    "unused-argument",
-    "wrong-import-order",
-    "too-many-nested-blocks"
-    # "consider-using-f-string",
-    # "consider-using-namedtuple-or-dataclass",
-    # "consider-using-assignment-expr",
-
+  "format",
+  "abstract-method",
+  "cyclic-import",
+  "duplicate-code",
+  "inconsistent-return-statements",
+  "locally-disabled",
+  "not-context-manager",
+  "too-few-public-methods",
+  "too-many-ancestors",
+  "too-many-arguments",
+  "too-many-branches",
+  "too-many-instance-attributes",
+  "too-many-lines",
+  "too-many-locals",
+  "too-many-public-methods",
+  "too-many-return-statements",
+  "too-many-statements",
+  "too-many-boolean-expressions",
+  "unused-argument",
+  "wrong-import-order",
+  "too-many-nested-blocks"
 ]
 enable = [
-    #"useless-suppression",  # temporarily every now and then to clean them up
-    "use-symbolic-message-instead",
+  # "useless-suppression",  # temporarily every now and then to clean them up
+  "use-symbolic-message-instead"
 ]
 
 [tool.pylint.REPORTS]
@@ -135,8 +131,7 @@ score = false
 
 [tool.pylint.TYPECHECK]
 ignored-classes = [
-    "_CountingAttr", # for attrs
-
+  "_CountingAttr" # for attrs
 ]
 mixin-class-rgx = ".*[Mm]ix[Ii]n"
 
