@@ -1,7 +1,7 @@
 # https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
 
 ci:
-  skip: [pylint]
+  skip: [hassfest, pylint]
 
 repos:
   - repo: https://github.com/asottile/pyupgrade
@@ -17,7 +17,7 @@ repos:
     rev: v2.0.0
     hooks:
       - id: autoflake
-        files: ^((custom_components/alarmdotcom)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/psf/black
     rev: 22.12.0
     hooks:
@@ -25,7 +25,7 @@ repos:
         args:
           - --safe
           - --quiet
-        files: ^((custom_components/alarmdotcom)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:
@@ -43,7 +43,7 @@ repos:
           - flake8-docstrings==1.5.0
           - pydocstyle==5.1.1
           - Flake8-pyproject==1.2.2
-        files: ^((custom_components/alarmdotcom)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:
@@ -52,7 +52,7 @@ repos:
           - --quiet
           - --format=custom
           - --exclude=examples
-        files: ^((custom_components/alarmdotcom)/.+)?[^/]+\.py$
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -89,3 +89,10 @@ repos:
           - --output-format=colorized
           - -d W0511
           - --fail-on=all
+      - id: hassfest
+        name: hassfest
+        entry: .devcontainer/run-hassfest.sh
+        pass_filenames: false
+        language: script
+        types: [text]
+        files: ^((custom_components)/.+)?[^/]+\.py$

@@ -102,7 +102,7 @@ fi
 
 "$workspace_dir"/.devcontainer/post-set-version-hook.sh "$ha_version"
 
-/workspaces/core/script/setup
+bash /workspaces/core/script/setup
 
 cat << EOF
 
