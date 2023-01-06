@@ -63,13 +63,9 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
             else CoverDeviceClass.GATE
         )
 
-        self._attr_supported_features = CoverEntityFeature.OPEN
-
-        if (
-            hasattr(self._device.attributes, "supports_remote_close")
-            and self._device.attributes.supports_remote_close
-        ):
-            self._attr_supported_features |= CoverEntityFeature.CLOSE
+        self._attr_supported_features = (
+            CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
+        )
 
     @callback  # type: ignore
     def update_device_data(self) -> None:
