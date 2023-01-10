@@ -1,5 +1,5 @@
 {
-	"name": "Alarm.com",
-	"render_readme": true,
-	"homeassistant": "2022.7.0b0"
+  "name": "Alarm.com",
+  "render_readme": true,
+  "homeassistant": "2022.7.0"
 }
