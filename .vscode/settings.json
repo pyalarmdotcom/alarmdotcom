@@ -20,7 +20,7 @@
   "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
   "python.linting.pylintPath": "/usr/local/python/bin/pylint",
   "isort.path": ["/usr/local/python/bin/isort"],
-  "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
+  "python.analysis.extraPaths": ["/workspaces/pylaundry"],
   "npm.autoDetect": "off",
   "files.associations": {
     "*.yaml": "home-assistant"
