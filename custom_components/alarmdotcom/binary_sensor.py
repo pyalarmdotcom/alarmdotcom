@@ -15,6 +15,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
+from pyalarmdotcomajax.devices.water_sensor import WaterSensor as libWaterSensor
 
 from .alarmhub import AlarmHub
 from .base_device import AttributeBaseDevice, AttributeSubdevice, HardwareBaseDevice
@@ -40,7 +41,7 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.sensors
+        for device in alarmhub.system.sensors + alarmhub.system.water_sensors
         if device.device_subtype not in SENSOR_SUBTYPE_BLACKLIST
     )
 
@@ -154,8 +155,9 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     def _determine_device_class(self) -> BinarySensorDeviceClass:
         """Return type of binary sensor."""
 
-        # Try to determine whether contact sensor is for a window or door by matching strings.
+        # Contact sensor:
 
+        # Try to determine whether contact sensor is for a window or door by matching strings.
         derived_class: BinarySensorDeviceClass = None
         if (raw_subtype := self._device.device_subtype) in [
             libSensor.Subtype.CONTACT_SENSOR,
@@ -187,6 +189,14 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
             libSensor.Subtype.CONTACT_SHOCK_SENSOR,
         ]:
             return derived_class
+
+        # Water sensor:
+
+        if isinstance(self._device, libWaterSensor):
+            return BinarySensorDeviceClass.MOISTURE
+
+        # All other sensors:
+
         if raw_subtype == libSensor.Subtype.SMOKE_DETECTOR:
             return BinarySensorDeviceClass.SMOKE
         if raw_subtype == libSensor.Subtype.CO_DETECTOR:
