@@ -15,6 +15,7 @@ repos:
     rev: 5.11.4
     hooks:
       - id: isort
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/myint/autoflake/
     rev: v2.0.0
     hooks:
