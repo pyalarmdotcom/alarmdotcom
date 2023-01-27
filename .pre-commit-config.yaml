@@ -1,4 +1,6 @@
-# https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
+# File Version: 2023.01.27
+
+# https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
 
 ci:
   skip: [hassfest, pylint]
@@ -13,6 +15,7 @@ repos:
     rev: 5.11.4
     hooks:
       - id: isort
+        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/myint/autoflake/
     rev: v2.0.0
     hooks:
@@ -51,7 +54,9 @@ repos:
         args:
           - --quiet
           - --format=custom
-          - --exclude=examples
+          - -c
+          - pyproject.toml
+        additional_dependencies: ["bandit[toml]"]
         files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0

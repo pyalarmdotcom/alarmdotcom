@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# File Version: 2023.01.27
+
 echo "Running hassfest."
 
 if [[ -z "${INTEGRATION_NAME}" ]] || [[ -z "${WORKSPACE_DIRECTORY}" ]]; then

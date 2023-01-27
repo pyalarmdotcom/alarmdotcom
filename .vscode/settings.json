@@ -1,27 +1,30 @@
 {
-  "files.eol": "\n",
-  "editor.tabSize": 4,
-  "python.analysis.autoSearchPaths": false,
-  "python.linting.pylintEnabled": true,
-  "python.linting.enabled": true,
-  "python.linting.pylintArgs": ["--disable", "import-error"],
-  "python.formatting.provider": "black",
-  "editor.formatOnPaste": false,
-  "editor.formatOnSave": true,
-  "editor.formatOnType": true,
-  "files.trimTrailingWhitespace": true,
-  "python.linting.mypyEnabled": true,
-  "python.defaultInterpreterPath": "/usr/local/python/bin/python",
-  "python.formatting.blackPath": "/usr/local/python/bin/black",
-  "python.linting.banditPath": "/usr/local/python/bin/bandit",
-  "python.linting.flake8Path": "/usr/local/python/bin/flake8",
-  "python.linting.mypyPath": "/usr/local/python/bin/mypy",
-  "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
-  "python.linting.pylintPath": "/usr/local/python/bin/pylint",
-  "isort.path": ["/usr/local/python/bin/isort"],
-  "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
-  "npm.autoDetect": "off",
-  "files.associations": {
-    "*.yaml": "home-assistant"
-  }
+    "files.eol": "\n",
+    "editor.tabSize": 4,
+    "python.analysis.autoSearchPaths": false,
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.pylintArgs": ["--disable", "import-error"],
+    "python.formatting.provider": "black",
+    "editor.formatOnPaste": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "files.trimTrailingWhitespace": true,
+    "python.linting.mypyEnabled": true,
+    "python.defaultInterpreterPath": "/usr/local/python/bin/python",
+    "python.formatting.blackPath": "/usr/local/python/bin/black",
+    "python.linting.banditPath": "/usr/local/python/bin/bandit",
+    "python.linting.flake8Path": "/usr/local/python/bin/flake8",
+    "python.linting.mypyPath": "/usr/local/python/bin/mypy",
+    "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
+    "python.linting.pylintPath": "/usr/local/python/bin/pylint",
+    "isort.path": ["/usr/local/python/bin/isort"],
+    "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
+    "npm.autoDetect": "off",
+    "files.associations": {
+      "*.yaml": "home-assistant"
+    },
+    "git.ignoredRepositories": [
+      "/workspaces/core"
+  ]
 }
