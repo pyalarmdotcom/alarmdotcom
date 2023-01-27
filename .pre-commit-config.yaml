@@ -1,4 +1,6 @@
-# https://pypi.org/project/python-typing-update/ was causing trouble. Some of the below items seek to re-implement the typing-update flow.
+# File Version: 2023.01.27
+
+# https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
 
 ci:
   skip: [hassfest, pylint]
