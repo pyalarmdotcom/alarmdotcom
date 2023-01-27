@@ -55,7 +55,7 @@ repos:
           - --quiet
           - --format=custom
           - -c
-          - /workspaces/pylaundry/pyproject.toml
+          - pyproject.toml
         additional_dependencies: ["bandit[toml]"]
         files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
