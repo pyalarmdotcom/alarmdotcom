@@ -1,3 +1,7 @@
+// File Version: 2023.01.27
+
+// TODO: Pull library name from environnment variable.
+
 {
   "files.eol": "\n",
   "editor.tabSize": 4,
