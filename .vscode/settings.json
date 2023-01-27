@@ -24,5 +24,8 @@
   "npm.autoDetect": "off",
   "files.associations": {
     "*.yaml": "home-assistant"
-  }
+  },
+  "git.ignoredRepositories": [
+    "/workspaces/core"
+],
 }
