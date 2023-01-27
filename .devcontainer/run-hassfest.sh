@@ -1,6 +1,6 @@
-# File Version: 2023.01.27
-
 #!/usr/bin/env bash
+
+# File Version: 2023.01.27
 
 echo "Running hassfest."
 
