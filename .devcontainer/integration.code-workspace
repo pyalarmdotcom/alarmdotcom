@@ -5,10 +5,10 @@
 {
   "folders": [
     {
-      "path": ".."
+      "path": "/workspaces/alarmdotcom"
     },
     {
-      "path": "../../pyalarmdotcomajax"
+      "path": "/workspaces/pyalarmdotcomajax"
     }
   ],
 }
