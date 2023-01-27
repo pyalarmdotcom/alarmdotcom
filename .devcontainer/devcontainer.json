@@ -1,6 +1,6 @@
 {
   "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
-  "description": "File Version: 2023.01.27",
+  "file_version": "2023.01.27",
   "name": "alarmdotcom",
   "appPort": ["8123:8123"],
   "features": {
@@ -54,10 +54,6 @@
     "python.linting.pylintPath": "/usr/local/python/bin/pylint",
     "isort.path": ["/usr/local/python/bin/isort"],
     "python.pythonPath": "/usr/local/python/bin/python",
-    "typescript.tsc.autoDetect": "off",
-    "grunt.autoDetect": "off",
-    "jake.autoDetect": "off",
-    "gulp.autoDetect": "off",
-    "npm.autoDetect": "off"
+    "typescript.tsc.autoDetect": "off"
   }
 }
