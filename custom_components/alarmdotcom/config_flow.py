@@ -7,10 +7,15 @@ from typing import Any, Literal
 
 import aiohttp
 from homeassistant import config_entries
-from homeassistant.const import CONF_UNIT_OF_MEASUREMENT
+from homeassistant.const import CONF_PASSWORD, CONF_UNIT_OF_MEASUREMENT, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv, selector
+from homeassistant.helpers import selector
+from homeassistant.helpers.selector import (
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pyalarmdotcomajax import AuthResult as libAuthResult
 from pyalarmdotcomajax.errors import (
@@ -25,14 +30,11 @@ from .const import (
     CONF_ARM_AWAY,
     CONF_ARM_CODE,
     CONF_ARM_HOME,
-    CONF_ARM_MODE_OPTIONS,
     CONF_ARM_NIGHT,
     CONF_OPTIONS_DEFAULT,
     CONF_OTP,
-    CONF_PASSWORD,
     CONF_UPDATE_INTERVAL,
     CONF_UPDATE_INTERVAL_DEFAULT,
-    CONF_USERNAME,
     DOMAIN,
 )
 
@@ -43,7 +45,7 @@ LegacyArmingOptions = Literal["home", "away", "true", "false"]
 class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     """Handle a Alarmdotcom config flow."""
 
-    VERSION = 3
+    VERSION = 4
 
     def __init__(self) -> None:
         """Initialize the Alarmdotcom flow."""
@@ -121,8 +123,16 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         creds_schema = vol.Schema(
             {
-                vol.Required(CONF_USERNAME): str,
-                vol.Required(CONF_PASSWORD): str,
+                vol.Required(CONF_USERNAME): TextSelector(
+                    TextSelectorConfig(
+                        type=TextSelectorType.TEXT, autocomplete="username"
+                    )
+                ),
+                vol.Required(CONF_PASSWORD): TextSelector(
+                    TextSelectorConfig(
+                        type=TextSelectorType.PASSWORD, autocomplete="current-password"
+                    )
+                ),
             }
         )
 
@@ -170,7 +180,11 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         creds_schema = vol.Schema(
             {
-                vol.Required(CONF_OTP): str,
+                vol.Required(CONF_OTP): TextSelector(
+                    TextSelectorConfig(
+                        type=TextSelectorType.TEXT, autocomplete="one-time-code"
+                    )
+                ),
             }
         )
 
@@ -305,7 +319,7 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             if user_input.get(CONF_ARM_CODE) == "CLEAR!":
                 user_input[CONF_ARM_CODE] = ""
             self.options.update(user_input)
-            return await self.async_step_modes()
+            return self.async_create_entry(title="", data=self.options)
 
         schema = vol.Schema(
             {
@@ -336,46 +350,6 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             data_schema=schema,
             errors=errors,
             last_step=False,
-        )
-
-    async def async_step_modes(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """First screen for configuration options. Sets arming mode profiles."""
-        errors: dict = {}
-
-        if user_input is not None:
-            self.options.update(user_input)
-            return self.async_create_entry(title="", data=self.options)
-
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_ARM_HOME,
-                    default=self.options.get(
-                        CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]
-                    ),
-                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-                vol.Required(
-                    CONF_ARM_AWAY,
-                    default=self.options.get(
-                        CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]
-                    ),
-                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-                vol.Required(
-                    CONF_ARM_NIGHT,
-                    default=self.options.get(
-                        CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]
-                    ),
-                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-            }
-        )
-
-        return self.async_show_form(
-            step_id="modes",
-            data_schema=schema,
-            errors=errors,
-            last_step=True,
         )
 
 

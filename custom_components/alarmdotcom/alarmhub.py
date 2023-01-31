@@ -10,6 +10,7 @@ from typing import Any
 import aiohttp
 import async_timeout
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import (
@@ -22,6 +23,7 @@ from pyalarmdotcomajax import (
     AuthResult as libAuthResult,
 )
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.partition import Partition as libPartition
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed,
     DataFetchFailed,
@@ -112,6 +114,13 @@ class BasicAlarmHub:
             log.error("OTP submission failed.")
             raise
 
+    async def async_get_partitions(self) -> list[libPartition]:
+        """Return list of partitions."""
+
+        await self.system.async_update()
+
+        return list(self.system.partitions)
+
 
 class AlarmHub(BasicAlarmHub):
     """Config-entry initiated Alarm Hub."""
@@ -155,8 +164,8 @@ class AlarmHub(BasicAlarmHub):
 
         try:
             await self.async_login(
-                username=self.config_entry.data[adci.CONF_USERNAME],
-                password=self.config_entry.data[adci.CONF_PASSWORD],
+                username=self.config_entry.data[CONF_USERNAME],
+                password=self.config_entry.data[CONF_PASSWORD],
                 twofactorcookie=self.config_entry.data.get(adci.CONF_2FA_COOKIE),
             )
         except (

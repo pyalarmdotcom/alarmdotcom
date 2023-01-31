@@ -116,8 +116,10 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         self._attr_supported_features = AlarmControlPanelEntityFeature(
             AlarmControlPanelEntityFeature.ARM_HOME
             | AlarmControlPanelEntityFeature.ARM_AWAY
-            | AlarmControlPanelEntityFeature.ARM_NIGHT
         )
+
+        if self._device.supports_night_arming:
+            self._attr_supported_features |= AlarmControlPanelEntityFeature.ARM_NIGHT
 
     @callback  # type: ignore
     def update_device_data(self) -> None:
