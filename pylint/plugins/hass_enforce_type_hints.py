@@ -8,9 +8,10 @@ from typing import TYPE_CHECKING
 
 from astroid import nodes
 from astroid.exceptions import NameInferenceError
-from homeassistant.const import Platform
 from pylint.checkers import BaseChecker
 from pylint.lint import PyLinter
+
+from homeassistant.const import Platform
 
 if TYPE_CHECKING:
     # InferenceResult is available only from astroid >= 2.12.0
