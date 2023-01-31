@@ -1,3 +1,5 @@
+# File Version: 2023.01.27
+
 #!/usr/bin/env bash
 
 echo "Running HA post-set-version-hook."
