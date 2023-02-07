@@ -71,9 +71,11 @@ class BasicAlarmHub:
             self.system = libController(
                 username=username,
                 password=password,
-                websession=async_create_clientsession(self.hass)
-                if new_websession
-                else async_get_clientsession(self.hass),
+                websession=(
+                    async_create_clientsession(self.hass)
+                    if new_websession
+                    else async_get_clientsession(self.hass)
+                ),
                 twofactorcookie=twofactorcookie,
             )
 

@@ -311,9 +311,11 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             {
                 vol.Optional(
                     CONF_ARM_CODE,
-                    default=""
-                    if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
-                    else arm_code_raw,
+                    default=(
+                        ""
+                        if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
+                        else arm_code_raw
+                    ),
                 ): selector.selector({"text": {"type": "password"}}),
                 vol.Required(
                     CONF_UPDATE_INTERVAL,
