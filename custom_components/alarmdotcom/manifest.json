@@ -7,7 +7,7 @@
         "beautifulsoup4>=4.10.0", "pyalarmdotcomajax==0.4.10"
     ],
     "dependencies": [],
-    "version": "0.3.0",
+    "version": "2.1.0",
     "codeowners": [
         "@uvjustin", "@elahd"
     ],
