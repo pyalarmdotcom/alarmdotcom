@@ -113,7 +113,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             else None
         )
 
-        self._attr_supported_features = AlarmControlPanelEntityFeature(
+        self._attr_supported_features = (
             AlarmControlPanelEntityFeature.ARM_HOME
             | AlarmControlPanelEntityFeature.ARM_AWAY
         )
