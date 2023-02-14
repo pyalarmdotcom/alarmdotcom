@@ -1,8 +1,13 @@
-# File Version: 2023.01.27
+# File Version: 2023.02.14
 
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.autoflake]
+in-place = true
+check = false
+remove-all-unused-imports = true
 
 [tool.bandit]
 tests = [
@@ -33,11 +38,41 @@ exclude = 'generated'
 preview = "True"
 
 [tool.flake8]
-exclude = [".venv", ".git", ".tox", "docs", "venv", "bin", "lib", "deps", "build"]
+exclude = [
+  ".venv",
+  ".git",
+  ".tox",
+  "docs",
+  "venv",
+  "bin",
+  "lib",
+  "deps",
+  "build"
+]
 doctests = true
 max-line-length = 88
 extend-ignore = ["E203"]
-ignore = ["E501", "W503", "E203", "D202", "W504", "A003", "E203", "E305", "E711", "E712", "E721", "E722", "E741", "F841", "N801", "N802", "N806", "W503", "W504"]
+ignore = [
+  "E501",
+  "W503",
+  "E203",
+  "D202",
+  "W504",
+  "A003",
+  "E203",
+  "E305",
+  "E711",
+  "E712",
+  "E721",
+  "E722",
+  "E741",
+  "F841",
+  "N801",
+  "N802",
+  "N806",
+  "W503",
+  "W504"
+]
 import-order-style = "google"
 application-import-names = ["sqlalchemy", "test", "alarmdotcom"]
 enable-extensions = "G"
@@ -45,13 +80,8 @@ enable-extensions = "G"
 [tool.isort]
 profile = "black"
 force_sort_within_sections = true
-known_first_party = [
-  "alarmdotcom",
-  "tests"
-]
-forced_separate = [
-  "tests"
-]
+known_first_party = ["alarmdotcom", "tests"]
+forced_separate = ["tests"]
 combine_as_imports = true
 
 [tool.mypy]
@@ -86,7 +116,7 @@ good-names = ["_", "ev", "ex", "fp", "i", "id", "j", "k", "Run", "ip"]
 max-line-length-suggestions = 88
 
 [tool.pylint.EXCEPTIONS]
-overgeneral-exceptions = ["BaseException", "Exception", "HomeAssistantError"]
+overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception", "homeassistant.exceptions.HomeAssistantError"]
 
 [tool.pylint.FORMAT]
 expected-line-ending-format = "LF"
@@ -133,7 +163,7 @@ score = false
 
 [tool.pylint.TYPECHECK]
 ignored-classes = [
-  "_CountingAttr" # for attrs
+  "_CountingAttr"
 ]
 mixin-class-rgx = ".*[Mm]ix[Ii]n"
 

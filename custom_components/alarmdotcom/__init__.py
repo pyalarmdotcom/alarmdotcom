@@ -14,6 +14,9 @@ from .const import (
     CONF_ARM_AWAY,
     CONF_ARM_HOME,
     CONF_ARM_NIGHT,
+    CONF_FORCE_BYPASS,
+    CONF_NO_ENTRY_DELAY,
+    CONF_SILENT_ARM,
     DEBUG_REQ_EVENT,
     DOMAIN,
     STARTUP_MESSAGE,
@@ -237,27 +240,37 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     # To v4
     #
 
-    # Be sure to include the commented out cleanup code below when creating and migrating to config v4.
+    if config_entry.version == 3:
+        log.debug("Migrating from version %s", config_entry.version)
 
-    # if config_entry.version == 3:
+        v4_options: dict = {**config_entry.options}
 
-    #     log.debug("Migrating from version %s", config_entry.version)
+        # Purge config options deprecated and set to None in v3 migration.
+        v4_options.pop("use_arm_code", None)
+        v4_options.pop("force_bypass", None)
+        v4_options.pop("silent_arming", None)
+        v4_options.pop("no_entry_delay", None)
 
-    #     v4_options: dict = {**config_entry.options}
+        # Make config option names more explicit. This allows for future rollout of selective bypass when arming.
+        for arm_mode in (CONF_ARM_HOME, CONF_ARM_AWAY, CONF_ARM_NIGHT):
+            if arm_mode in v4_options:
+                if "bypass" in v4_options[arm_mode]:
+                    v4_options[arm_mode].remove("bypass")
+                    v4_options[arm_mode].append(CONF_FORCE_BYPASS)
+                if "silent" in v4_options[arm_mode]:
+                    v4_options[arm_mode].remove("silent")
+                    v4_options[arm_mode].append(CONF_SILENT_ARM)
+                if "delay" in v4_options[arm_mode]:
+                    v4_options[arm_mode].remove("delay")
+                    v4_options[arm_mode].append(CONF_NO_ENTRY_DELAY)
 
-    #     # Purge config options deprecated and set to None in v3 migration.
-    #     v4_options.pop("use_arm_code", None)
-    #     v4_options.pop("force_bypass", None)
-    #     v4_options.pop("silent_arming", None)
-    #     v4_options.pop("no_entry_delay", None)
+        config_entry.version = 4
 
-    #     config_entry.version = 4
+        hass.config_entries.async_update_entry(
+            config_entry, data={**config_entry.data}, options=v4_options
+        )
 
-    #     hass.config_entries.async_update_entry(
-    #         config_entry, data={**config_entry.data}, options=v4_options
-    #     )
-
-    #     log.info("Migration to version %s successful", config_entry.version)
+        log.info("Migration to version %s successful", config_entry.version)
 
     return True
 

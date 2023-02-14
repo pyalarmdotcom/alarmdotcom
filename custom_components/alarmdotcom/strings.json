@@ -10,7 +10,7 @@
       },
       "reauth_confirm": {
         "title": "[%key:common::config_flow::title::reauth%]",
-        "description": "Alarm.com needs to re-authenticate your account"
+        "description": "Alarm.com needs to re-authenticate your account."
       },
       "otp": {
         "title": "Complete Two-Factor Authentication",
@@ -50,7 +50,10 @@
           "arm_away_options": "Arm Away",
           "arm_night_options": "Arm Night"
         },
-        "description": "Set arming behavior for each arming mode. Note that Arm Night is not available on all providers."
+        "description": "Set arming behavior for each arming mode.",
+        "data_description": {
+          "arm_night_options": "Arm Night may not be available on all partitions."
+        }
       }
     }
   }

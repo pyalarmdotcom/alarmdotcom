@@ -11,4 +11,9 @@
       "path": "/workspaces/pyalarmdotcomajax"
     }
   ],
+  "settings": {
+    "files.associations": {
+      "*.yaml": "home-assistant"
+    }
+  },
 }

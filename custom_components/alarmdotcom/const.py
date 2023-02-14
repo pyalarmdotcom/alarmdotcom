@@ -30,8 +30,6 @@ MIGRATE_MSG_ALERT = (
 # #
 
 # Configuration
-CONF_USERNAME = "username"
-CONF_PASSWORD = "password"  # nosec
 CONF_2FA_COOKIE = "2fa_cookie"
 CONF_OTP = "otp"
 
@@ -42,16 +40,20 @@ CONF_ARM_AWAY = "arm_away_options"
 CONF_ARM_NIGHT = "arm_night_options"
 
 CONF_UPDATE_INTERVAL_DEFAULT = 30
+
+CONF_FORCE_BYPASS = "force_bypass"
+CONF_SILENT_ARM = "silent_arming"
+CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_ARM_MODE_OPTIONS = {
-    "bypass": "Force Bypass",
-    "silent": "Arm Silently",
-    "delay": "Arming Delay",
+    CONF_FORCE_BYPASS: "Force Bypass",
+    CONF_SILENT_ARM: "Arm Silently",
+    CONF_NO_ENTRY_DELAY: "No Entry Delay",
 }
 
 CONF_OPTIONS_DEFAULT = {
     CONF_ARM_CODE: "",
     CONF_ARM_HOME: [],
-    CONF_ARM_AWAY: ["delay"],
+    CONF_ARM_AWAY: [],
     CONF_ARM_NIGHT: [],
     CONF_UPDATE_INTERVAL: CONF_UPDATE_INTERVAL_DEFAULT,
 }

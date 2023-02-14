@@ -157,9 +157,11 @@ class HardwareBaseDevice(BaseDevice):
         self._attr_unique_id = device.id_
 
         self._attr_extra_state_attributes = {
-            "mac_address": self._device.mac_address,
             "raw_state_text": self._device.raw_state_text,
         }
+
+        if mac_address := self._device.mac_address:
+            self._attr_extra_state_attributes["mac_address"] = mac_address
 
         self._attr_device_info = {
             "default_manufacturer": "Alarm.com",
