@@ -4,7 +4,7 @@
     "documentation": "https://github.com/pyalarmdotcom/alarmdotcom",
     "issue_tracker": "https://github.com/pyalarmdotcom/alarmdotcom/issues",
     "requirements": [
-        "beautifulsoup4>=4.10.0", "pyalarmdotcomajax==0.4.10"
+        "beautifulsoup4>=4.10.0", "pyalarmdotcomajax==0.4.11"
     ],
     "dependencies": [],
     "version": "2.1.0",
