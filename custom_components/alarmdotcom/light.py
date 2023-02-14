@@ -111,7 +111,11 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
     def _determine_is_on(self, state: libLight.DeviceState) -> bool | None:
         """Return True if entity is on."""
 
-        log.debug("Processing state %s for %s", state, self.name)
+        log.debug(
+            "Processing state %s for %s",
+            state,
+            self.name or self._device.name,
+        )
 
         if not self._device.malfunction:
             if state in [

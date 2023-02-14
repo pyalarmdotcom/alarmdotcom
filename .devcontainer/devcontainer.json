@@ -1,6 +1,6 @@
 {
   "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
-  "file_version": "2023.01.27",
+  "file_version": "2023.02.14",
   "name": "alarmdotcom",
   "appPort": ["8123:8123"],
   "features": {
@@ -14,46 +14,51 @@
     "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git"
   },
   "postCreateCommand": "chmod +x /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh && bash /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh",
-  "extensions": [
-    "ms-python.vscode-pylance",
-    "github.vscode-pull-request-github",
-    "ryanluker.vscode-coverage-gutters",
-    "bungcip.better-toml",
-    "donjayamanne.python-extension-pack",
-    "marklarah.pre-commit-vscode",
-    "davidanson.vscode-markdownlint",
-    "yzhang.markdown-all-in-one",
-    "janisdd.vscode-edit-csv",
-    "mechatroner.rainbow-csv"
-  ],
-  "settings": {
-    "files.eol": "\n",
-    "editor.tabSize": 4,
-    "terminal.integrated.defaultProfile.linux": "bash",
-    "terminal.integrated.profiles.linux": {
-      "zsh": {
-        "path": "/bin/bash"
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.vscode-pylance",
+        "github.vscode-pull-request-github",
+        "ryanluker.vscode-coverage-gutters",
+        "bungcip.better-toml",
+        "donjayamanne.python-extension-pack",
+        "marklarah.pre-commit-vscode",
+        "davidanson.vscode-markdownlint",
+        "yzhang.markdown-all-in-one",
+        "janisdd.vscode-edit-csv",
+        "mechatroner.rainbow-csv",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "files.eol": "\n",
+        "editor.tabSize": 4,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/bash"
+          }
+        },
+        "python.analysis.autoSearchPaths": false,
+        "python.linting.pylintEnabled": true,
+        "python.linting.enabled": true,
+        "python.linting.pylintArgs": ["--disable", "import-error"],
+        "python.formatting.provider": "black",
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": false,
+        "python.linting.mypyEnabled": true,
+        "python.defaultInterpreterPath": "/usr/local/python/bin/python",
+        "python.formatting.blackPath": "/usr/local/python/bin/black",
+        "python.linting.banditPath": "/usr/local/python/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/python/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/python/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
+        "python.linting.pylintPath": "/usr/local/python/bin/pylint",
+        "isort.path": ["/usr/local/python/bin/isort"],
+        "python.pythonPath": "/usr/local/python/bin/python",
+        "typescript.tsc.autoDetect": "off"
       }
-    },
-    "python.analysis.autoSearchPaths": false,
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "python.linting.pylintArgs": ["--disable", "import-error"],
-    "python.formatting.provider": "black",
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "files.trimTrailingWhitespace": false,
-    "python.linting.mypyEnabled": true,
-    "python.defaultInterpreterPath": "/usr/local/python/bin/python",
-    "python.formatting.blackPath": "/usr/local/python/bin/black",
-    "python.linting.banditPath": "/usr/local/python/bin/bandit",
-    "python.linting.flake8Path": "/usr/local/python/bin/flake8",
-    "python.linting.mypyPath": "/usr/local/python/bin/mypy",
-    "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
-    "python.linting.pylintPath": "/usr/local/python/bin/pylint",
-    "isort.path": ["/usr/local/python/bin/isort"],
-    "python.pythonPath": "/usr/local/python/bin/python",
-    "typescript.tsc.autoDetect": "off"
+    }
   }
 }

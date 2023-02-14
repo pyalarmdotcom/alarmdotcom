@@ -111,7 +111,11 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     #
 
     def _determine_is_on(self, state: libSensor.DeviceState) -> bool | None:
-        log.debug("Processing state %s for %s", state, self.name)
+        log.debug(
+            "Processing state %s for %s",
+            state,
+            self.name or self._device.name,
+        )
 
         if state in [
             libSensor.DeviceState.CLOSED,

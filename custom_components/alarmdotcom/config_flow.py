@@ -10,7 +10,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_UNIT_OF_MEASUREMENT, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import selector
+from homeassistant.helpers import config_validation as cv, selector
 from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
@@ -30,6 +30,7 @@ from .const import (
     CONF_ARM_AWAY,
     CONF_ARM_CODE,
     CONF_ARM_HOME,
+    CONF_ARM_MODE_OPTIONS,
     CONF_ARM_NIGHT,
     CONF_OPTIONS_DEFAULT,
     CONF_OTP,
@@ -319,15 +320,17 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             if user_input.get(CONF_ARM_CODE) == "CLEAR!":
                 user_input[CONF_ARM_CODE] = ""
             self.options.update(user_input)
-            return self.async_create_entry(title="", data=self.options)
+            return await self.async_step_modes()
 
         schema = vol.Schema(
             {
                 vol.Optional(
                     CONF_ARM_CODE,
-                    default=""
-                    if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
-                    else arm_code_raw,
+                    default=(
+                        ""
+                        if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
+                        else arm_code_raw
+                    ),
                 ): selector.selector({"text": {"type": "password"}}),
                 vol.Required(
                     CONF_UPDATE_INTERVAL,
@@ -350,6 +353,46 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             data_schema=schema,
             errors=errors,
             last_step=False,
+        )
+
+    async def async_step_modes(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """First screen for configuration options. Sets arming mode profiles."""
+        errors: dict = {}
+
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_ARM_HOME,
+                    default=self.options.get(
+                        CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]
+                    ),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+                vol.Required(
+                    CONF_ARM_AWAY,
+                    default=self.options.get(
+                        CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]
+                    ),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+                vol.Required(
+                    CONF_ARM_NIGHT,
+                    default=self.options.get(
+                        CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]
+                    ),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="modes",
+            data_schema=schema,
+            errors=errors,
+            last_step=True,
         )
 
 

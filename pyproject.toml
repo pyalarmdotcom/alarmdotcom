@@ -1,11 +1,12 @@
-# File Version: 2023.01.27
+# File Version: 2023.02.14
 
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.autoflake]
-check = true
+in-place = true
+check = false
 remove-all-unused-imports = true
 
 [tool.bandit]
@@ -115,7 +116,7 @@ good-names = ["_", "ev", "ex", "fp", "i", "id", "j", "k", "Run", "ip"]
 max-line-length-suggestions = 88
 
 [tool.pylint.EXCEPTIONS]
-overgeneral-exceptions = ["BaseException", "Exception", "HomeAssistantError"]
+overgeneral-exceptions = ["builtins.BaseException", "builtins.Exception", "homeassistant.exceptions.HomeAssistantError"]
 
 [tool.pylint.FORMAT]
 expected-line-ending-format = "LF"

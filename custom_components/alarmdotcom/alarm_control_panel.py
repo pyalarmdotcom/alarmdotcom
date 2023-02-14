@@ -33,6 +33,9 @@ from .const import (
     CONF_ARM_CODE,
     CONF_ARM_HOME,
     CONF_ARM_NIGHT,
+    CONF_FORCE_BYPASS,
+    CONF_NO_ENTRY_DELAY,
+    CONF_SILENT_ARM,
     DOMAIN,
     MIGRATE_MSG_ALERT,
 )
@@ -154,16 +157,16 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         """Send arm night command."""
 
-        arm_profile = self._alarmhub.options.get(CONF_ARM_NIGHT, {})
+        arm_options = self._alarmhub.options.get(CONF_ARM_NIGHT, {})
 
         if self._validate_code(code):
             self._attr_state = STATE_ALARM_ARMING
 
             try:
                 await self._device.async_arm_night(
-                    force_bypass="bypass" in arm_profile,
-                    no_entry_delay="delay" not in arm_profile,
-                    silent_arming="silent" in arm_profile,
+                    force_bypass=CONF_FORCE_BYPASS in arm_options,
+                    no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
+                    silent_arming=CONF_SILENT_ARM in arm_options,
                 )
             except PermissionError:
                 self._show_permission_error("arm_night")
@@ -173,16 +176,16 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
 
-        arm_profile = self._alarmhub.options.get(CONF_ARM_HOME, {})
+        arm_options = self._alarmhub.options.get(CONF_ARM_HOME, {})
 
         if self._validate_code(code):
             self._attr_state = STATE_ALARM_ARMING
 
             try:
                 await self._device.async_arm_stay(
-                    force_bypass="bypass" in arm_profile,
-                    no_entry_delay="delay" not in arm_profile,
-                    silent_arming="silent" in arm_profile,
+                    force_bypass=CONF_FORCE_BYPASS in arm_options,
+                    no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
+                    silent_arming=CONF_SILENT_ARM in arm_options,
                 )
             except PermissionError:
                 self._show_permission_error("arm_home")
@@ -192,16 +195,16 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
 
-        arm_profile = self._alarmhub.options.get(CONF_ARM_AWAY, {})
+        arm_options = self._alarmhub.options.get(CONF_ARM_AWAY, {})
 
         if self._validate_code(code):
             self._attr_state = STATE_ALARM_ARMING
 
             try:
                 await self._device.async_arm_away(
-                    force_bypass="bypass" in arm_profile,
-                    no_entry_delay="delay" not in arm_profile,
-                    silent_arming="silent" in arm_profile,
+                    force_bypass=CONF_FORCE_BYPASS in arm_options,
+                    no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
+                    silent_arming=CONF_SILENT_ARM in arm_options,
                 )
             except PermissionError:
                 self._show_permission_error("arm_away")
@@ -215,7 +218,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     def _determine_state(self, state: libPartition.DeviceState) -> str | None:
         """Return the state of the device."""
 
-        log.debug("Processing state %s for %s", state, self.name)
+        log.debug("Processing state %s for %s", state, self.name or self._device.name)
 
         if not self._device.malfunction:
             if state == libPartition.DeviceState.DISARMED:
