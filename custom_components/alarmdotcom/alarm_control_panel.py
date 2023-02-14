@@ -132,12 +132,14 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
         self._attr_extra_state_attributes.update(
             {
-                "desired_state": self._device.desired_state.name.title()
-                if isinstance(
-                    self._device.desired_state,
-                    libPartition.DeviceState,
-                )
-                else None,
+                "desired_state": (
+                    self._device.desired_state.name.title()
+                    if isinstance(
+                        self._device.desired_state,
+                        libPartition.DeviceState,
+                    )
+                    else None
+                ),
                 "uncleared_issues": self._device.uncleared_issues,
             }
         )

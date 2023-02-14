@@ -17,12 +17,12 @@ repos:
       - id: isort
         files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/myint/autoflake/
-    rev: v2.0.0
+    rev: v2.0.1
     hooks:
       - id: autoflake
         files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/psf/black
-    rev: 22.12.0
+    rev: 23.1.0
     hooks:
       - id: black
         args:
@@ -68,7 +68,7 @@ repos:
       - id: check-json
         exclude: (.vscode|.devcontainer)
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.991
+    rev: v1.0.0
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
