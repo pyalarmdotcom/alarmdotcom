@@ -1,6 +1,6 @@
 {
   "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
-  "file_version": "2023.02.15",
+  "file_version": "2023.02.16",
   "name": "alarmdotcom",
   "appPort": ["8123:8123"],
   "features": {
@@ -15,6 +15,13 @@
   },
   "postCreateCommand": "chmod +x /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh && bash /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh",
   "customizations": {
+    "codespaces": {
+      "repositories": {
+        "pyalarmdotcom/pyalarmdotcomajax": {
+          "permissions": "write-all"
+        }
+      }
+    },
     "vscode": {
       "extensions": [
         "ms-python.vscode-pylance",
