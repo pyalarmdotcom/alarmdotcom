@@ -8,6 +8,7 @@ from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
+
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
     ConfigurationOption as libConfigurationOption,

@@ -18,6 +18,7 @@ from homeassistant.helpers.aiohttp_client import (
     async_get_clientsession,
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
 from pyalarmdotcomajax import (
     AlarmController as libController,
     AuthResult as libAuthResult,
@@ -91,7 +92,9 @@ class BasicAlarmHub:
                 "Alarm.com returned data in an unexpected format."
             ) from err
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed("Invalid account credentials.") from err
+            raise ConfigEntryAuthFailed(
+                "Invalid account credentials found while logging in."
+            ) from err
         except (
             asyncio.TimeoutError,
             aiohttp.ClientError,
@@ -249,7 +252,9 @@ class AlarmHub(BasicAlarmHub):
         # Typically captured during login. Should only be captured here when
         # updating after migration from configuration.yaml.
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed("Invalid account credentials.") from err
+            raise ConfigEntryAuthFailed(
+                "Invalid account credentials found while updating device states."
+            ) from err
 
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             log.error(

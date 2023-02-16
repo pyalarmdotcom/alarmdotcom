@@ -8,6 +8,7 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
+
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 from .alarmhub import AlarmHub

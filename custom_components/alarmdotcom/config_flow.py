@@ -17,12 +17,13 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 from homeassistant.helpers.update_coordinator import UpdateFailed
+import voluptuous as vol
+
 from pyalarmdotcomajax import AuthResult as libAuthResult
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed as libAuthenticationFailed,
     DataFetchFailed as libDataFetchFailed,
 )
-import voluptuous as vol
 
 from .alarmhub import BasicAlarmHub
 from .const import (

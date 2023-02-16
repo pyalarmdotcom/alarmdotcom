@@ -1,4 +1,4 @@
-# File Version: 2023.01.27
+# File Version: 2023.02.15
 
 #!/usr/bin/env bash
 
@@ -34,17 +34,6 @@ pip install -r "$workspace_dir/requirements-dev.txt"
 
 cat << EOF
 
-#####################
-INSTALLING PRE-COMMIT
-#####################
-
-EOF
-
-pre-commit install
-pre-commit install-hooks
-
-cat << EOF
-
 #################################
 INITIALIZING DEVCONTAINER SCRIPTS
 #################################
@@ -70,10 +59,25 @@ else
     echo "$library_name repository directory already exists."
 fi
 
-cd "$lib_dir"
-python setup.py develop
+(cd "$lib_dir"; python setup.py develop)
 
 pip install -r "$lib_dir/requirements-dev.txt"
+
+cat << EOF
+
+#####################
+INSTALLING PRE-COMMIT
+#####################
+
+EOF
+
+# For integration
+pre-commit install
+pre-commit install-hooks
+
+# For library
+(cd "$lib_dir"; pre-commit install)
+(cd "$lib_dir"; pre-commit install-hooks)
 
 cat << EOF
 

@@ -1,12 +1,16 @@
 {
-    "recommendations": [
-        "yzhang.markdown-all-in-one",
-        "ms-python.vscode-pylance",
-        "github.vscode-pull-request-github",
-        "ryanluker.vscode-coverage-gutters",
-        "bungcip.better-toml",
-        "donjayamanne.python-extension-pack",
-        "marklarah.pre-commit-vscode",
-        "davidanson.vscode-markdownlint"
-    ]
+  "recommendations": [
+    "ms-python.vscode-pylance",
+    "github.vscode-pull-request-github",
+    "ryanluker.vscode-coverage-gutters",
+    "bungcip.better-toml",
+    "donjayamanne.python-extension-pack",
+    "marklarah.pre-commit-vscode",
+    "davidanson.vscode-markdownlint",
+    "yzhang.markdown-all-in-one",
+    "janisdd.vscode-edit-csv",
+    "mechatroner.rainbow-csv",
+    "eamodio.gitlens",
+    "ms-python.black-formatter"
+  ]
 }

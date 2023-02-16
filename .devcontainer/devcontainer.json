@@ -1,6 +1,6 @@
 {
   "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
-  "file_version": "2023.02.14",
+  "file_version": "2023.02.15",
   "name": "alarmdotcom",
   "appPort": ["8123:8123"],
   "features": {
@@ -27,7 +27,8 @@
         "yzhang.markdown-all-in-one",
         "janisdd.vscode-edit-csv",
         "mechatroner.rainbow-csv",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "ms-python.black-formatter"
       ],
       "settings": {
         "files.eol": "\n",
