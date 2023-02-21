@@ -18,7 +18,6 @@ from homeassistant.helpers.aiohttp_client import (
     async_get_clientsession,
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-
 from pyalarmdotcomajax import (
     AlarmController as libController,
     AuthResult as libAuthResult,
@@ -240,8 +239,8 @@ class AlarmHub(BasicAlarmHub):
         # have 2FA set up.
         except TypeError as err:
             raise ConfigEntryAuthFailed(
-                "Two-factor authentication must be enabled in order to log in with this"
-                " provider."
+                "async_update(): Two-factor authentication must be enabled in order to"
+                " log in with this provider."
             ) from err
 
         except PermissionError as err:

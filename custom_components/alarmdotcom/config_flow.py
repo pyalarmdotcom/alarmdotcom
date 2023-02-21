@@ -17,13 +17,12 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 from homeassistant.helpers.update_coordinator import UpdateFailed
-import voluptuous as vol
-
 from pyalarmdotcomajax import AuthResult as libAuthResult
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed as libAuthenticationFailed,
     DataFetchFailed as libDataFetchFailed,
 )
+import voluptuous as vol
 
 from .alarmhub import BasicAlarmHub
 from .const import (
@@ -56,9 +55,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         self.system_id: str | None = None
         self.sensor_data: dict | None = {}
         self._config_title: str | None = None
-        self._existing_entry: config_entries.ConfigEntry | None = None
         self._imported_options = None
         self._alarmhub: BasicAlarmHub | None = None
+        self._existing_entry: config_entries.ConfigEntry | None = None
 
         self._force_generic_name: bool = False
 
@@ -208,8 +207,6 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             else f"{self._alarmhub.provider_name}:{self._alarmhub.user_email}"
         )
 
-        self._existing_entry = await self.async_set_unique_id(self._config_title)
-
         if self._existing_entry:
             log.debug(
                 "Existing config entry found. Updating entry, then aborting config"
@@ -289,6 +286,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     ) -> FlowResult:
         """Perform reauth upon an API authentication error."""
         log.debug("Reauthenticating.")
+        self._existing_entry = await self.async_set_unique_id(self._config_title)
         return await self.async_step_reauth_confirm(user_input)
 
     async def async_step_reauth_confirm(
