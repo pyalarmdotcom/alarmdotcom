@@ -91,7 +91,9 @@ class BasicAlarmHub:
                 "Alarm.com returned data in an unexpected format."
             ) from err
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed("Invalid account credentials.") from err
+            raise ConfigEntryAuthFailed(
+                "Invalid account credentials found while logging in."
+            ) from err
         except (
             asyncio.TimeoutError,
             aiohttp.ClientError,
@@ -237,8 +239,8 @@ class AlarmHub(BasicAlarmHub):
         # have 2FA set up.
         except TypeError as err:
             raise ConfigEntryAuthFailed(
-                "Two-factor authentication must be enabled in order to log in with this"
-                " provider."
+                "async_update(): Two-factor authentication must be enabled in order to"
+                " log in with this provider."
             ) from err
 
         except PermissionError as err:
@@ -249,7 +251,9 @@ class AlarmHub(BasicAlarmHub):
         # Typically captured during login. Should only be captured here when
         # updating after migration from configuration.yaml.
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed("Invalid account credentials.") from err
+            raise ConfigEntryAuthFailed(
+                "Invalid account credentials found while updating device states."
+            ) from err
 
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             log.error(
