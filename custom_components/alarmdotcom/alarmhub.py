@@ -23,7 +23,6 @@ from pyalarmdotcomajax import (
     AuthResult as libAuthResult,
 )
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
-from pyalarmdotcomajax.devices.partition import Partition as libPartition
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed,
     DataFetchFailed,
@@ -118,13 +117,6 @@ class BasicAlarmHub:
             log.error("OTP submission failed.")
             raise
 
-    async def async_get_partitions(self) -> list[libPartition]:
-        """Return list of partitions."""
-
-        await self.system.async_update()
-
-        return list(self.system.partitions)
-
 
 class AlarmHub(BasicAlarmHub):
     """Config-entry initiated Alarm Hub."""
@@ -206,14 +198,6 @@ class AlarmHub(BasicAlarmHub):
         await self.coordinator.async_config_entry_first_refresh()
 
         return None
-
-    async def async_coordinator_update(self, critical: bool = True) -> None:
-        """Force coordinator refresh after alarm control panel command."""
-
-        if critical:
-            await self.coordinator.async_refresh()
-        else:
-            await self.coordinator.async_request_refresh()
 
     async def async_update(self) -> None:
         """Pull fresh data from Alarm.com for coordinator."""
