@@ -1,9 +1,9 @@
-# File Version: 2023.01.31
+# File Version: 2023.3.6
 
 # https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
 
 ci:
-  skip: [hassfest, pylint]
+  skip: [hassfest]
 
 repos:
   - repo: https://github.com/asottile/pyupgrade
@@ -11,16 +11,11 @@ repos:
     hooks:
       - id: pyupgrade
         args: [--py39-plus]
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.245
     hooks:
-      - id: isort
-        files: ^((custom_components)/.+)?[^/]+\.py$
-  - repo: https://github.com/myint/autoflake/
-    rev: v2.0.1
-    hooks:
-      - id: autoflake
-        files: ^((custom_components)/.+)?[^/]+\.py$
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
   - repo: https://github.com/psf/black
     rev: 23.1.0
     hooks:
@@ -38,26 +33,6 @@ repos:
           - --skip="./.*,*.csv,*.json",*.html
           - --quiet-level=2
         exclude_types: [csv, json]
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        additional_dependencies:
-          - flake8-docstrings==1.5.0
-          - pydocstyle==5.1.1
-          - Flake8-pyproject==1.2.2
-        files: ^((custom_components)/.+)?[^/]+\.py$
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.4
-    hooks:
-      - id: bandit
-        args:
-          - --quiet
-          - --format=custom
-          - -c
-          - pyproject.toml
-        additional_dependencies: ["bandit[toml]"]
-        files: ^((custom_components)/.+)?[^/]+\.py$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -84,16 +59,6 @@ repos:
         args: []
   - repo: local
     hooks:
-      - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
-        exclude: (.vscode|.devcontainer|.mypy_cache|custom_components/.*/__pycache__|pylint)
-        args:
-          - --output-format=colorized
-          - -d W0511
-          - --fail-on=all
       - id: hassfest
         name: hassfest
         entry: .devcontainer/run-hassfest.sh
