@@ -6,13 +6,8 @@ ci:
   skip: [hassfest]
 
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.1
-    hooks:
-      - id: pyupgrade
-        args: [--py39-plus]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.245
+    rev: v0.0.254
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]

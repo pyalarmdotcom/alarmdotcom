@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
-target-version = ["py39"]
+target-version = ["py310"]
 exclude = 'generated'
 preview = "True"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 show_error_codes = true
 follow_imports = "silent"
 ignore_missing_imports = true
@@ -41,7 +41,7 @@ asyncio_mode = "auto"
 
 [tool.ruff]
 target-version = "py310"
-exclude = ["examples"]
+exclude = ["examples", "tests", "pylint"]
 select = [
   "B007", # Loop control variable {name} not used within loop body
   "B014", # Exception handler with duplicate exception
@@ -52,6 +52,7 @@ select = [
   "ICN001", # import concentions; {name} should be imported as {asname}
   "PGH004", # Use specific rule codes when using noqa
   "PLC0414", # Useless import alias. Import alias does not rename original package.
+  "S", # Bandit
   "SIM105", # Use contextlib.suppress({exception}) instead of try-except-pass
   "SIM117", # Merge with-statements that use the same scope
   "SIM118", # Use {key} in {dict} instead of {key} in {dict}.keys()
@@ -61,7 +62,7 @@ select = [
   "SIM401", # Use get from dict with default instead of an if block
   "T20", # flake8-print
   "TRY004", # Prefer TypeError exception for invalid type
-  # "RUF006", # Store a reference to the return value of asyncio.create_task
+  "RUF006", # Store a reference to the return value of asyncio.create_task
   "UP", # pyupgrade
   "W" # pycodestyle
 ]
