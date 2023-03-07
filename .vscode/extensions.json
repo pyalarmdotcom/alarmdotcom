@@ -11,6 +11,7 @@
     "janisdd.vscode-edit-csv",
     "mechatroner.rainbow-csv",
     "eamodio.gitlens",
-    "ms-python.black-formatter"
+    "ms-python.black-formatter",
+    "charliermarsh.ruff"
   ]
 }
