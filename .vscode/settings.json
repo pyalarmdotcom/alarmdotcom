@@ -1,5 +1,5 @@
 {
-  "file_version": "2023.02.15",
+  "file_version": "2023.3.6",
   "files.eol": "\n",
   "editor.tabSize": 4,
   "terminal.integrated.defaultProfile.linux": "bash",
@@ -35,5 +35,8 @@
   "git.ignoredRepositories": ["/workspaces/core"],
   "flake8.args": [
     "--toml-config=/workspaces/${containerEnv:LIBRARY_NAME}/pyproject.toml"
+  ],
+  "ruff.path": [
+    "/usr/local/python/bin/ruff"
   ]
 }

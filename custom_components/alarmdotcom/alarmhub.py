@@ -64,7 +64,7 @@ class BasicAlarmHub:
         username: str,
         password: str,
         twofactorcookie: str,
-        new_websession: bool = False,
+        new_websession: bool = True,
     ) -> libAuthResult:
         """Log into Alarm.com."""
 
