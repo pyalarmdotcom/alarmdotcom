@@ -8,6 +8,9 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/pyalarmdotcom/alarmdotcom/issues",
-  "requirements": ["beautifulsoup4>=4.10.0", "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax.git@master#pyalarmdotcomajax==0.4.14-alpha"],
+  "requirements": [
+    "beautifulsoup4>=4.10.0",
+    "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax.git@master#pyalarmdotcomajax==0.4.14-alpha"
+  ],
   "version": "2.2.2-alpha"
 }

@@ -1,0 +1,12 @@
+# Will be picked up by VS Code, GitHub, and Prettier (for non-Python formatting).
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+indent_size = 2
+indent_style = space
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
