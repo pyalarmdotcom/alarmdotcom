@@ -1,5 +1,3 @@
-# File Version: 2023.02.15
-
 #!/usr/bin/env bash
 
 if [ -z "${LIBRARY_NAME}" ] || [ -z "${LIBRARY_GIT_URL}" ] || [ -z "${WORKSPACE_DIRECTORY}" ]; then
@@ -13,13 +11,13 @@ fi
 
 cat << EOF
 
-#####################################
-INITIALIZING INTEGRATION DEVCONTAINER
-#####################################
+################################
+INSTALLING GITHUB CLI EXTENSIONS
+################################
 
 EOF
 
-container install
+gh extension install nektos/gh-act
 
 cat << EOF
 
@@ -78,37 +76,6 @@ pre-commit install-hooks
 # For library
 (cd "$lib_dir"; pre-commit install)
 (cd "$lib_dir"; pre-commit install-hooks)
-
-cat << EOF
-
-#############################
-SYMLINKING CONFIGURATION.YAML
-#############################
-
-EOF
-
-if test -f ".devcontainer/configuration.yaml"; then
-  echo "Copy configuration.yaml"
-  ln -sf "$workspace_dir/.devcontainer/configuration.yaml" /config/configuration.yaml || echo ".devcontainer/configuration.yaml are missing"
-fi
-
-cat << EOF
-
-##################################
-GETTING HOME ASSISTANT SOURCE CODE
-##################################
-
-EOF
-
-ha_version=$(pip show homeassistant | grep -Po '^(?:Version\: )(.*)$' | grep -Po '(\d+\.\d+\..*$)')
-
-if [[ "$ha_version" == *"dev"* ]]; then
-  ha_version="dev"
-fi
-
-"$workspace_dir"/.devcontainer/post-set-version-hook.sh "$ha_version"
-
-bash /workspaces/core/script/setup
 
 cat << EOF
 

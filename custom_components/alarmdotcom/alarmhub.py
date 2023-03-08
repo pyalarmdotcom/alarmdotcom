@@ -155,9 +155,6 @@ class AlarmHub(BasicAlarmHub):
     async def async_setup(self, reload: bool = False) -> None:
         """Set up Alarm.com system instance."""
 
-        if not self.config_entry:
-            raise PartialInitialization
-
         try:
             await self.async_login(
                 username=self.config_entry.data[CONF_USERNAME],
