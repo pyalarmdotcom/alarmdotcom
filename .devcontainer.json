@@ -33,6 +33,12 @@
         "ms-python.python"
       ],
       "settings": {
+        "[python]": {
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": true,
+            "source.organizeImports.ruff": true
+          }
+        },
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
