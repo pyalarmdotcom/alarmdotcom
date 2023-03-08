@@ -1,19 +1,15 @@
 {
+  "forwardPorts": [8123],
   "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
   "name": "alarmdotcom",
-  "forwardPorts": [8123],
-  "features": {
-    "github-cli": "latest"
-  },
+  "postCreateCommand": "scripts/setup.sh",
   "containerEnv": {
-    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom",
     "INTEGRATION_NAME": "alarmdotcom",
     "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git",
     "LIBRARY_NAME": "pyalarmdotcomajax",
     "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh",
     "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
   },
-  "postCreateCommand": "scripts/setup.sh",
   "customizations": {
     "codespaces": {
       "repositories": {
@@ -22,13 +18,6 @@
         }
       }
     },
-    "features": {
-      "github-cli": "latest"
-    },
-    "file_version": "2023.3.6",
-    "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
-    "name": "alarmdotcom",
-    "postCreateCommand": "chmod +x /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh && bash /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh",
     "vscode": {
       "extensions": [
         "ryanluker.vscode-coverage-gutters",
@@ -42,25 +31,27 @@
         "EditorConfig.EditorConfig"
       ],
       "settings": {
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "python.analysis.autoSearchPaths": false,
+        "python.formatting.blackPath": "/usr/local/python/bin/black",
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.mypyEnabled": true,
+        "python.linting.mypyPath": "/usr/local/python/bin/mypy",
+        "python.linting.ruff.path": ["/usr/local/python/bin/ruff"],
         "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.profiles.linux": {
           "zsh": {
             "path": "/bin/bash"
           }
-        },
-        "python.analysis.autoSearchPaths": false,
-        "python.linting.enabled": true,
-        "python.formatting.provider": "black",
-        "editor.formatOnPaste": false,
-        "editor.formatOnSave": true,
-        "editor.formatOnType": true,
-        "python.linting.mypyEnabled": true,
-        "python.defaultInterpreterPath": "/usr/local/python/bin/python",
-        "python.formatting.blackPath": "/usr/local/python/bin/black",
-        "python.linting.ruff.path": ["/usr/local/python/bin/ruff"],
-        "python.linting.mypyPath": "/usr/local/python/bin/mypy",
-        "python.pythonPath": "/usr/local/python/bin/python"
+        }
       }
     }
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "github-cli": "latest"
   }
 }
