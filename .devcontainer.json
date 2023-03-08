@@ -26,21 +26,22 @@
         "marklarah.pre-commit-vscode",
         "eamodio.gitlens",
         "ms-python.black-formatter",
+        "matangover.mypy",
         "charliermarsh.ruff",
         "esbenp.prettier-vscode",
-        "EditorConfig.EditorConfig"
+        "EditorConfig.EditorConfig",
+        "ms-python.python"
       ],
       "settings": {
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
         "python.analysis.autoSearchPaths": false,
-        "python.formatting.blackPath": "/usr/local/python/bin/black",
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.pythonPath": "/usr/local/bin/python",
         "python.formatting.provider": "black",
         "python.linting.enabled": true,
         "python.linting.mypyEnabled": true,
-        "python.linting.mypyPath": "/usr/local/python/bin/mypy",
-        "python.linting.ruff.path": ["/usr/local/python/bin/ruff"],
         "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.profiles.linux": {
           "zsh": {
