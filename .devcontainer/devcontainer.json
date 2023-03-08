@@ -1,19 +1,14 @@
 {
-  "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
-  "file_version": "2023.3.6",
-  "name": "alarmdotcom",
-  "appPort": ["8123:8123"],
-  "features": {
-    "github-cli": "latest"
-  },
+  "appPort": [
+    "8123:8123"
+  ],
   "containerEnv": {
-    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom",
-    "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh",
     "INTEGRATION_NAME": "alarmdotcom",
+    "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git",
     "LIBRARY_NAME": "pyalarmdotcomajax",
-    "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git"
+    "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh",
+    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
   },
-  "postCreateCommand": "chmod +x /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh && bash /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh",
   "customizations": {
     "codespaces": {
       "repositories": {
@@ -22,6 +17,13 @@
         }
       }
     },
+    "features": {
+      "github-cli": "latest"
+    },
+    "file_version": "2023.3.6",
+    "image": "ghcr.io/ludeeus/devcontainer/integration:latest",
+    "name": "alarmdotcom",
+    "postCreateCommand": "chmod +x /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh && bash /${containerEnv:WORKSPACE_DIRECTORY}/.devcontainer/post-create-script.sh",
     "vscode": {
       "extensions": [
         "ms-python.vscode-pylance",
@@ -39,36 +41,43 @@
         "charliermarsh.ruff"
       ],
       "settings": {
-        "files.eol": "\n",
+        // "[python]": {
+        //   "editor.codeActionsOnSave": {
+        //     "source.organizeImports": true
+        //   }
+        // },
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
         "editor.tabSize": 4,
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "npm.autoDetect": "off",
+        "python.analysis.autoSearchPaths": false,
+        "python.defaultInterpreterPath": "/usr/local/python/bin/python",
+        "python.formatting.blackPath": "/usr/local/python/bin/black",
+        "python.formatting.provider": "black",
+        "python.linting.enabled": true,
+        "python.linting.ignorePatterns": [
+          "tests/**"
+        ],
+        "python.linting.mypyEnabled": true,
+        "python.linting.mypyPath": "/usr/local/python/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
+        "python.linting.pylintEnabled": true,
+        "ruff.path": [
+          "/usr/local/python/bin/ruff"
+        ],
+        "ruff.args": [
+          "--config","pyproject.toml"
+        ],
+        "python.pythonPath": "/usr/local/python/bin/python",
         "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.profiles.linux": {
           "zsh": {
             "path": "/bin/bash"
           }
         },
-        "python.analysis.autoSearchPaths": false,
-        "python.linting.pylintEnabled": true,
-        "python.linting.enabled": true,
-        "python.linting.pylintArgs": ["--disable", "import-error"],
-        "python.formatting.provider": "black",
-        "editor.formatOnPaste": false,
-        "editor.formatOnSave": true,
-        "editor.formatOnType": true,
-        "files.trimTrailingWhitespace": false,
-        "python.linting.mypyEnabled": true,
-        "python.defaultInterpreterPath": "/usr/local/python/bin/python",
-        "python.formatting.blackPath": "/usr/local/python/bin/black",
-        "python.linting.ruff.path": [
-          "/usr/local/python/bin/ruff"
-        ],
-        "python.linting.banditPath": "/usr/local/python/bin/bandit",
-        "python.linting.flake8Path": "/usr/local/python/bin/flake8",
-        "python.linting.mypyPath": "/usr/local/python/bin/mypy",
-        "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
-        "python.linting.pylintPath": "/usr/local/python/bin/pylint",
-        "isort.path": ["/usr/local/python/bin/isort"],
-        "python.pythonPath": "/usr/local/python/bin/python",
         "typescript.tsc.autoDetect": "off"
       }
     }

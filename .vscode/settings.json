@@ -1,42 +1,39 @@
 {
-  "file_version": "2023.3.6",
-  "files.eol": "\n",
+  // "[python]": {
+  //   "editor.codeActionsOnSave": {
+  //     "source.organizeImports": true
+  //   }
+  // },
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
   "editor.tabSize": 4,
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "npm.autoDetect": "off",
+  "python.analysis.autoSearchPaths": false,
+  "python.defaultInterpreterPath": "/usr/local/python/bin/python",
+  "python.formatting.blackPath": "/usr/local/python/bin/black",
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.ignorePatterns": [
+    "tests/**"
+  ],
+  "python.linting.mypyEnabled": true,
+  "python.linting.mypyPath": "/usr/local/python/bin/mypy",
+  "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
+  "python.linting.pylintEnabled": true,
+  "ruff.path": [
+    "/usr/local/python/bin/ruff"
+  ],
+  "ruff.args": [
+    "--config","pyproject.toml"
+  ],
   "terminal.integrated.defaultProfile.linux": "bash",
   "terminal.integrated.profiles.linux": {
     "zsh": {
       "path": "/bin/bash"
     }
   },
-  "python.analysis.autoSearchPaths": false,
-  "python.linting.pylintEnabled": true,
-  "python.linting.enabled": true,
-  "python.linting.pylintArgs": ["--disable", "import-error"],
-  "python.formatting.provider": "black",
-  "editor.formatOnPaste": false,
-  "editor.formatOnSave": true,
-  "editor.formatOnType": true,
-  "files.trimTrailingWhitespace": true,
-  "python.linting.mypyEnabled": true,
-  "python.defaultInterpreterPath": "/usr/local/python/bin/python",
-  "python.formatting.blackPath": "/usr/local/python/bin/black",
-  "python.linting.banditPath": "/usr/local/python/bin/bandit",
-  "python.linting.flake8Path": "/usr/local/python/bin/flake8",
-  "python.linting.mypyPath": "/usr/local/python/bin/mypy",
-  "python.linting.pycodestylePath": "/usr/local/python/bin/pycodestyle",
-  "python.linting.pylintPath": "/usr/local/python/bin/pylint",
-  "python.linting.ignorePatterns": ["tests/**"],
-  "isort.path": ["/usr/local/python/bin/isort"],
-  "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
-  "npm.autoDetect": "off",
-  "files.associations": {
-    "*.yaml": "home-assistant"
-  },
-  "git.ignoredRepositories": ["/workspaces/core"],
-  "flake8.args": [
-    "--toml-config=/workspaces/${containerEnv:LIBRARY_NAME}/pyproject.toml"
-  ],
-  "ruff.path": [
-    "/usr/local/python/bin/ruff"
-  ]
+  "typescript.tsc.autoDetect": "off"
 }

@@ -12,6 +12,7 @@
     "mechatroner.rainbow-csv",
     "eamodio.gitlens",
     "ms-python.black-formatter",
-    "charliermarsh.ruff"
+    "charliermarsh.ruff",
+    "matangover.mypy"
   ]
 }

@@ -13,7 +13,8 @@
   ],
   "settings": {
     "files.associations": {
-      "*.yaml": "home-assistant"
+      "config.yaml": "home-assistant",
+      "*.yaml": "yaml"
     }
   },
 }

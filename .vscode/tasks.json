@@ -1,72 +1,48 @@
 {
-  "file_version": "2023.01.27",
-  "version": "2.0.0",
+  "file_version": "2023.3.7",
   "tasks": [
     {
-      "label": "Run pre-commit checks.",
-      "type": "shell",
       "command": "pre-commit run --all-files",
-      "problemMatcher": []
+      "label": "Run pre-commit checks.",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
-      "label": "Run pre-commit: mypy.",
-      "type": "shell",
-      "command": "pre-commit run mypy --all-files",
-      "problemMatcher": []
-    },
-    {
-      "label": "Run pre-commit: black.",
-      "type": "shell",
-      "command": "pre-commit run black --verbose --all-files",
-      "problemMatcher": []
-    },
-    {
-      "label": "Run pre-commit: pylint.",
-      "type": "shell",
-      "command": "pre-commit run pylint --all-files",
-      "problemMatcher": []
-    },
-    {
-      "label": "Run pre-commit: hassfest.",
-      "type": "shell",
       "command": "pre-commit run hassfest --all-files",
-      "problemMatcher": []
+      "label": "Run pre-commit: hassfest.",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
-      "label": "Run pre-commit: auto-update.",
-      "type": "shell",
-      "command": "pre-commit autoupdate",
-      "problemMatcher": []
-    },
-    {
-      "label": "Run Home Assistant on port 8123",
-      "type": "shell",
       "command": "container start",
-      "problemMatcher": []
+      "label": "Run Home Assistant on port 8123",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
-      "label": "Run Home Assistant configuration against /config",
-      "type": "shell",
       "command": "container check-config",
-      "problemMatcher": []
+      "label": "Run Home Assistant configuration against /config",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
-      "label": "Upgrade Home Assistant to latest dev",
-      "type": "shell",
       "command": "container install",
-      "problemMatcher": []
+      "label": "Upgrade Home Assistant to latest dev",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
-      "label": "Install a specific version of Home Assistant",
-      "type": "shell",
       "command": "container set-version",
-      "problemMatcher": []
+      "label": "Install a specific version of Home Assistant",
+      "problemMatcher": [],
+      "type": "shell"
     },
     {
-      "label": "Initialize development environment",
-      "type": "shell",
       "command": "container init",
-      "problemMatcher": []
+      "label": "Initialize development environment",
+      "problemMatcher": [],
+      "type": "shell"
     }
-  ]
+  ],
+  "version": "2.0.0"
 }
