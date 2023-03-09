@@ -1,5 +1,4 @@
 {
-  "file_version": "2023.3.7",
   "tasks": [
     {
       "command": "pre-commit run --all-files",
@@ -8,38 +7,8 @@
       "type": "shell"
     },
     {
-      "command": "pre-commit run hassfest --all-files",
-      "label": "Run pre-commit: hassfest.",
-      "problemMatcher": [],
-      "type": "shell"
-    },
-    {
-      "command": "container start",
+      "command": "scripts/run-ha.sh",
       "label": "Run Home Assistant on port 8123",
-      "problemMatcher": [],
-      "type": "shell"
-    },
-    {
-      "command": "container check-config",
-      "label": "Run Home Assistant configuration against /config",
-      "problemMatcher": [],
-      "type": "shell"
-    },
-    {
-      "command": "container install",
-      "label": "Upgrade Home Assistant to latest dev",
-      "problemMatcher": [],
-      "type": "shell"
-    },
-    {
-      "command": "container set-version",
-      "label": "Install a specific version of Home Assistant",
-      "problemMatcher": [],
-      "type": "shell"
-    },
-    {
-      "command": "container init",
-      "label": "Initialize development environment",
       "problemMatcher": [],
       "type": "shell"
     }
