@@ -134,10 +134,6 @@ You'll be prompted to enter these parameters when configuring the integration.
 | Password          | Yes      | Password for your Alarm.com account.                          |
 | One-Time Password | Maybe    | Required for accounts with two-factor authentication enabled. |
 
-#### Two-Factor Authentication Cookie
-
-As of v0.2.7, this integration prompts for a one-time password during log in and retrieves a two-factor cookie automatically.
-
 #### Additional Options
 
 These options can be set using the "Configure" button on the Alarm.com card on Home Assistant's Integrations page:
