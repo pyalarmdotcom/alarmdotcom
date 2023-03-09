@@ -1,5 +1,9 @@
 test.py
 *.ignore.*
+.storage
+home-assistant_*
+home-assistant.*
+.HA_VERSION
 temp/
 node_modules/
 .ruff_cache
