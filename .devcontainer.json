@@ -43,8 +43,6 @@
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
         "python.analysis.autoSearchPaths": false,
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.pythonPath": "/usr/local/bin/python",
         "python.formatting.provider": "black",
         "python.linting.enabled": true,
         "python.linting.mypyEnabled": true,

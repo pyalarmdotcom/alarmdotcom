@@ -1,4 +1,8 @@
-# File Version: 2023.01.27
+test.py
+*.ignore.*
+temp/
+node_modules/
+.ruff_cache
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -132,7 +136,3 @@ dmypy.json
 
 # MonkeyType
 monkeytype.sqlite3
-
-test.py
-*.ignore.*
-.ruff_cache

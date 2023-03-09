@@ -11,16 +11,6 @@ fi
 
 cat << EOF
 
-################################
-INSTALLING GITHUB CLI EXTENSIONS
-################################
-
-EOF
-
-gh extension install nektos/gh-act
-
-cat << EOF
-
 ###########################
 INSTALLING DEV REQUIREMENTS
 ###########################
@@ -29,18 +19,6 @@ EOF
 
 pip install --upgrade pip
 pip install -r "$workspace_dir/requirements-dev.txt"
-
-cat << EOF
-
-#################################
-INITIALIZING DEVCONTAINER SCRIPTS
-#################################
-
-EOF
-
-chmod +x "$workspace_dir/.devcontainer/post-create-script.sh"
-chmod +x "$workspace_dir/.devcontainer/post-set-version-hook.sh"
-chmod +x "$workspace_dir/.devcontainer/run-hassfest.sh"
 
 cat << EOF
 
@@ -57,7 +35,7 @@ else
     echo "$library_name repository directory already exists."
 fi
 
-(cd "$lib_dir"; python setup.py develop)
+(cd "$lib_dir"; pip install --editable .)
 
 pip install -r "$lib_dir/requirements-dev.txt"
 
