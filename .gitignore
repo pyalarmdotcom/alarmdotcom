@@ -1,12 +1,27 @@
 test.py
 *.ignore.*
-.storage
-home-assistant_*
-home-assistant.*
-.HA_VERSION
 temp/
 node_modules/
 .ruff_cache
+
+# misc
+.coverage
+coverage.xml
+
+# Home Assistant configuration
+.cloud
+.HA_VERSION
+.storage
+automations.yaml
+blueprints
+configuration.yaml
+deps
+home-assistant_v2*
+home-assistant.log*
+tts
+scenes.yaml
+scripts.yaml
+secrets.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
