@@ -1,7 +1,3 @@
-# File Version: 2023.3.6
-
-# https://pypi.org/project/python-typing-update/ doesn't work with python 3.10. Some of the below items seek to re-implement the typing-update flow.
-
 default_language_version:
   python: python3.10
 
@@ -37,20 +33,8 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
-  - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.29.0
-    hooks:
-      - id: yamllint
-        exclude: (.vscode|.devcontainer|.github)
   - repo: https://github.com/pappasam/toml-sort
     rev: v0.22.4
     hooks:
       - id: toml-sort
         args: []
-# - repo: local
-#   hooks:
-#     - id: hassfest
-#       name: hassfest
-#       entry: act workflow_dispatch -l
-#       pass_filenames: false
-#       language: script

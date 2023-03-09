@@ -1,4 +1,27 @@
-# File Version: 2023.01.27
+test.py
+*.ignore.*
+temp/
+node_modules/
+.ruff_cache
+
+# misc
+.coverage
+coverage.xml
+
+# Home Assistant configuration
+.cloud
+.HA_VERSION
+.storage
+automations.yaml
+blueprints
+configuration.yaml
+deps
+home-assistant_v2*
+home-assistant.log*
+tts
+scenes.yaml
+scripts.yaml
+secrets.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -132,7 +155,3 @@ dmypy.json
 
 # MonkeyType
 monkeytype.sqlite3
-
-test.py
-*.ignore.*
-.ruff_cache
