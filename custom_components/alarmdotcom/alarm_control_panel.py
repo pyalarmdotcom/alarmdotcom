@@ -124,7 +124,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         if self._device.supports_night_arming:
             self._attr_supported_features |= AlarmControlPanelEntityFeature.ARM_NIGHT
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

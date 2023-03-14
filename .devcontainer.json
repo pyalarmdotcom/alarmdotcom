@@ -1,62 +1,56 @@
 {
-  "forwardPorts": [8123],
-  "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
-  "name": "alarmdotcom",
-  "postCreateCommand": "scripts/setup.sh",
-  "containerEnv": {
-    "INTEGRATION_NAME": "alarmdotcom",
-    "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git",
-    "LIBRARY_NAME": "pyalarmdotcomajax",
-    "POST_SET_VERSION_HOOK": "/workspaces/alarmdotcom/.devcontainer/post-set-version-hook.sh",
-    "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
-  },
-  "customizations": {
-    "codespaces": {
-      "repositories": {
-        "pyalarmdotcom/pyalarmdotcomajax": {
-          "permissions": "write-all"
-        }
-      }
+    "containerEnv": {
+        "INTEGRATION_NAME": "alarmdotcom",
+        "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git",
+        "LIBRARY_NAME": "pyalarmdotcomajax",
+        "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
     },
-    "vscode": {
-      "extensions": [
-        "ryanluker.vscode-coverage-gutters",
-        "bungcip.better-toml",
-        "donjayamanne.python-extension-pack",
-        "marklarah.pre-commit-vscode",
-        "eamodio.gitlens",
-        "ms-python.black-formatter",
-        "matangover.mypy",
-        "charliermarsh.ruff",
-        "esbenp.prettier-vscode",
-        "EditorConfig.EditorConfig",
-        "ms-python.python"
-      ],
-      "settings": {
-        "[python]": {
-          "editor.codeActionsOnSave": {
-            "source.fixAll.ruff": true,
-            "source.organizeImports.ruff": true
-          }
+    "customizations": {
+        "codespaces": {
+            "repositories": {
+                "pyalarmdotcom/pyalarmdotcomajax": {
+                    "permissions": "write-all"
+                }
+            }
         },
-        "editor.formatOnPaste": false,
-        "editor.formatOnSave": true,
-        "editor.formatOnType": true,
-        "python.analysis.autoSearchPaths": false,
-        "python.formatting.provider": "black",
-        "python.linting.enabled": true,
-        "python.linting.mypyEnabled": true,
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "terminal.integrated.profiles.linux": {
-          "zsh": {
-            "path": "/bin/bash"
-          }
+        "vscode": {
+            "settings": {
+                "[python]": {
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll.ruff": true
+                        // "source.organizeImports.ruff": true
+                    },
+                    "editor.defaultFormatter": "ms-python.black-formatter"
+                },
+                "[yaml]": {
+                    "editor.defaultFormatter": "esbenp.prettier-vscode"
+                },
+                "editor.formatOnPaste": false,
+                "editor.formatOnSave": true,
+                "editor.formatOnType": true,
+                "mypy.enabled": true,
+                "python.analysis.autoSearchPaths": false,
+                "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
+                "python.analysis.ignore": ["*"],
+                "python.formatting.provider": "none",
+                "python.linting.enabled": true,
+                "python.linting.mypyEnabled": false,
+                "python.testing.pytestEnabled": true,
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/bin/bash"
+                    }
+                }
+            }
         }
-      }
-    }
-  },
-  "remoteUser": "vscode",
-  "features": {
-    "github-cli": "latest"
-  }
+    },
+    "features": {
+        "github-cli": "latest"
+    },
+    "forwardPorts": [8123],
+    "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
+    "name": "alarmdotcom",
+    "postCreateCommand": ["scripts/setup.sh"],
+    "remoteUser": "vscode"
 }

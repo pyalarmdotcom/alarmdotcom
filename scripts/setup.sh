@@ -35,7 +35,7 @@ else
     echo "$library_name repository directory already exists."
 fi
 
-(cd "$lib_dir"; pip install --editable .)
+(cd "$lib_dir"; pip install --editable . --config-settings editable_mode=strict)
 
 pip install -r "$lib_dir/requirements-dev.txt"
 

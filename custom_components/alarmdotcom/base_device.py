@@ -1,8 +1,8 @@
 """Base device."""
 from __future__ import annotations
 
-from enum import Enum
 import logging
+from enum import Enum
 from typing import NamedTuple
 
 from homeassistant.components import persistent_notification
@@ -92,11 +92,11 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         self.update_device_data()
 
-    @callback  # type: ignore
+    @callback
     def _handle_coordinator_update(self) -> None:
         """Update the entity with new REST API data."""
 
-        self._device = self._alarmhub.system.get_device_by_id(self._adc_id)
+        self._device = self._alarmhub.system.get_by_id(self._adc_id)
 
         if hasattr(self, "_attr_extra_state_attributes"):
             self._attr_extra_state_attributes.update(
@@ -108,7 +108,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         self.update_device_data()
         self.async_write_ha_state()
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when new data comes from the REST API."""
         raise NotImplementedError()

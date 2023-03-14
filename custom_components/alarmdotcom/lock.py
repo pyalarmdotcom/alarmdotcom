@@ -90,7 +90,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
             else ""
         )
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

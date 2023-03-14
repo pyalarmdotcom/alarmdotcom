@@ -1,8 +1,8 @@
 """Alarmdotcom implementation of an HA switch."""
 from __future__ import annotations
 
-from enum import Enum
 import logging
+from enum import Enum
 
 from homeassistant import core
 from homeassistant.components.select import SelectEntity
@@ -13,7 +13,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback, Discovery
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
-    ConfigurationOption as libConfigurationOption,
+)
+from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
+from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
 )
 
@@ -131,7 +133,7 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
 
         return super().icon if isinstance(super().icon, str) else None
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

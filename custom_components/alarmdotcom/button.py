@@ -50,6 +50,6 @@ class DebugAttributeDevice(AttributeBaseDevice, ButtonEntity):  # type: ignore
 
         self.hass.bus.async_fire(DEBUG_REQ_EVENT, {"device_id": self._device.id_})
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when new data comes from the REST API."""

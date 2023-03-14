@@ -250,7 +250,7 @@ class BatteryAttributeSensor(AttributeBaseDevice, BinarySensorEntity):  # type: 
             "battery_level": self._determine_battery_level()
         }
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

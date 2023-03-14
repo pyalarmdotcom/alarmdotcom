@@ -1,17 +1,17 @@
 {
-  "tasks": [
-    {
-      "command": "pre-commit run --all-files",
-      "label": "Run pre-commit checks.",
-      "problemMatcher": [],
-      "type": "shell"
-    },
-    {
-      "command": "scripts/run-ha.sh",
-      "label": "Run Home Assistant on port 8123",
-      "problemMatcher": [],
-      "type": "shell"
-    }
-  ],
-  "version": "2.0.0"
+    "tasks": [
+        {
+            "command": "pre-commit run --all-files",
+            "label": "Run pre-commit checks.",
+            "problemMatcher": [],
+            "type": "shell"
+        },
+        {
+            "command": "scripts/run-ha.sh",
+            "label": "Run Home Assistant on port 8123",
+            "problemMatcher": [],
+            "type": "shell"
+        }
+    ],
+    "version": "2.0.0"
 }

@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import timedelta
 import logging
+from datetime import timedelta
 from types import MappingProxyType
 from typing import Any
 
@@ -18,10 +18,8 @@ from homeassistant.helpers.aiohttp_client import (
     async_get_clientsession,
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pyalarmdotcomajax import (
-    AlarmController as libController,
-    AuthResult as libAuthResult,
-)
+from pyalarmdotcomajax import AlarmController as libController
+from pyalarmdotcomajax import AuthResult as libAuthResult
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed,

@@ -73,7 +73,7 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
         self._determine_features()
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

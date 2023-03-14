@@ -10,7 +10,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
-    ConfigurationOption as libConfigurationOption,
+)
+from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
+from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
 )
 
@@ -51,7 +53,7 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
 
     _attr_device_class = SwitchDeviceClass.SWITCH
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

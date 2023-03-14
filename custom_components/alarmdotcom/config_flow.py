@@ -6,11 +6,13 @@ import logging
 from typing import Any, Literal
 
 import aiohttp
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_UNIT_OF_MEASUREMENT, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv, selector
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import selector
 from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
@@ -18,11 +20,8 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pyalarmdotcomajax import AuthResult as libAuthResult
-from pyalarmdotcomajax.errors import (
-    AuthenticationFailed as libAuthenticationFailed,
-    DataFetchFailed as libDataFetchFailed,
-)
-import voluptuous as vol
+from pyalarmdotcomajax.errors import AuthenticationFailed as libAuthenticationFailed
+from pyalarmdotcomajax.errors import DataFetchFailed as libDataFetchFailed
 
 from .alarmhub import BasicAlarmHub
 from .const import (
@@ -451,7 +450,7 @@ def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
     # Populate Arm Night
     new_arm_night = []
 
-    if force_bypass == "true":
+    if force_bypass == "true":  # noqa: S105
         new_arm_night.append("bypass")
     if silent_arming == "true":
         new_arm_night.append("silent")

@@ -1,5 +1,3 @@
-# File Version: 2023.3.6
-
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -23,7 +21,7 @@ warn_unused_ignores = true
 check_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_subclassing_any = true
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false # @pytest.mark.asyncio is untyped
 disallow_untyped_defs = true
 no_implicit_optional = true
 warn_return_any = true
@@ -32,7 +30,7 @@ pretty = true
 show_absolute_path = true
 show_error_context = true
 disallow_untyped_calls = false
-exclude = ["tests/"]
+exclude = ["tests/", "build/"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -41,7 +39,7 @@ asyncio_mode = "auto"
 
 [tool.ruff]
 target-version = "py310"
-exclude = ["examples", "tests", "pylint"]
+exclude = ["examples", "tests", "pylint", "build"]
 select = [
   "B007", # Loop control variable {name} not used within loop body
   "B014", # Exception handler with duplicate exception
@@ -49,6 +47,7 @@ select = [
   "D", # docstrings
   "E", # pycodestyle
   "F", # pyflakes/autoflake
+  "I", # isort
   "ICN001", # import concentions; {name} should be imported as {asname}
   "PGH004", # Use specific rule codes when using noqa
   "PLC0414", # Useless import alias. Import alias does not rename original package.
@@ -61,6 +60,7 @@ select = [
   "SIM300", # Yoda conditions. Use 'age == 42' instead of '42 == age'.
   "SIM401", # Use get from dict with default instead of an if block
   "T20", # flake8-print
+  "TID252", # Use absolute imports
   "TRY004", # Prefer TypeError exception for invalid type
   "RUF006", # Store a reference to the return value of asyncio.create_task
   "UP", # pyupgrade
@@ -83,6 +83,9 @@ fixture-parentheses = false
 
 [tool.ruff.mccabe]
 max-complexity = 25
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["S101"]
 
 [tool.ruff.pyupgrade]
 keep-runtime-typing = true

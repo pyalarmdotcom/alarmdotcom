@@ -69,7 +69,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
 
         self._attr_assumed_state = self._device.supports_state_tracking is True
 
-    @callback  # type: ignore
+    @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 

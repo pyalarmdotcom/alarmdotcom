@@ -129,7 +129,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        if device := alarmhub.system.get_device_by_id(event.data.get("device_id")):
+        if device := alarmhub.system.get_by_id(event.data.get("device_id")):
             log.warning(
                 "ALARM.COM DEBUG DATA FOR %s: %s",
                 device.name.upper(),

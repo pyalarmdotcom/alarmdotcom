@@ -1,34 +1,48 @@
 {
-  "configurations": [
-    {
-      "host": "localhost",
-      // Example of attaching to local debug server
-      "name": "Python: Attach Local",
-      "pathMappings": [
+    "configurations": [
         {
-          "localRoot": "${workspaceFolder}",
-          "remoteRoot": "."
-        }
-      ],
-      "port": 5678,
-      "request": "attach",
-      "type": "python"
-    },
-    {
-      "host": "homeassistant.local",
-      // Example of attaching to my production server
-      "name": "Python: Attach Remote",
-      "pathMappings": [
+            "host": "localhost",
+            // Example of attaching to local debug server
+            "name": "Python: Attach Local",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ],
+            "port": 5678,
+            "request": "attach",
+            "type": "python"
+        },
         {
-          "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/usr/src/homeassistant"
+            "host": "homeassistant.local",
+            // Example of attaching to my production server
+            "name": "Python: Attach Remote Home Assistant",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "/usr/src/homeassistant"
+                }
+            ],
+            "port": 5678,
+            "request": "attach",
+            "type": "python"
+        },
+        {
+            "host": "127.0.0.1",
+            // Example of attaching to my production server
+            "name": "Python: Attach Remote",
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}",
+                    "remoteRoot": "."
+                }
+            ],
+            "port": 5678,
+            "request": "attach",
+            "type": "python"
         }
-      ],
-      "port": 5678,
-      "request": "attach",
-      "type": "python"
-    }
-  ],
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0"
+    ],
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0"
 }
