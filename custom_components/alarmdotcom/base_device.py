@@ -98,11 +98,22 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         self._device = self._alarmhub.system.get_device_by_id(self._adc_id)
 
-        if hasattr(self, "_attr_extra_state_attributes"):
-            self._attr_extra_state_attributes.update(
-                {
-                    "raw_state_text": self._device.raw_state_text,
-                }
+        try:
+            if hasattr(self, "_attr_extra_state_attributes"):
+                self._attr_extra_state_attributes.update(
+                    {
+                        "raw_state_text": self._device.raw_state_text,
+                    }
+                )
+        except AttributeError:
+            log.debug(
+                (
+                    "Failed to update raw_state_text attribute for %s (%s). Device"
+                    " dump:\n%s"
+                ),
+                self.name,
+                self._adc_id,
+                self._device._attribs_raw,
             )
 
         self.update_device_data()
