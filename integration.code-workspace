@@ -1,27 +1,15 @@
 {
-  "folders": [
-    {
-      "path": "/workspaces/alarmdotcom"
-    },
-    {
-      "path": "/workspaces/pyalarmdotcomajax"
+    "folders": [
+        {
+            "path": "/workspaces/alarmdotcom"
+        },
+        {
+            "path": "/workspaces/pyalarmdotcomajax"
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "*.yaml": "home-assistant"
+        }
     }
-  ],
-  "extensions": {
-    "recommendations": [
-      "github.codespaces",
-      "ryanluker.vscode-coverage-gutters",
-      "bungcip.better-toml",
-      "donjayamanne.python-extension-pack",
-      "marklarah.pre-commit-vscode",
-      "ms-python.black-formatter",
-      "matangover.mypy",
-      "charliermarsh.ruff",
-      "esbenp.prettier-vscode",
-      "editorconfig.editorconfig",
-      "github.vscode-pull-request-github",
-      "ms-python.vscode-pylance",
-      "donjayamanne.githistory"
-    ]
-  }
 }

@@ -58,14 +58,10 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         super().__init__(alarmhub, device, device.partition_id)
 
         self._attr_device_class: CoverDeviceClass = (
-            CoverDeviceClass.GARAGE
-            if isinstance(device, libGarageDoor)
-            else CoverDeviceClass.GATE
+            CoverDeviceClass.GARAGE if isinstance(device, libGarageDoor) else CoverDeviceClass.GATE
         )
 
-        self._attr_supported_features = (
-            CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
-        )
+        self._attr_supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
     @callback
     def update_device_data(self) -> None:
@@ -103,9 +99,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     # Helpers
     #
 
-    def _determine_is_closed(
-        self, state: libGarageDoor.DeviceState | libGate.DeviceState
-    ) -> bool | None:
+    def _determine_is_closed(self, state: libGarageDoor.DeviceState | libGate.DeviceState) -> bool | None:
         """Return if the cover is closed or not."""
 
         if not self._device.malfunction:

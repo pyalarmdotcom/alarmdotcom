@@ -14,6 +14,22 @@
             }
         },
         "vscode": {
+            "extensions": [
+                "github.codespaces",
+                "ryanluker.vscode-coverage-gutters",
+                "donjayamanne.githistory",
+                "github.vscode-pull-request-github",
+                "bungcip.better-toml",
+                "donjayamanne.python-extension-pack",
+                "marklarah.pre-commit-vscode",
+                "eamodio.gitlens",
+                "ms-python.black-formatter",
+                "ms-python.mypy-type-checker",
+                "charliermarsh.ruff",
+                "esbenp.prettier-vscode",
+                "EditorConfig.EditorConfig",
+                "ms-python.python"
+            ],
             "settings": {
                 "[python]": {
                     "editor.codeActionsOnSave": {
@@ -28,13 +44,12 @@
                 "editor.formatOnPaste": false,
                 "editor.formatOnSave": true,
                 "editor.formatOnType": true,
-                "mypy.enabled": true,
                 "python.analysis.autoSearchPaths": false,
                 "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
                 "python.analysis.ignore": ["*"],
                 "python.formatting.provider": "none",
                 "python.linting.enabled": true,
-                "python.linting.mypyEnabled": false,
+                "python.linting.mypyEnabled": true,
                 "python.testing.pytestEnabled": true,
                 "terminal.integrated.defaultProfile.linux": "bash",
                 "terminal.integrated.profiles.linux": {

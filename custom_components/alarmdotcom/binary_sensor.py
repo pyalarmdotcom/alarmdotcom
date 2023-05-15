@@ -53,10 +53,7 @@ async def async_setup_entry(
         )
         for device in alarmhub.devices
         if None not in [device.battery_low, device.battery_critical]
-        and not (
-            isinstance(device, libSensor)
-            and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
-        )
+        and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
     )
 
     # Create "virtual" problem sensors for Alarm.com sensors and locks.
@@ -67,10 +64,7 @@ async def async_setup_entry(
         )
         for device in alarmhub.devices
         if device.malfunction is not None
-        and not (
-            isinstance(device, libSensor)
-            and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
-        )
+        and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
     )
 
 
@@ -92,11 +86,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
         device_class: BinarySensorDeviceClass | None = self._device.get("device_class")
 
         try:
-            return (
-                cast(str, BinarySensorDeviceClass[device_class].value)
-                .replace("_", " ")
-                .title()
-            )
+            return cast(str, BinarySensorDeviceClass[device_class].value).replace("_", " ").title()
         except AttributeError:
             return "Sensor"
 
@@ -246,17 +236,13 @@ class BatteryAttributeSensor(AttributeBaseDevice, BinarySensorEntity):  # type: 
             "identifiers": {(DOMAIN, device.id_)},
         }
 
-        self._attr_extra_state_attributes = {
-            "battery_level": self._determine_battery_level()
-        }
+        self._attr_extra_state_attributes = {"battery_level": self._determine_battery_level()}
 
     @callback
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_is_on = (
-            battery_level := self._determine_battery_level()
-        ) != self.BATTERY_NORMAL
+        self._attr_is_on = (battery_level := self._determine_battery_level()) != self.BATTERY_NORMAL
 
         self._attr_extra_state_attributes.update({"battery_level": battery_level})
 

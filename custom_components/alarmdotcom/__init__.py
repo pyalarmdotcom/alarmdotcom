@@ -80,18 +80,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Compare against device registry
     device_registry = dr.async_get(hass)
-    for device_entry in dr.async_entries_for_config_entry(
-        device_registry, config_entry.entry_id
-    ):
+    for device_entry in dr.async_entries_for_config_entry(device_registry, config_entry.entry_id):
         for identifier in device_entry.identifiers:
             # Remove _debug, _malfunction, etc. from IDs
             id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
 
-            if (
-                id_matches is not None
-                and identifier[0] == DOMAIN
-                and id_matches.group(1) in device_ids_via_adc
-            ):
+            if id_matches is not None and identifier[0] == DOMAIN and id_matches.group(1) in device_ids_via_adc:
                 device_ids_via_hass.add(identifier[1])
                 break
 
@@ -157,15 +151,11 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         v2_options["use_arm_code"] = bool(config_entry.options.get("arm_code"))
 
-        v2_options["arm_code"] = (
-            str(arm_code) if (arm_code := config_entry.options.get("arm_code")) else ""
-        )
+        v2_options["arm_code"] = str(arm_code) if (arm_code := config_entry.options.get("arm_code")) else ""
 
         config_entry.version = 2
 
-        hass.config_entries.async_update_entry(
-            config_entry, data={**config_entry.data}, options=v2_options
-        )
+        hass.config_entries.async_update_entry(config_entry, data={**config_entry.data}, options=v2_options)
 
         log.info("Migration to version %s successful", config_entry.version)
 
@@ -230,9 +220,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         if v3_options.get("no_entry_delay"):
             v3_options["no_entry_delay"] = None
 
-        hass.config_entries.async_update_entry(
-            config_entry, data={**config_entry.data}, options=v3_options
-        )
+        hass.config_entries.async_update_entry(config_entry, data={**config_entry.data}, options=v3_options)
 
         log.info("Migration to version %s successful", config_entry.version)
 
@@ -266,18 +254,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         config_entry.version = 4
 
-        hass.config_entries.async_update_entry(
-            config_entry, data={**config_entry.data}, options=v4_options
-        )
+        hass.config_entries.async_update_entry(config_entry, data={**config_entry.data}, options=v4_options)
 
         log.info("Migration to version %s successful", config_entry.version)
 
     return True
 
 
-def _async_import_options_from_data_if_missing(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> None:
+def _async_import_options_from_data_if_missing(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Import options from configuration.yaml."""
 
     options = dict(entry.options)
@@ -302,9 +286,7 @@ def _async_import_options_from_data_if_missing(
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok: bool = await hass.config_entries.async_unload_platforms(
-        config_entry, PLATFORMS
-    )
+    unload_ok: bool = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
     if unload_ok:
         log.debug("%s: Unloaded Alarm.com config entry.", __name__)
         hass.data[DOMAIN].pop(config_entry.entry_id)

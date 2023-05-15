@@ -51,15 +51,10 @@ async def async_setup_platform(
 ) -> None:
     """Set up the legacy platform."""
 
-    log.debug(
-        "Alarmdotcom: Detected legacy platform config entry. Converting to Home"
-        " Assistant config flow."
-    )
+    log.debug("Alarmdotcom: Detected legacy platform config entry. Converting to Home Assistant config flow.")
 
     hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
-        )
+        hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config)
     )
 
     log.warning(MIGRATE_MSG_ALERT)
@@ -117,8 +112,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         )
 
         self._attr_supported_features = (
-            AlarmControlPanelEntityFeature.ARM_HOME
-            | AlarmControlPanelEntityFeature.ARM_AWAY
+            AlarmControlPanelEntityFeature.ARM_HOME | AlarmControlPanelEntityFeature.ARM_AWAY
         )
 
         if self._device.supports_night_arming:

@@ -67,9 +67,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         """Tell Home Assistant that this integration supports configuration options."""
         return ADCOptionsFlowHandler(config_entry)
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Gather configuration data when flow is initiated via the user interface."""
         errors = {}
 
@@ -124,25 +122,17 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         creds_schema = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): TextSelector(
-                    TextSelectorConfig(
-                        type=TextSelectorType.TEXT, autocomplete="username"
-                    )
+                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
                 ),
                 vol.Required(CONF_PASSWORD): TextSelector(
-                    TextSelectorConfig(
-                        type=TextSelectorType.PASSWORD, autocomplete="current-password"
-                    )
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD, autocomplete="current-password")
                 ),
             }
         )
 
-        return self.async_show_form(
-            step_id="user", data_schema=creds_schema, errors=errors, last_step=False
-        )
+        return self.async_show_form(step_id="user", data_schema=creds_schema, errors=errors, last_step=False)
 
-    async def async_step_otp(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_otp(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Gather OTP when integration configured through UI."""
         errors = {}
         if user_input is not None:
@@ -155,9 +145,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 if cookie := self._alarmhub.two_factor_cookie:
                     self.config[CONF_2FA_COOKIE] = cookie
                 else:
-                    raise libAuthenticationFailed(
-                        "OTP submission failed. Two-factor cookie not found."
-                    )
+                    raise libAuthenticationFailed("OTP submission failed. Two-factor cookie not found.")
 
             except (ConnectionError, libDataFetchFailed) as err:
                 log.error(
@@ -181,20 +169,14 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         creds_schema = vol.Schema(
             {
                 vol.Required(CONF_OTP): TextSelector(
-                    TextSelectorConfig(
-                        type=TextSelectorType.TEXT, autocomplete="one-time-code"
-                    )
+                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="one-time-code")
                 ),
             }
         )
 
-        return self.async_show_form(
-            step_id="otp", data_schema=creds_schema, errors=errors, last_step=True
-        )
+        return self.async_show_form(step_id="otp", data_schema=creds_schema, errors=errors, last_step=True)
 
-    async def async_step_final(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_final(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Create configuration entry using entered data."""
 
         if not isinstance(self._alarmhub, BasicAlarmHub):
@@ -207,25 +189,16 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         )
 
         if self._existing_entry:
-            log.debug(
-                "Existing config entry found. Updating entry, then aborting config"
-                " flow."
-            )
-            self.hass.config_entries.async_update_entry(
-                self._existing_entry, data=self.config
-            )
+            log.debug("Existing config entry found. Updating entry, then aborting config flow.")
+            self.hass.config_entries.async_update_entry(self._existing_entry, data=self.config)
             await self.hass.config_entries.async_reload(self._existing_entry.entry_id)
 
             return self.async_abort(reason="reauth_successful")
 
-        options = (
-            self._imported_options if self._imported_options else CONF_OPTIONS_DEFAULT
-        )
+        options = self._imported_options if self._imported_options else CONF_OPTIONS_DEFAULT
 
         # Named async_ but doesn't require await!
-        return self.async_create_entry(
-            title=self._config_title, data=self.config, options=options
-        )
+        return self.async_create_entry(title=self._config_title, data=self.config, options=options)
 
     # #
     # Import from configuration.yaml
@@ -280,17 +253,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     # Reauthentication Steps
     # #
 
-    async def async_step_reauth(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Perform reauth upon an API authentication error."""
         log.debug("Reauthenticating.")
         self._existing_entry = await self.async_set_unique_id(self._config_title)
         return await self.async_step_reauth_confirm(user_input)
 
-    async def async_step_reauth_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Dialog that informs the user that reauth is required."""
         if user_input is None:
             return self.async_show_form(
@@ -308,9 +277,7 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
         self.config_entry = config_entry
         self.options = dict(config_entry.options)
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """First screen for configuration options. Sets arming code."""
         errors: dict = {}
 
@@ -324,17 +291,11 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             {
                 vol.Optional(
                     CONF_ARM_CODE,
-                    default=(
-                        ""
-                        if not (arm_code_raw := self.options.get(CONF_ARM_CODE))
-                        else arm_code_raw
-                    ),
+                    default=("" if not (arm_code_raw := self.options.get(CONF_ARM_CODE)) else arm_code_raw),
                 ): selector.selector({"text": {"type": "password"}}),
                 vol.Required(
                     CONF_UPDATE_INTERVAL,
-                    default=self.options.get(
-                        CONF_UPDATE_INTERVAL, CONF_UPDATE_INTERVAL_DEFAULT
-                    ),
+                    default=self.options.get(CONF_UPDATE_INTERVAL, CONF_UPDATE_INTERVAL_DEFAULT),
                 ): selector.selector(
                     {
                         "number": {
@@ -353,9 +314,7 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             last_step=False,
         )
 
-    async def async_step_modes(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_modes(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """First screen for configuration options. Sets arming mode profiles."""
         errors: dict = {}
 
@@ -367,21 +326,15 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             {
                 vol.Required(
                     CONF_ARM_HOME,
-                    default=self.options.get(
-                        CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]
-                    ),
+                    default=self.options.get(CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]),
                 ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
                 vol.Required(
                     CONF_ARM_AWAY,
-                    default=self.options.get(
-                        CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]
-                    ),
+                    default=self.options.get(CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]),
                 ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
                 vol.Required(
                     CONF_ARM_NIGHT,
-                    default=self.options.get(
-                        CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]
-                    ),
+                    default=self.options.get(CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]),
                 ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
             }
         )

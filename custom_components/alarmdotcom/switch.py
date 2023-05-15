@@ -57,10 +57,7 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_is_on = (
-            self._config_option.current_value
-            is libCameraSkybellControllerExtension.ChimeOnOff.ON
-        )
+        self._attr_is_on = self._config_option.current_value is libCameraSkybellControllerExtension.ChimeOnOff.ON
 
         self._attr_icon = self._determine_icon()
 

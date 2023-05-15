@@ -70,28 +70,19 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
         self._attr_entity_category = EntityCategory.CONFIG
 
         self._select_options_map = {}
-        if (
-            self._config_option.option_type
-            == libConfigurationOptionType.ADJUSTABLE_CHIME
-        ):
+        if self._config_option.option_type == libConfigurationOptionType.ADJUSTABLE_CHIME:
             self._select_options_map = {
                 member.name.title().replace("_", " "): member
                 for member in libCameraSkybellControllerExtension.ChimeAdjustableVolume
             }
-        elif (
-            self._config_option.option_type
-            == libConfigurationOptionType.MOTION_SENSITIVITY
-        ):
+        elif self._config_option.option_type == libConfigurationOptionType.MOTION_SENSITIVITY:
             self._select_options_map = {
                 member.name.title().replace("_", " "): member
                 for member in libCameraSkybellControllerExtension.MotionSensitivity
             }
         else:
             log.error(
-                (
-                    "%s: Encountered unknown select configuration type when"
-                    " initializing %s."
-                ),
+                "%s: Encountered unknown select configuration type when initializing %s.",
                 __name__,
                 self.unique_id,
             )
@@ -102,33 +93,18 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
 
     def _determine_icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
-        if (
-            self._config_option.option_type
-            == libConfigurationOptionType.ADJUSTABLE_CHIME
-        ):
+        if self._config_option.option_type == libConfigurationOptionType.ADJUSTABLE_CHIME:
             if (
                 current_value := self._config_option.current_value
             ) == libCameraSkybellControllerExtension.ChimeAdjustableVolume.OFF:
                 return "mdi:volume-mute"
-            if (
-                current_value
-                == libCameraSkybellControllerExtension.ChimeAdjustableVolume.LOW
-            ):
+            if current_value == libCameraSkybellControllerExtension.ChimeAdjustableVolume.LOW:
                 return "mdi:volume-low"
-            if (
-                current_value
-                == libCameraSkybellControllerExtension.ChimeAdjustableVolume.MEDIUM
-            ):
+            if current_value == libCameraSkybellControllerExtension.ChimeAdjustableVolume.MEDIUM:
                 return "mdi:volume-medium"
-            if (
-                current_value
-                == libCameraSkybellControllerExtension.ChimeAdjustableVolume.HIGH
-            ):
+            if current_value == libCameraSkybellControllerExtension.ChimeAdjustableVolume.HIGH:
                 return "mdi:volume-high"
-        elif (
-            self._config_option.option_type
-            == libConfigurationOptionType.MOTION_SENSITIVITY
-        ):
+        elif self._config_option.option_type == libConfigurationOptionType.MOTION_SENSITIVITY:
             return "mdi:tune"
 
         return super().icon if isinstance(super().icon, str) else None
@@ -145,6 +121,4 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
 
-        await self._device.async_change_setting(
-            self._config_option.slug, self._select_options_map[option]
-        )
+        await self._device.async_change_setting(self._config_option.slug, self._select_options_map[option])

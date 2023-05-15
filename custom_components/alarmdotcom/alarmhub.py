@@ -71,9 +71,7 @@ class BasicAlarmHub:
                 username=username,
                 password=password,
                 websession=(
-                    async_create_clientsession(self.hass)
-                    if new_websession
-                    else async_get_clientsession(self.hass)
+                    async_create_clientsession(self.hass) if new_websession else async_get_clientsession(self.hass)
                 ),
                 twofactorcookie=twofactorcookie,
             )
@@ -84,13 +82,9 @@ class BasicAlarmHub:
                 return login_result
 
         except UnexpectedDataStructure as err:
-            raise UpdateFailed(
-                "Alarm.com returned data in an unexpected format."
-            ) from err
+            raise UpdateFailed("Alarm.com returned data in an unexpected format.") from err
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed(
-                "Invalid account credentials found while logging in."
-            ) from err
+            raise ConfigEntryAuthFailed("Invalid account credentials found while logging in.") from err
         except (
             asyncio.TimeoutError,
             aiohttp.ClientError,
@@ -108,9 +102,7 @@ class BasicAlarmHub:
         """Submit 2FA code and return two factor authentication cookie."""
 
         try:
-            await self.system.async_submit_otp(
-                str(code), f"Home Assistant ({self.hass.config.location_name})"
-            )
+            await self.system.async_submit_otp(str(code), f"Home Assistant ({self.hass.config.location_name})")
         except (DataFetchFailed, AuthenticationFailed):
             log.error("OTP submission failed.")
             raise
@@ -171,9 +163,7 @@ class AlarmHub(BasicAlarmHub):
 
         if not reload:
             log.debug("%s: Registered update listener.", __name__)
-            self.config_entry.async_on_unload(
-                self.config_entry.add_update_listener(_async_update_listener)
-            )
+            self.config_entry.async_on_unload(self.config_entry.add_update_listener(_async_update_listener))
 
         # Coordinator manages updates for all Alarmdotcom components
         self.coordinator = DataUpdateCoordinator(
@@ -182,9 +172,7 @@ class AlarmHub(BasicAlarmHub):
             name=self.config_entry.title,
             update_method=self.async_update,
             update_interval=timedelta(
-                seconds=self.config_entry.options.get(
-                    adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT
-                )
+                seconds=self.config_entry.options.get(adci.CONF_UPDATE_INTERVAL, adci.CONF_UPDATE_INTERVAL_DEFAULT)
             ),
         )
 
@@ -218,21 +206,16 @@ class AlarmHub(BasicAlarmHub):
         # have 2FA set up.
         except TypeError as err:
             raise ConfigEntryAuthFailed(
-                "async_update(): Two-factor authentication must be enabled in order to"
-                " log in with this provider."
+                "async_update(): Two-factor authentication must be enabled in order to log in with this provider."
             ) from err
 
         except PermissionError as err:
-            raise ConfigEntryAuthFailed(
-                "Account has insufficient permissions."
-            ) from err
+            raise ConfigEntryAuthFailed("Account has insufficient permissions.") from err
 
         # Typically captured during login. Should only be captured here when
         # updating after migration from configuration.yaml.
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed(
-                "Invalid account credentials found while updating device states."
-            ) from err
+            raise ConfigEntryAuthFailed("Invalid account credentials found while updating device states.") from err
 
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             log.error(

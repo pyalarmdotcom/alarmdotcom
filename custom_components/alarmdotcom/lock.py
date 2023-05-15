@@ -30,15 +30,10 @@ async def async_setup_platform(
 ) -> None:
     """Set up the legacy platform."""
 
-    log.debug(
-        "Alarmdotcom: Detected legacy lock config entry. Converting to Home"
-        " Assistant config flow."
-    )
+    log.debug("Alarmdotcom: Detected legacy lock config entry. Converting to Home Assistant config flow.")
 
     hass.async_create_task(
-        hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config
-        )
+        hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config)
     )
 
     log.warning(MIGRATE_MSG_ALERT)
@@ -85,9 +80,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
         super().__init__(alarmhub, device, device.partition_id)
 
         self._attr_code_format = (
-            self._determine_code_format(code)
-            if (code := alarmhub.options.get(CONF_ARM_CODE))
-            else ""
+            self._determine_code_format(code) if (code := alarmhub.options.get(CONF_ARM_CODE)) else ""
         )
 
     @callback

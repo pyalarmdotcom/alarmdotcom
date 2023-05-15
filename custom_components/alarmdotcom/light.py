@@ -54,18 +54,12 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
         super().__init__(alarmhub, device, device.partition_id)
 
         self._attr_supported_color_modes = (
-            [light.COLOR_MODE_BRIGHTNESS]
-            if self._device.brightness
-            else [light.COLOR_MODE_ONOFF]
+            [light.COLOR_MODE_BRIGHTNESS] if self._device.brightness else [light.COLOR_MODE_ONOFF]
         )
 
         self._attr_supported_features = light.SUPPORT_BRIGHTNESS
 
-        self._attr_color_mode = (
-            light.COLOR_MODE_BRIGHTNESS
-            if self._device.brightness
-            else light.COLOR_MODE_ONOFF
-        )
+        self._attr_color_mode = light.COLOR_MODE_BRIGHTNESS if self._device.brightness else light.COLOR_MODE_ONOFF
 
         self._attr_assumed_state = self._device.supports_state_tracking is True
 
@@ -74,11 +68,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
         """Update the entity when coordinator is updated."""
 
         self._attr_is_on = self._determine_is_on(self._device.state)
-        self._attr_brightness = (
-            int((raw_bright * 255) / 100)
-            if (raw_bright := self._device.brightness)
-            else None
-        )
+        self._attr_brightness = int((raw_bright * 255) / 100) if (raw_bright := self._device.brightness) else None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light or adjust brightness."""

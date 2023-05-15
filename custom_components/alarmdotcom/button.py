@@ -28,15 +28,10 @@ async def async_setup_entry(
     alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
-        DebugAttributeDevice(
-            alarmhub=alarmhub, device=device, subdevice_type=AttributeSubdevice.DEBUG
-        )
+        DebugAttributeDevice(alarmhub=alarmhub, device=device, subdevice_type=AttributeSubdevice.DEBUG)
         for device in alarmhub.devices
         if None not in [device.battery_low, device.battery_critical]
-        and not (
-            isinstance(device, libSensor)
-            and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST
-        )
+        and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
     )
 
 
