@@ -33,8 +33,8 @@
             "settings": {
                 "[python]": {
                     "editor.codeActionsOnSave": {
-                        "source.fixAll.ruff": true
-                        // "source.organizeImports.ruff": true
+                        "source.fixAll.ruff": true,
+                        "source.organizeImports.ruff": true
                     },
                     "editor.defaultFormatter": "ms-python.black-formatter"
                 },

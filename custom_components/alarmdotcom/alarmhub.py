@@ -20,7 +20,7 @@ from homeassistant.helpers.aiohttp_client import (
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyalarmdotcomajax import AlarmController as libController
 from pyalarmdotcomajax import AuthResult as libAuthResult
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.registry import AllDevices_t
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed,
     DataFetchFailed,
@@ -61,7 +61,7 @@ class BasicAlarmHub:
         self,
         username: str,
         password: str,
-        twofactorcookie: str,
+        twofactorcookie: str | None,
         new_websession: bool = True,
     ) -> libAuthResult:
         """Log into Alarm.com."""
@@ -122,20 +122,10 @@ class AlarmHub(BasicAlarmHub):
         self.options: MappingProxyType[str, Any] = config_entry.options
 
     @property
-    def devices(self) -> list[libBaseDevice]:
+    def devices(self) -> list[AllDevices_t]:
         """Return dictionary of sensors for this alarmhub."""
 
-        return list(
-            self.system.sensors
-            + self.system.partitions
-            + self.system.cameras
-            + self.system.lights
-            + self.system.locks
-            + self.system.garage_doors
-            + self.system.gates
-            + self.system.systems
-            + self.system.thermostats
-        )
+        return list(self.system.devices.all.values())
 
     @property
     def user_id(self) -> str | None:

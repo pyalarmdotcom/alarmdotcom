@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import re
+from enum import Enum
 from typing import cast
 
 from homeassistant import core
@@ -41,7 +42,7 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.sensors + alarmhub.system.water_sensors
+        for device in [*alarmhub.system.devices.sensors.values(), *alarmhub.system.devices.water_sensors.values()]
         if device.device_subtype not in SENSOR_SUBTYPE_BLACKLIST
     )
 
@@ -83,7 +84,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     def device_type_name(self) -> str:
         """Return human readable device type name based on device class."""
 
-        device_class: BinarySensorDeviceClass | None = self._device.get("device_class")
+        device_class: BinarySensorDeviceClass | None = self._device.device_subtype
 
         try:
             return cast(str, BinarySensorDeviceClass[device_class].value).replace("_", " ").title()
@@ -100,7 +101,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     # Helpers
     #
 
-    def _determine_is_on(self, state: libSensor.DeviceState) -> bool | None:
+    def _determine_is_on(self, state: Enum | None) -> bool | None:
         log.debug(
             "Processing state %s for %s",
             state,
@@ -110,14 +111,14 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
         if state in [
             libSensor.DeviceState.CLOSED,
             libSensor.DeviceState.IDLE,
-            libSensor.DeviceState.DRY,
+            libWaterSensor.DeviceState.DRY,
         ]:
             return False
 
         if state in [
             libSensor.DeviceState.OPEN,
             libSensor.DeviceState.ACTIVE,
-            libSensor.DeviceState.WET,
+            libWaterSensor.DeviceState.WET,
         ]:
             return True
 
@@ -161,7 +162,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
                 if (
                     re.search(
                         word,
-                        self._device.name,
+                        str(self._device.name),
                         re.IGNORECASE,
                     )
                     is not None
@@ -171,7 +172,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
                 if (
                     re.search(
                         word,
-                        self._device.name,
+                        str(self._device.name),
                         re.IGNORECASE,
                     )
                     is not None

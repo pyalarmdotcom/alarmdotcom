@@ -33,7 +33,7 @@ async def async_setup_entry(
 
     alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
 
-    for device in alarmhub.system.cameras:
+    for device in alarmhub.system.devices.cameras.values():
         async_add_entities(
             ConfigOptionNumber(
                 alarmhub=alarmhub,

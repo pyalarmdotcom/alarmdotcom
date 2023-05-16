@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from enum import Enum
 from typing import Any
 
 from homeassistant import core
@@ -13,7 +14,6 @@ from homeassistant.components.cover import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
 
@@ -39,7 +39,8 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.garage_doors + alarmhub.system.gates
+        for device in list(alarmhub.system.devices.garage_doors.values())
+        + list(alarmhub.system.devices.gates.values())
     )
 
 
@@ -52,7 +53,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: libGarageDoor | libGate,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
@@ -99,7 +100,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     # Helpers
     #
 
-    def _determine_is_closed(self, state: libGarageDoor.DeviceState | libGate.DeviceState) -> bool | None:
+    def _determine_is_closed(self, state: Enum | None) -> bool | None:
         """Return if the cover is closed or not."""
 
         if not self._device.malfunction:

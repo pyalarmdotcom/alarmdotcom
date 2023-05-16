@@ -47,7 +47,7 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.thermostats
+        for device in alarmhub.system.devices.thermostats.values()
     )
 
 
@@ -185,7 +185,9 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         """Change fan mode."""
 
         max_fan_duration = (
-            0 if self._raw_attribs.supports_fan_indefinite else max(self._raw_attribs.supported_fan_durations)
+            0
+            if self._raw_attribs.supports_fan_indefinite or not self._raw_attribs.supported_fan_durations
+            else max(self._raw_attribs.supported_fan_durations)
         )
 
         try:

@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.registry import AllDevices_t
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
 )
@@ -38,7 +38,7 @@ async def async_setup_entry(
 
     alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
 
-    for device in alarmhub.system.cameras:
+    for device in alarmhub.system.devices.cameras.values():
         async_add_entities(
             ConfigOptionSelect(
                 alarmhub=alarmhub,
@@ -61,7 +61,7 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: AllDevices_t,
         config_option: libConfigurationOption,
     ) -> None:
         """Initialize."""
@@ -69,7 +69,11 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
 
         self._attr_entity_category = EntityCategory.CONFIG
 
-        self._select_options_map = {}
+        self._select_options_map: dict[
+            str,
+            libCameraSkybellControllerExtension.MotionSensitivity
+            | libCameraSkybellControllerExtension.ChimeAdjustableVolume,
+        ] = {}
         if self._config_option.option_type == libConfigurationOptionType.ADJUSTABLE_CHIME:
             self._select_options_map = {
                 member.name.title().replace("_", " "): member

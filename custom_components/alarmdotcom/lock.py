@@ -12,7 +12,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.lock import Lock as libLock
 
 from .alarmhub import AlarmHub
@@ -54,14 +53,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the lock platform."""
 
-    alarmhub: Lock = hass.data[DOMAIN][config_entry.entry_id]
+    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities(
         Lock(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.locks
+        for device in alarmhub.system.devices.locks.values()
     )
 
 
@@ -74,7 +73,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: libLock,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
@@ -87,7 +86,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_is_locked = self._determine_is_locked(self._device.state)
+        self._attr_is_locked = self._determine_is_locked(libLock.DeviceState(self._device.state))
         self._attr_is_locking = False
         self._attr_is_unlocking = False
 

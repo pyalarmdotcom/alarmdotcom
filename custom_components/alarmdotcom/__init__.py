@@ -103,14 +103,14 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Create virtual DEVICES.
     # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.
-    for camera in alarmhub.system.cameras:
+    for camera in alarmhub.system.devices.cameras.values():
         # Check if camera already created.
         if camera.id_ in device_ids_via_hass:
             continue
 
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
-            connections={(dr.CONNECTION_NETWORK_MAC, camera.mac_address)},
+            connections={(dr.CONNECTION_NETWORK_MAC, str(camera.mac_address))},
             identifiers={(DOMAIN, camera.id_)},
             name=camera.name,
             model="Skybell HD",
@@ -123,10 +123,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        if device := alarmhub.system.get_by_id(event.data.get("device_id")):
+        if device := alarmhub.system.devices.get(str(event.data.get("device_id"))):
             log.warning(
                 "ALARM.COM DEBUG DATA FOR %s: %s",
-                device.name.upper(),
+                str(device.name).upper(),
                 json.dumps(device.debug_data),
             )
 
@@ -147,7 +147,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     if config_entry.version == 1:
         log.debug("Migrating from version %s", config_entry.version)
 
-        v2_options: ConfigEntry = {**config_entry.options}
+        v2_options = {**config_entry.options}
 
         v2_options["use_arm_code"] = bool(config_entry.options.get("arm_code"))
 
@@ -166,7 +166,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     if config_entry.version == 2:
         log.debug("Migrating from version %s", config_entry.version)
 
-        v3_options: ConfigEntry = {**config_entry.options}
+        v3_options = {**config_entry.options}
 
         if not v3_options.get("use_arm_code"):
             v3_options["arm_code"] = None

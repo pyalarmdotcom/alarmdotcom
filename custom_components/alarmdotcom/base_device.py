@@ -10,7 +10,7 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.registry import AllDevices_t
 from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 
 from .alarmhub import AlarmHub
@@ -42,7 +42,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: AllDevices_t,
         parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
@@ -96,7 +96,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     def _handle_coordinator_update(self) -> None:
         """Update the entity with new REST API data."""
 
-        self._device = self._alarmhub.system.get_by_id(self._adc_id)
+        self._device = self._alarmhub.system.devices.get(self._adc_id)
 
         try:
             if hasattr(self, "_attr_extra_state_attributes"):
@@ -148,7 +148,7 @@ class HardwareBaseDevice(BaseDevice):
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: AllDevices_t,
         parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
@@ -188,7 +188,7 @@ class AttributeBaseDevice(BaseDevice):
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: AllDevices_t,
         subdevice_type: AttributeSubdevice,
     ) -> None:
         """Initialize class."""
@@ -220,7 +220,7 @@ class ConfigBaseDevice(BaseDevice):
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: AllDevices_t,
         config_option: libConfigurationOption,
     ) -> None:
         """Initialize class."""

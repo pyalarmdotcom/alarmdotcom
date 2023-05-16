@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import re
+from enum import Enum
 
 from homeassistant import config_entries, core
 from homeassistant.components import persistent_notification
@@ -23,7 +24,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
 
 from .alarmhub import AlarmHub
@@ -82,7 +82,7 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.partitions
+        for device in alarmhub.system.devices.partitions.values()
     )
 
 
@@ -95,7 +95,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: libPartition,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
 
@@ -122,21 +122,10 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_state = self._determine_state(self._device.state)
+        if self._device.state and type(self._device.state):
+            self._attr_state = self._determine_state(self._device.state)
 
-        self._attr_extra_state_attributes.update(
-            {
-                "desired_state": (
-                    self._device.desired_state.name.title()
-                    if isinstance(
-                        self._device.desired_state,
-                        libPartition.DeviceState,
-                    )
-                    else None
-                ),
-                "uncleared_issues": self._device.uncleared_issues,
-            }
-        )
+        self._attr_extra_state_attributes.update({"uncleared_issues": str(self._device.uncleared_issues)})
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
@@ -211,7 +200,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     # Helpers
     #
 
-    def _determine_state(self, state: libPartition.DeviceState) -> str | None:
+    def _determine_state(self, state: Enum) -> str | None:
         """Return the state of the device."""
 
         log.debug("Processing state %s for %s", state, self.name or self._device.name)

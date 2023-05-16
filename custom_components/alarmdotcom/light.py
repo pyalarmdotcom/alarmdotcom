@@ -10,7 +10,6 @@ from homeassistant.components.light import ATTR_BRIGHTNESS, LightEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.light import Light as libLight
 
 from .alarmhub import AlarmHub
@@ -35,7 +34,7 @@ async def async_setup_entry(
             alarmhub=alarmhub,
             device=device,
         )
-        for device in alarmhub.system.lights
+        for device in alarmhub.system.devices.lights.values()
     )
 
 
@@ -48,7 +47,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
     def __init__(
         self,
         alarmhub: AlarmHub,
-        device: libBaseDevice,
+        device: libLight,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(alarmhub, device, device.partition_id)
@@ -67,7 +66,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
     def update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_is_on = self._determine_is_on(self._device.state)
+        self._attr_is_on = self._determine_is_on(libLight.DeviceState(self._device.state))
         self._attr_brightness = int((raw_bright * 255) / 100) if (raw_bright := self._device.brightness) else None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
