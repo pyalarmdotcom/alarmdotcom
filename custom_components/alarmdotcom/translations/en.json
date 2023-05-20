@@ -11,11 +11,12 @@
             "unknown": "Unexpected error"
         },
         "step": {
-            "otp": {
+            "otp_submit": {
                 "data": {
                     "otp": "One-Time Password"
                 },
-                "title": "Complete Two-Factor Authentication"
+                "title": "Enter One-Time Password",
+                "description": "If you used the SMS or email authentication methods, an OTP has already been sent to your inbox."
             },
             "reauth_confirm": {
                 "description": "Alarm.com needs to re-authenticate your account.",
@@ -27,6 +28,10 @@
                     "username": "Username"
                 },
                 "title": "Log In to Alarm.com"
+            },
+            "otp_select_method": {
+                "title": "Select Two Factor Authentication Method",
+                "data": { "otp_method": "Method" }
             }
         }
     },
@@ -54,6 +59,15 @@
                 },
                 "description": "Set arming behavior for each arming mode.",
                 "title": "Arming Mode Profiles"
+            }
+        }
+    },
+    "selector": {
+        "otp_methods_list": {
+            "options": {
+                "APP": "Authenticator App",
+                "SMS": "Text Message",
+                "EMAIL": "Email"
             }
         }
     }

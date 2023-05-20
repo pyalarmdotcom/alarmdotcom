@@ -6,24 +6,33 @@ import logging
 from typing import Any, Literal
 
 import aiohttp
+import async_timeout
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_UNIT_OF_MEASUREMENT, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
-from homeassistant.helpers.update_coordinator import UpdateFailed
-from pyalarmdotcomajax import AuthResult as libAuthResult
+from pyalarmdotcomajax import AlarmController as libController
+from pyalarmdotcomajax import OtpType
 from pyalarmdotcomajax.errors import AuthenticationFailed as libAuthenticationFailed
 from pyalarmdotcomajax.errors import DataFetchFailed as libDataFetchFailed
+from pyalarmdotcomajax.errors import (
+    TwoFactor_ConfigurationRequired as libTwoFactor_ConfigurationRequired,
+)
+from pyalarmdotcomajax.errors import TwoFactor_OtpRequired as libTwoFactor_OtpRequired
+from pyalarmdotcomajax.errors import (
+    UnexpectedDataStructure as libUnexpectedDataStructure,
+)
 
-from .alarmhub import BasicAlarmHub
 from .const import (
     CONF_2FA_COOKIE,
     CONF_ARM_AWAY,
@@ -33,10 +42,11 @@ from .const import (
     CONF_ARM_NIGHT,
     CONF_OPTIONS_DEFAULT,
     CONF_OTP,
-    CONF_UPDATE_INTERVAL,
-    CONF_UPDATE_INTERVAL_DEFAULT,
+    CONF_OTP_METHOD,
+    CONF_OTP_METHODS_LIST,
     DOMAIN,
 )
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 LegacyArmingOptions = Literal["home", "away", "true", "false"]
@@ -49,16 +59,17 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
     def __init__(self) -> None:
         """Initialize the Alarmdotcom flow."""
-        self.adc = None
         self.config: dict = {}
         self.system_id: str | None = None
         self.sensor_data: dict | None = {}
         self._config_title: str | None = None
         self._imported_options = None
-        self._alarmhub: BasicAlarmHub | None = None
+        self._controller: AlarmIntegrationController
         self._existing_entry: config_entries.ConfigEntry | None = None
 
         self._force_generic_name: bool = False
+
+        self.otp_method: OtpType | None = None
 
     @staticmethod
     def async_get_options_flow(
@@ -78,46 +89,51 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 CONF_2FA_COOKIE: user_input.get(CONF_2FA_COOKIE),
             }
 
-            try:
-                self._alarmhub = BasicAlarmHub(self.hass)
+            log.debug("Logging in to Alarm.com...")
 
-                log.debug("Logging in to Alarm.com...")
+            self._controller = AlarmIntegrationController(self.hass, self.config)
 
-                login_result = await self._alarmhub.async_login(
-                    username=self.config[CONF_USERNAME],
-                    password=self.config[CONF_PASSWORD],
-                    twofactorcookie=self.config[CONF_2FA_COOKIE],
-                    new_websession=True,
-                )
+            async with async_timeout.timeout(60):
+                try:
+                    await self._controller.initialize_lite(
+                        username=self.config[CONF_USERNAME],
+                        password=self.config[CONF_PASSWORD],
+                        twofactorcookie=self.config[CONF_2FA_COOKIE],
+                    )
 
-                log.debug("Login result: %s", login_result)
-
-                if login_result == libAuthResult.ENABLE_TWO_FACTOR:
+                except libTwoFactor_ConfigurationRequired:
                     return self.async_abort(reason="must_enable_2fa")
 
-                if login_result == libAuthResult.OTP_REQUIRED:
+                except libTwoFactor_OtpRequired:
                     log.debug("OTP code required.")
-                    return await self.async_step_otp()
+                    return await self.async_step_otp_select_method()
 
-                if login_result == libAuthResult.SUCCESS:
+                except (
+                    libUnexpectedDataStructure,
+                    asyncio.TimeoutError,
+                    aiohttp.ClientError,
+                    asyncio.exceptions.CancelledError,
+                    ConnectionError,
+                ) as err:
+                    log.error(
+                        "%s: user login failed to contact Alarm.com: %s",
+                        __name__,
+                        err,
+                    )
+                    errors["base"] = "cannot_connect"
+
+                except libAuthenticationFailed as err:
+                    log.error(
+                        "%s: user login failed with InvalidAuth exception: %s",
+                        __name__,
+                        err,
+                    )
+                    errors["base"] = "invalid_auth"
+                # except Exception as err:  # pylint: disable=broad-except
+                #     log.error(f"Got error while initializing Alarm.com: {err}")
+                #     errors["base"] = "unknown"
+                else:
                     return await self.async_step_final()
-
-                errors["base"] = "unknown"
-
-            except (UpdateFailed, ConfigEntryNotReady) as err:
-                log.error(
-                    "%s: user login failed to contact Alarm.com: %s",
-                    __name__,
-                    err,
-                )
-                errors["base"] = "cannot_connect"
-            except ConfigEntryAuthFailed as err:
-                log.error(
-                    "%s: user login failed with InvalidAuth exception: %s",
-                    __name__,
-                    err,
-                )
-                errors["base"] = "invalid_auth"
 
         creds_schema = vol.Schema(
             {
@@ -132,20 +148,80 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         return self.async_show_form(step_id="user", data_schema=creds_schema, errors=errors, last_step=False)
 
-    async def async_step_otp(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_otp_select_method(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        """Select OTP method when integration configured through UI."""
+        errors = {}
+
+        if user_input is not None:
+            self.otp_method = OtpType(
+                {otp_type.name: otp_type.value for otp_type in OtpType}.get(user_input[CONF_OTP_METHOD])
+            )
+            if self.otp_method in (OtpType.EMAIL, OtpType.SMS):
+                # Ask Alarm.com to send OTP if selected method is EMAIL or SMS.
+                log.debug(f"Requesting One-Time Password via {self.otp_method.name}...")
+                await self._controller.api.async_request_otp(self.otp_method)
+
+            return await self.async_step_otp_submit()
+
+        try:
+            # Get list of enabled OTP methods.
+            if (
+                len(enabled_otp_methods := await self._controller.api.async_get_enabled_2fa_methods()) == 1
+                and enabled_otp_methods[0] == OtpType.APP
+            ):
+                # If APP is the only enabled OTP method, use it without prompting user.
+                self.otp_method = OtpType.APP
+                log.debug(f"Using {self.otp_method.value} for One-Time Password.")
+                return await self.async_step_otp_submit()
+
+        except (ConnectionError, libDataFetchFailed) as err:
+            log.error(
+                "%s: OTP submission failed with CannotConnect exception: %s",
+                __name__,
+                err,
+            )
+            errors["base"] = "cannot_connect"
+
+        otp_method_schema = vol.Schema(
+            {
+                vol.Required(CONF_OTP_METHOD, default=enabled_otp_methods[0].name): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[otp_type.name for otp_type in enabled_otp_methods],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key=CONF_OTP_METHODS_LIST,
+                    )
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="otp_select_method", data_schema=otp_method_schema, errors=errors, last_step=False
+        )
+
+    async def async_step_otp_submit(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Gather OTP when integration configured through UI."""
         errors = {}
         if user_input is not None:
             try:
-                if not isinstance(self._alarmhub, BasicAlarmHub):
+                if not isinstance(self._controller.api, libController):
                     raise ConnectionError("Failed to get ADC alarmhub.")
 
-                await self._alarmhub.async_send_otp(user_input[CONF_OTP])
+                try:
+                    await self._controller.api.async_submit_otp(
+                        method=self.otp_method,
+                        code=user_input[CONF_OTP],
+                        device_name=f"Home Assistant ({self.hass.config.location_name})",
+                    )
+                except (libDataFetchFailed, libAuthenticationFailed):
+                    log.error("OTP submission failed.")
+                    raise
 
-                if cookie := self._alarmhub.two_factor_cookie:
+                if cookie := self._controller.api.two_factor_cookie:
                     self.config[CONF_2FA_COOKIE] = cookie
                 else:
                     raise libAuthenticationFailed("OTP submission failed. Two-factor cookie not found.")
+
+                return await self.async_step_final()
 
             except (ConnectionError, libDataFetchFailed) as err:
                 log.error(
@@ -163,9 +239,6 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 )
                 errors["base"] = "invalid_otp"
 
-            else:
-                return await self.async_step_final()
-
         creds_schema = vol.Schema(
             {
                 vol.Required(CONF_OTP): TextSelector(
@@ -174,18 +247,15 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             }
         )
 
-        return self.async_show_form(step_id="otp", data_schema=creds_schema, errors=errors, last_step=True)
+        return self.async_show_form(step_id="otp_submit", data_schema=creds_schema, errors=errors, last_step=True)
 
     async def async_step_final(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Create configuration entry using entered data."""
 
-        if not isinstance(self._alarmhub, BasicAlarmHub):
-            raise ConnectionError("Failed to get ADC alarmhub.")
-
         self._config_title = (
             "Alarm.com"
             if self._force_generic_name
-            else f"{self._alarmhub.provider_name}:{self._alarmhub.user_email}"
+            else f"{self._controller.provider_name}:{self._controller.user_email}"
         )
 
         if self._existing_entry:
@@ -217,28 +287,26 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         self._async_abort_entries_match({**self.config})
 
+        self._controller = AlarmIntegrationController(self.hass, self.config)
+
         try:
-            self._alarmhub = BasicAlarmHub(self.hass)
+            async with async_timeout.timeout(60):
+                await self._controller.initialize_lite(
+                    username=self.config[CONF_USERNAME],
+                    password=self.config[CONF_PASSWORD],
+                    twofactorcookie=self.config[CONF_2FA_COOKIE],
+                )
 
-            login_result = await self._alarmhub.async_login(
-                username=self.config[CONF_USERNAME],
-                password=self.config[CONF_PASSWORD],
-                twofactorcookie=self.config[CONF_2FA_COOKIE],
-                new_websession=True,
-            )
+            log.debug("Logged in successfully.")
 
-            log.debug("Login result: %s", login_result)
-
+        except (libTwoFactor_OtpRequired, libTwoFactor_ConfigurationRequired):
             # If provider requires 2FA, create config entry anyway. Will fail on update and prompt for reauth.
-            if login_result != libAuthResult.SUCCESS:
-                self._force_generic_name = True
-
-            return await self.async_step_final()
-
+            self._force_generic_name = True
         except (
-            ConfigEntryAuthFailed,
-            UpdateFailed,
-            ConfigEntryNotReady,
+            libAuthenticationFailed,
+            libUnexpectedDataStructure,
+            asyncio.exceptions.CancelledError,
+            ConnectionError,
             asyncio.TimeoutError,
             aiohttp.ClientError,
         ) as err:
@@ -248,6 +316,8 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 err,
             )
             raise
+
+        return await self.async_step_final()
 
     # #
     # Reauthentication Steps
@@ -293,17 +363,6 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
                     CONF_ARM_CODE,
                     default=("" if not (arm_code_raw := self.options.get(CONF_ARM_CODE)) else arm_code_raw),
                 ): selector.selector({"text": {"type": "password"}}),
-                vol.Required(
-                    CONF_UPDATE_INTERVAL,
-                    default=self.options.get(CONF_UPDATE_INTERVAL, CONF_UPDATE_INTERVAL_DEFAULT),
-                ): selector.selector(
-                    {
-                        "number": {
-                            "mode": "box",
-                            CONF_UNIT_OF_MEASUREMENT: "seconds",
-                        }
-                    }
-                ),
             }
         )
 

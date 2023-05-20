@@ -16,9 +16,9 @@ from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
 )
 
-from .alarmhub import AlarmHub
 from .base_device import ConfigBaseDevice
-from .const import DOMAIN
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -33,12 +33,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
-    for device in alarmhub.system.devices.cameras.values():
+    for device in controller.api.devices.cameras.values():
         async_add_entities(
             ConfigOptionSwitch(
-                alarmhub=alarmhub,
+                controller=controller,
                 device=device,
                 config_option=config_option,
             )
@@ -54,7 +54,7 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
     _attr_device_class = SwitchDeviceClass.SWITCH
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         self._attr_is_on = self._config_option.current_value is libCameraSkybellControllerExtension.ChimeOnOff.ON
@@ -75,7 +75,7 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
             libCameraSkybellControllerExtension.ChimeOnOff.ON,
         )
 
-        await self._alarmhub.coordinator.async_refresh()
+        await self._controller.update_coordinator.async_refresh()
 
     async def async_turn_off(self, **kwargs) -> None:  # type: ignore
         """Turn off."""
@@ -84,4 +84,4 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
             libCameraSkybellControllerExtension.ChimeOnOff.OFF,
         )
 
-        await self._alarmhub.coordinator.async_refresh()
+        await self._controller.update_coordinator.async_refresh()

@@ -33,6 +33,69 @@ show_error_context = true
 disallow_untyped_calls = false
 exclude = ["tests/", "build/"]
 
+[tool.pylint.BASIC]
+class-const-naming-style = "any"
+good-names = ["_", "ev", "ex", "fp", "i", "id", "j", "k", "Run", "ip"]
+
+[tool.pylint.CODE_STYLE]
+max-line-length-suggestions = 72
+
+[tool.pylint.EXCEPTIONS]
+overgeneral-exceptions = ["BaseException", "Exception", "HomeAssistantError"]
+
+[tool.pylint.FORMAT]
+expected-line-ending-format = "LF"
+
+[tool.pylint.MAIN]
+py-version = "3.9"
+ignore = ["tests"]
+jobs = 2
+load-plugins = ["pylint.extensions.code_style", "pylint.extensions.typing"]
+persistent = false
+fail-on = ["I"]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+  "format",
+  "abstract-method",
+  "cyclic-import",
+  "duplicate-code",
+  "inconsistent-return-statements",
+  "locally-disabled",
+  "not-context-manager",
+  "too-few-public-methods",
+  "too-many-ancestors",
+  "too-many-arguments",
+  "too-many-branches",
+  "too-many-instance-attributes",
+  "too-many-lines",
+  "too-many-locals",
+  "too-many-public-methods",
+  "too-many-return-statements",
+  "too-many-statements",
+  "too-many-boolean-expressions",
+  "unused-argument",
+  "wrong-import-order",
+  "too-many-nested-blocks",
+  "logging-fstring-interpolation"
+]
+enable = [
+  # "useless-suppression",  # temporarily every now and then to clean them up
+  "use-symbolic-message-instead"
+]
+
+[tool.pylint.REPORTS]
+score = false
+
+[tool.pylint.TYPECHECK]
+ignored-classes = [
+  "_CountingAttr" # for attrs
+]
+mixin-class-rgx = ".*[Mm]ix[Ii]n"
+
+[tool.pylint.TYPING]
+runtime-typing = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = [".git", "testing_config"]

@@ -19,9 +19,9 @@ from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
 )
 
-from .alarmhub import AlarmHub
 from .base_device import ConfigBaseDevice
-from .const import DOMAIN
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -36,12 +36,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up the select platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
-    for device in alarmhub.system.devices.cameras.values():
+    for device in controller.api.devices.cameras.values():
         async_add_entities(
             ConfigOptionSelect(
-                alarmhub=alarmhub,
+                controller=controller,
                 device=device,
                 config_option=config_option,
             )
@@ -60,12 +60,12 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
+        controller: AlarmIntegrationController,
         device: AllDevices_t,
         config_option: libConfigurationOption,
     ) -> None:
         """Initialize."""
-        super().__init__(alarmhub, device, config_option)
+        super().__init__(controller, device, config_option)
 
         self._attr_entity_category = EntityCategory.CONFIG
 
@@ -114,7 +114,7 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
         return super().icon if isinstance(super().icon, str) else None
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         if isinstance(current_value := self._config_option.current_value, Enum):

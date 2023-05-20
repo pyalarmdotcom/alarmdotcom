@@ -10,9 +10,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
-from .alarmhub import AlarmHub
 from .base_device import AttributeBaseDevice, AttributeSubdevice
-from .const import DEBUG_REQ_EVENT, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
+from .const import DATA_CONTROLLER, DEBUG_REQ_EVENT, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -25,11 +25,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up the button platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
     async_add_entities(
-        DebugAttributeDevice(alarmhub=alarmhub, device=device, subdevice_type=AttributeSubdevice.DEBUG)
-        for device in alarmhub.devices
+        DebugAttributeDevice(controller=controller, device=device, subdevice_type=AttributeSubdevice.DEBUG)
+        for device in controller.api.devices.all.values()
         if None not in [device.battery_low, device.battery_critical]
         and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
     )
@@ -46,5 +46,5 @@ class DebugAttributeDevice(AttributeBaseDevice, ButtonEntity):  # type: ignore
         self.hass.bus.async_fire(DEBUG_REQ_EVENT, {"device_id": self._device.id_})
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when new data comes from the REST API."""

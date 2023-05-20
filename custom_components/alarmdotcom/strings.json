@@ -12,11 +12,16 @@
                 "title": "[%key:common::config_flow::title::reauth%]",
                 "description": "Alarm.com needs to re-authenticate your account."
             },
-            "otp": {
-                "title": "Complete Two-Factor Authentication",
+            "otp_submit": {
+                "title": "Enter One-Time Password",
+                "description": "If you used the SMS or email authentication methods, an OTP has already been sent to your inbox.",
                 "data": {
                     "otp": "One-Time Password"
                 }
+            },
+            "otp_select_method": {
+                "title": "Select Two Factor Authentication Method",
+                "data": { "otp_method": "Method" }
             }
         },
         "error": {
@@ -54,6 +59,15 @@
                 "data_description": {
                     "arm_night_options": "Arm Night may not be available on all partitions."
                 }
+            }
+        }
+    },
+    "selector": {
+        "otp_methods_list": {
+            "options": {
+                "APP": "Authenticator App",
+                "SMS": "Text Message",
+                "EMAIL": "Email"
             }
         }
     }

@@ -26,7 +26,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback, Discovery
 from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
 
-from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
 from .const import (
     CONF_ARM_AWAY,
@@ -36,9 +35,11 @@ from .const import (
     CONF_FORCE_BYPASS,
     CONF_NO_ENTRY_DELAY,
     CONF_SILENT_ARM,
+    DATA_CONTROLLER,
     DOMAIN,
     MIGRATE_MSG_ALERT,
 )
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -75,14 +76,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform and create a master device."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
     async_add_entities(
         AlarmControlPanel(
-            alarmhub=alarmhub,
+            controller=controller,
             device=device,
         )
-        for device in alarmhub.system.devices.partitions.values()
+        for device in controller.api.devices.partitions.values()
     )
 
 
@@ -94,12 +95,12 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
+        controller: AlarmIntegrationController,
         device: libPartition,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
 
-        super().__init__(alarmhub, device, device.system_id)
+        super().__init__(controller, device, device.system_id)
 
         self._attr_code_format = (
             (
@@ -107,7 +108,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                 if (isinstance(arm_code, str) and re.search("^\\d+$", arm_code))
                 else CodeFormat.TEXT
             )
-            if (arm_code := alarmhub.options.get(CONF_ARM_CODE))
+            if (arm_code := controller.options.get(CONF_ARM_CODE))
             else None
         )
 
@@ -119,7 +120,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             self._attr_supported_features |= AlarmControlPanelEntityFeature.ARM_NIGHT
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         if self._device.state and type(self._device.state):
@@ -137,12 +138,10 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             except PermissionError:
                 self._show_permission_error("disarm")
 
-            await self._alarmhub.coordinator.async_refresh()
-
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
         """Send arm night command."""
 
-        arm_options = self._alarmhub.options.get(CONF_ARM_NIGHT, {})
+        arm_options = self._controller.options.get(CONF_ARM_NIGHT, {})
 
         if self._validate_code(code):
             self._attr_state = STATE_ALARM_ARMING
@@ -156,12 +155,10 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             except PermissionError:
                 self._show_permission_error("arm_night")
 
-            await self._alarmhub.coordinator.async_refresh()
-
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
         """Send arm home command."""
 
-        arm_options = self._alarmhub.options.get(CONF_ARM_HOME, {})
+        arm_options = self._controller.options.get(CONF_ARM_HOME, {})
 
         if self._validate_code(code):
             self._attr_state = STATE_ALARM_ARMING
@@ -175,12 +172,10 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             except PermissionError:
                 self._show_permission_error("arm_home")
 
-            await self._alarmhub.coordinator.async_refresh()
-
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
         """Send arm away command."""
 
-        arm_options = self._alarmhub.options.get(CONF_ARM_AWAY, {})
+        arm_options = self._controller.options.get(CONF_ARM_AWAY, {})
 
         if self._validate_code(code):
             self._attr_state = STATE_ALARM_ARMING
@@ -194,8 +189,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             except PermissionError:
                 self._show_permission_error("arm_away")
 
-            await self._alarmhub.coordinator.async_refresh()
-
     #
     # Helpers
     #
@@ -203,7 +196,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     def _determine_state(self, state: Enum) -> str | None:
         """Return the state of the device."""
 
-        log.debug("Processing state %s for %s", state, self.name or self._device.name)
+        log.info("Processing state %s for %s", state, self.name or self._device.name)
 
         if not self._device.malfunction:
             if state == libPartition.DeviceState.DISARMED:
@@ -224,7 +217,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_ARM_CODE)) in [
+        check: bool | str = (arm_code := self._controller.options.get(CONF_ARM_CODE)) in [
             None,
             "",
         ] or code == arm_code

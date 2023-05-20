@@ -14,9 +14,9 @@ from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
 )
 
-from .alarmhub import AlarmHub
 from .base_device import ConfigBaseDevice
-from .const import DOMAIN
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -31,12 +31,12 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensor platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
-    for device in alarmhub.system.devices.cameras.values():
+    for device in controller.api.devices.cameras.values():
         async_add_entities(
             ConfigOptionNumber(
-                alarmhub=alarmhub,
+                controller=controller,
                 device=device,
                 config_option=config_option,
             )
@@ -51,12 +51,12 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
+        controller: AlarmIntegrationController,
         device: libBaseDevice,
         config_option: libConfigurationOption,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(alarmhub, device, config_option)
+        super().__init__(controller, device, config_option)
 
         if self._config_option.value_max:
             self._attr_native_max_value: float = self._config_option.value_max
@@ -77,7 +77,7 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
         return super().icon if isinstance(super().icon, str) else None
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         if current_value := self._config_option.current_value:

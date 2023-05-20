@@ -17,9 +17,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback, Discovery
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
 
-from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
-from .const import DOMAIN
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -32,15 +32,15 @@ async def async_setup_entry(
 ) -> None:
     """Set up the cover platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
     async_add_entities(
         Cover(
-            alarmhub=alarmhub,
+            controller=controller,
             device=device,
         )
-        for device in list(alarmhub.system.devices.garage_doors.values())
-        + list(alarmhub.system.devices.gates.values())
+        for device in list(controller.api.devices.garage_doors.values())
+        + list(controller.api.devices.gates.values())
     )
 
 
@@ -52,11 +52,11 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
+        controller: AlarmIntegrationController,
         device: libGarageDoor | libGate,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(alarmhub, device, device.partition_id)
+        super().__init__(controller, device, device.partition_id)
 
         self._attr_device_class: CoverDeviceClass = (
             CoverDeviceClass.GARAGE if isinstance(device, libGarageDoor) else CoverDeviceClass.GATE
@@ -65,7 +65,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         self._attr_supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         self._attr_is_closed = self._determine_is_closed(self._device.state)
@@ -82,8 +82,6 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("open")
 
-        await self._alarmhub.coordinator.async_refresh()
-
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the cover."""
 
@@ -93,8 +91,6 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
             await self._device.async_close()
         except PermissionError:
             self._show_permission_error("close")
-
-        await self._alarmhub.coordinator.async_refresh()
 
     #
     # Helpers

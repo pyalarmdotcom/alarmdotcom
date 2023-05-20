@@ -18,14 +18,13 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_FAHRENHEIT
-from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.thermostat import Thermostat as libThermostat
 
-from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
-from .const import DOMAIN
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -40,14 +39,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the light platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
     async_add_entities(
         Climate(
-            alarmhub=alarmhub,
+            controller=controller,
             device=device,
         )
-        for device in alarmhub.system.devices.thermostats.values()
+        for device in controller.api.devices.thermostats.values()
     )
 
 
@@ -59,22 +58,21 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
     _attr_temperature_unit = TEMP_FAHRENHEIT  # Alarm.com always returns Fahrenheit, even when user profile is set to C. Conversion happens on frontend.
 
+    _raw_attribs: libThermostat.ThermostatAttributes
+
     def __init__(
         self,
-        alarmhub: AlarmHub,
+        controller: AlarmIntegrationController,
         device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(alarmhub, device, device.partition_id)
+        super().__init__(controller, device, device.partition_id)
 
         self._raw_attribs = self._device.attributes
-
         self._attr_target_temperature_step = 1.0
-
         self._determine_features()
 
-    @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         self._raw_attribs = self._device.attributes
@@ -161,7 +159,7 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         self._attr_is_aux_heat = self._device.state == libThermostat.DeviceState.AUX_HEAT
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        """Turn on the light or adjust brightness."""
+        """Set HVAC mode."""
 
         try:
             if hvac_mode == HVACMode.COOL:
@@ -179,8 +177,6 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("set")
 
-        await self._alarmhub.coordinator.async_refresh()
-
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Change fan mode."""
 
@@ -197,8 +193,6 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
                 await self._device.async_set_attribute(fan=(libThermostat.FanMode.AUTO, 0))
         except PermissionError:
             self._show_permission_error("set")
-
-        await self._alarmhub.coordinator.async_refresh()
 
     async def async_set_temperature(self, **kwargs) -> None:  # type: ignore
         """Set new target temperature."""

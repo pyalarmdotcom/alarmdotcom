@@ -6,10 +6,10 @@ import logging
 import re
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Event, HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
-from .alarmhub import AlarmHub
 from .const import (
     CONF_ARM_AWAY,
     CONF_ARM_HOME,
@@ -17,10 +17,12 @@ from .const import (
     CONF_FORCE_BYPASS,
     CONF_NO_ENTRY_DELAY,
     CONF_SILENT_ARM,
+    DATA_CONTROLLER,
     DEBUG_REQ_EVENT,
     DOMAIN,
     STARTUP_MESSAGE,
 )
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -39,38 +41,53 @@ PLATFORMS: list[str] = [
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Set up alarmdotcom alarmhub from a config entry."""
+    """Set up alarmdotcom hub from a config entry."""
 
-    log.debug("%s: Initializing Alarmdotcom from config entry.", __name__)
+    log.info("%s: Initializing Alarmdotcom from config entry.", __name__)
 
     # As there currently is no way to import options from yaml
-    # when setting up a config entry, we fallback to adding
+    # when setting up a config entry, we fall back to adding
     # the options to the config entry and pull them out here if
     # they are missing from the options.
     _async_import_options_from_data_if_missing(hass, config_entry)
-
-    hass.data.setdefault(DOMAIN, {})
 
     if DOMAIN not in hass.data:
         # Print startup message
         log.info(STARTUP_MESSAGE)
 
-    alarmhub = AlarmHub(hass, config_entry)
-    await alarmhub.async_setup()
+    hass.data.setdefault(DOMAIN, {})
 
-    if not alarmhub.coordinator:
-        log.error("%s: Failed to initialize alarmhub.", __name__)
-        return False
+    #
+    # Initialize Alarm.com Connection & Data Update Coordinator
+    #
 
-    log.debug("Alarmdotcom config options %s", dict(config_entry.options))
+    controller = AlarmIntegrationController(hass, config_entry)
+    await controller.initialize()
+
+    # Store integration data for use during platform setup.
+    hass.data[DOMAIN][config_entry.entry_id] = {
+        DATA_CONTROLLER: controller,
+    }
+
+    #
+    # Initialize WebSocket listener
+    #
+
+    controller.api.start_websocket()
+
+    config_entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, controller.api.stop_websocket)
+    )
 
     #
     # Delete devices from Home Assistant that are no longer present on Alarm.com.
     #
 
+    device_registry = dr.async_get(hass)
+
     # Get devices from Alarm.com
     device_ids_via_adc: set[str] = set()
-    for device in alarmhub.devices:
+    for device in controller.api.devices.all.values():
         device_ids_via_adc.add(device.id_)
 
     log.debug(device_ids_via_adc)
@@ -79,7 +96,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     device_ids_via_hass: set[str] = set()
 
     # Compare against device registry
-    device_registry = dr.async_get(hass)
     for device_entry in dr.async_entries_for_config_entry(device_registry, config_entry.entry_id):
         for identifier in device_entry.identifiers:
             # Remove _debug, _malfunction, etc. from IDs
@@ -98,12 +114,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
             device_registry.async_remove_device(device_entry.id)
 
-    # Store alarmhub
-    hass.data[DOMAIN][config_entry.entry_id] = alarmhub
-
     # Create virtual DEVICES.
     # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.
-    for camera in alarmhub.system.devices.cameras.values():
+    for camera in controller.api.devices.cameras.values():
         # Check if camera already created.
         if camera.id_ in device_ids_via_hass:
             continue
@@ -123,16 +136,17 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        if device := alarmhub.system.devices.get(str(event.data.get("device_id"))):
+        if device := controller.api.devices.get(str(event.data.get("device_id"))):
             log.warning(
                 "ALARM.COM DEBUG DATA FOR %s: %s",
                 str(device.name).upper(),
                 json.dumps(device.debug_data),
             )
 
+    # Listen for debug entity requests
     hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
 
-    log.debug("%s: Finished initializing Alarmdotcom from config entry.", __name__)
+    log.info("%s: Finished initializing Alarmdotcom from config entry.", __name__)
 
     return True
 
@@ -286,9 +300,13 @@ def _async_import_options_from_data_if_missing(hass: HomeAssistant, entry: Confi
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+
+    controller: AlarmIntegrationController = hass.data[DOMAIN].pop(config_entry.entry_id)[DATA_CONTROLLER]
+
+    controller.api.stop_websocket()
+
     unload_ok: bool = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
     if unload_ok:
         log.debug("%s: Unloaded Alarm.com config entry.", __name__)
-        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok

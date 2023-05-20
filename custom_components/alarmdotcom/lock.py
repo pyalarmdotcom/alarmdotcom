@@ -14,9 +14,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback, Discovery
 from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.lock import Lock as libLock
 
-from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
-from .const import CONF_ARM_CODE, DOMAIN, MIGRATE_MSG_ALERT
+from .const import CONF_ARM_CODE, DATA_CONTROLLER, DOMAIN, MIGRATE_MSG_ALERT
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -53,14 +53,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the lock platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
     async_add_entities(
         Lock(
-            alarmhub=alarmhub,
+            controller=controller,
             device=device,
         )
-        for device in alarmhub.system.devices.locks.values()
+        for device in controller.api.devices.locks.values()
     )
 
 
@@ -72,18 +72,18 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
+        controller: AlarmIntegrationController,
         device: libLock,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(alarmhub, device, device.partition_id)
+        super().__init__(controller, device, device.partition_id)
 
         self._attr_code_format = (
-            self._determine_code_format(code) if (code := alarmhub.options.get(CONF_ARM_CODE)) else ""
+            self._determine_code_format(code) if (code := controller.options.get(CONF_ARM_CODE)) else ""
         )
 
     @callback
-    def update_device_data(self) -> None:
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         self._attr_is_locked = self._determine_is_locked(libLock.DeviceState(self._device.state))
@@ -112,8 +112,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
             except PermissionError:
                 self._show_permission_error("lock")
 
-            await self._alarmhub.coordinator.async_refresh()
-
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the lock."""
         if self._validate_code(kwargs.get("code")):
@@ -123,8 +121,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
                 await self._device.async_unlock()
             except PermissionError:
                 self._show_permission_error("unlock")
-
-            await self._alarmhub.coordinator.async_refresh()
 
     #
     # Helpers
@@ -147,7 +143,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
-        check: bool | str = (arm_code := self._alarmhub.options.get(CONF_ARM_CODE)) in [
+        check: bool | str = (arm_code := self._controller.options.get(CONF_ARM_CODE)) in [
             None,
             "",
         ] or code == arm_code
