@@ -1,20 +1,24 @@
 """Base device."""
 from __future__ import annotations
 
-from enum import Enum
 import logging
-from typing import NamedTuple
+from abc import abstractmethod
+from collections.abc import MutableMapping
+from enum import Enum
+from typing import Any, NamedTuple
 
 from homeassistant.components import persistent_notification
 from homeassistant.components.button import ButtonEntity
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+)
+from pyalarmdotcomajax.devices.registry import AllDevices_t
 from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 
-from .alarmhub import AlarmHub
 from .const import DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -41,19 +45,21 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
-        device: libBaseDevice,
+        controller: AlarmIntegrationController,
+        device: AllDevices_t,
         parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
-        super().__init__(alarmhub.coordinator)
+        super().__init__(controller.update_coordinator)
 
         self._adc_id = device.id_
         self._device = device
-        self._alarmhub = alarmhub
+        self._controller = controller
         self._attr_has_entity_name = True
 
         self.parent_id = parent_id
+
+        self._attr_extra_state_attributes: MutableMapping[str, Any] = {}
 
     @property
     def available(self) -> bool:
@@ -88,40 +94,42 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
+
         await super().async_added_to_hass()
 
-        self.update_device_data()
+        self._device.register_external_update_callback(self._handle_coordinator_update)
 
-    @callback  # type: ignore
+        self._data_refresh_postprocessing()
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Entity being removed from hass."""
+
+        await super().async_will_remove_from_hass()
+
+        self._device.unregister_external_update_callback(self._handle_coordinator_update)
+
+    @callback
     def _handle_coordinator_update(self) -> None:
-        """Update the entity with new REST API data."""
+        """Update the entity with new cordinator-fetched data."""
 
-        self._device = self._alarmhub.system.get_device_by_id(self._adc_id)
+        self._device = self._controller.api.devices.get(self._adc_id)
 
-        try:
-            if hasattr(self, "_attr_extra_state_attributes"):
-                self._attr_extra_state_attributes.update(
-                    {
-                        "raw_state_text": self._device.raw_state_text,
-                    }
-                )
-        except AttributeError:
-            log.debug(
-                (
-                    "Failed to update raw_state_text attribute for %s (%s). Device"
-                    " dump:\n%s"
-                ),
-                self.name,
-                self._adc_id,
-                self._device._attribs_raw,
-            )
+        self._data_refresh_postprocessing()
 
-        self.update_device_data()
         self.async_write_ha_state()
 
-    @callback  # type: ignore
-    def update_device_data(self) -> None:
-        """Update the entity when new data comes from the REST API."""
+    def _data_refresh_postprocessing(self) -> None:
+        self._attr_extra_state_attributes.update(
+            {
+                "raw_state_text": self._device.raw_state_text,
+            }
+        )
+
+        self._update_device_data()
+
+    @abstractmethod
+    def _update_device_data(self) -> None:
+        """Device-type specific update processes to run when new device data is available."""
         raise NotImplementedError()
 
     def _show_permission_error(self, action: str = "") -> None:
@@ -150,14 +158,14 @@ class HardwareBaseDevice(BaseDevice):
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
-        device: libBaseDevice,
+        controller: AlarmIntegrationController,
+        device: AllDevices_t,
         parent_id: str | None = None,
     ) -> None:
         """Initialize class."""
-        super().__init__(alarmhub, device, parent_id)
+        super().__init__(controller, device, parent_id)
 
-        log.debug(
+        log.info(
             "%s: Initializing [%s: %s (%s)].",
             __name__,
             device.__class__.__name__.lower(),
@@ -190,14 +198,14 @@ class AttributeBaseDevice(BaseDevice):
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
-        device: libBaseDevice,
+        controller: AlarmIntegrationController,
+        device: AllDevices_t,
         subdevice_type: AttributeSubdevice,
     ) -> None:
         """Initialize class."""
-        super().__init__(alarmhub, device, device.id_)
+        super().__init__(controller, device, device.id_)
 
-        log.debug(
+        log.info(
             "%s: Initializing [%s: %s (%s)] [Attribute: %s].",
             __name__,
             device.__class__.__name__.title(),
@@ -222,14 +230,14 @@ class ConfigBaseDevice(BaseDevice):
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
-        device: libBaseDevice,
+        controller: AlarmIntegrationController,
+        device: AllDevices_t,
         config_option: libConfigurationOption,
     ) -> None:
         """Initialize class."""
-        super().__init__(alarmhub, device, device.id_)
+        super().__init__(controller, device, device.id_)
 
-        log.debug(
+        log.info(
             "%s: Initializing [%s: %s (%s)] [Config Option: %s].",
             __name__,
             device.__class__.__name__.title(),

@@ -5,7 +5,7 @@ from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 INTEGRATION_NAME = "Alarm.com"
 DOMAIN = "alarmdotcom"
-ISSUE_URL = ""
+ISSUE_URL = "https://github.com/pyalarmdotcom/alarmdotcom/issues"
 STARTUP_MESSAGE = f"""
 ===================================================================
 {DOMAIN}
@@ -32,6 +32,8 @@ MIGRATE_MSG_ALERT = (
 # Configuration
 CONF_2FA_COOKIE = "2fa_cookie"
 CONF_OTP = "otp"
+CONF_OTP_METHOD = "otp_method"
+CONF_OTP_METHODS_LIST = "otp_methods_list"
 
 CONF_ARM_CODE = "arm_code"
 CONF_UPDATE_INTERVAL = "update_interval"
@@ -39,9 +41,9 @@ CONF_ARM_HOME = "arm_home_options"
 CONF_ARM_AWAY = "arm_away_options"
 CONF_ARM_NIGHT = "arm_night_options"
 
-CONF_UPDATE_INTERVAL_DEFAULT = 30
+CONF_UPDATE_INTERVAL_DEFAULT = 350
 
-CONF_FORCE_BYPASS = "force_bypass"
+CONF_FORCE_BYPASS = "force_bypass"  # noqa: S105
 CONF_SILENT_ARM = "silent_arming"
 CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_ARM_MODE_OPTIONS = {
@@ -62,3 +64,6 @@ SENSOR_SUBTYPE_BLACKLIST = [
     libSensor.Subtype.MOBILE_PHONE,  # No purpose
     libSensor.Subtype.PANEL_IMAGE_SENSOR,  # No support yet
 ]
+
+DATA_CONTROLLER = "connection"
+DATA_LISTENER = "listener"

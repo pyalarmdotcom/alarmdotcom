@@ -1,14 +1,15 @@
-// File Version: 2023.01.27
-
-// TODO: Pull library name from environnment variable.
-
 {
-  "folders": [
-    {
-      "path": "/workspaces/alarmdotcom"
-    },
-    {
-      "path": "/workspaces/pyalarmdotcomajax"
+    "folders": [
+        {
+            "path": "/workspaces/alarmdotcom"
+        },
+        {
+            "path": "/workspaces/pyalarmdotcomajax"
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "*.yaml": "home-assistant"
+        }
     }
-  ]
 }

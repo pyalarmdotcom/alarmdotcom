@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from enum import Enum
 from typing import Any
 
 from homeassistant import core
@@ -13,13 +14,12 @@ from homeassistant.components.cover import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
 
-from .alarmhub import AlarmHub
 from .base_device import HardwareBaseDevice
-from .const import DOMAIN
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
@@ -32,14 +32,15 @@ async def async_setup_entry(
 ) -> None:
     """Set up the cover platform."""
 
-    alarmhub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id]
+    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
 
     async_add_entities(
         Cover(
-            alarmhub=alarmhub,
+            controller=controller,
             device=device,
         )
-        for device in alarmhub.system.garage_doors + alarmhub.system.gates
+        for device in list(controller.api.devices.garage_doors.values())
+        + list(controller.api.devices.gates.values())
     )
 
 
@@ -51,24 +52,20 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
 
     def __init__(
         self,
-        alarmhub: AlarmHub,
-        device: libBaseDevice,
+        controller: AlarmIntegrationController,
+        device: libGarageDoor | libGate,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(alarmhub, device, device.partition_id)
+        super().__init__(controller, device, device.partition_id)
 
         self._attr_device_class: CoverDeviceClass = (
-            CoverDeviceClass.GARAGE
-            if isinstance(device, libGarageDoor)
-            else CoverDeviceClass.GATE
+            CoverDeviceClass.GARAGE if isinstance(device, libGarageDoor) else CoverDeviceClass.GATE
         )
 
-        self._attr_supported_features = (
-            CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
-        )
+        self._attr_supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
-    @callback  # type: ignore
-    def update_device_data(self) -> None:
+    @callback
+    def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
         self._attr_is_closed = self._determine_is_closed(self._device.state)
@@ -85,8 +82,6 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("open")
 
-        await self._alarmhub.coordinator.async_refresh()
-
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the cover."""
 
@@ -97,15 +92,11 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         except PermissionError:
             self._show_permission_error("close")
 
-        await self._alarmhub.coordinator.async_refresh()
-
     #
     # Helpers
     #
 
-    def _determine_is_closed(
-        self, state: libGarageDoor.DeviceState | libGate.DeviceState
-    ) -> bool | None:
+    def _determine_is_closed(self, state: Enum | None) -> bool | None:
         """Return if the cover is closed or not."""
 
         if not self._device.malfunction:

@@ -16,7 +16,3 @@ class InvalidAuth(HomeAssistantError):  # type: ignore
 
 class UnexpectedDataFormat(HomeAssistantError):  # type: ignore
     """Error to indicate there is invalid auth."""
-
-
-class PartialInitialization(HomeAssistantError):  # type: ignore
-    """Error for AlarmHub to indicate that integration has not yet been set up."""

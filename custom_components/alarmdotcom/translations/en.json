@@ -1,60 +1,74 @@
 {
-  "config": {
-    "abort": {
-      "must_enable_2fa": "Two-factor authentication must be enabled in order to log in with this provider.",
-      "reauth_successful": "Re-authentication was successful"
+    "config": {
+        "abort": {
+            "must_enable_2fa": "Two-factor authentication must be enabled in order to log in with this provider.",
+            "reauth_successful": "Re-authentication was successful"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "invalid_otp": "Invalid one-time password.",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "otp_submit": {
+                "data": {
+                    "otp": "One-Time Password"
+                },
+                "title": "Enter One-Time Password",
+                "description": "If you used the SMS or email authentication methods, an OTP has already been sent to your inbox."
+            },
+            "reauth_confirm": {
+                "description": "Alarm.com needs to re-authenticate your account.",
+                "title": "Reauthenticate Integration"
+            },
+            "user": {
+                "data": {
+                    "password": "Password",
+                    "username": "Username"
+                },
+                "title": "Log In to Alarm.com"
+            },
+            "otp_select_method": {
+                "title": "Select Two Factor Authentication Method",
+                "data": { "otp_method": "Method" }
+            }
+        }
     },
-    "error": {
-      "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid authentication",
-      "invalid_otp": "Invalid one-time password.",
-      "unknown": "Unexpected error"
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "arm_code": "Security Code (Locks & Alarm)",
+                    "update_interval": "Update Interval"
+                },
+                "data_description": {
+                    "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`.",
+                    "update_interval": "Sets the rate at which Home Assistant checks Alarm.com for updates. Be careful! Updating too frequently may result in an account lockout."
+                },
+                "title": "General Settings"
+            },
+            "modes": {
+                "data": {
+                    "arm_away_options": "Arm Away",
+                    "arm_home_options": "Arm Home",
+                    "arm_night_options": "Arm Night"
+                },
+                "data_description": {
+                    "arm_night_options": "Arm Night may not be available on all partitions."
+                },
+                "description": "Set arming behavior for each arming mode.",
+                "title": "Arming Mode Profiles"
+            }
+        }
     },
-    "step": {
-      "otp": {
-        "data": {
-          "otp": "One-Time Password"
-        },
-        "title": "Complete Two-Factor Authentication"
-      },
-      "reauth_confirm": {
-        "description": "Alarm.com needs to re-authenticate your account.",
-        "title": "Reauthenticate Integration"
-      },
-      "user": {
-        "data": {
-          "password": "Password",
-          "username": "Username"
-        },
-        "title": "Log In to Alarm.com"
-      }
+    "selector": {
+        "otp_methods_list": {
+            "options": {
+                "app": "Authenticator App",
+                "sms": "Text Message",
+                "email": "Email"
+            }
+        }
     }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "arm_code": "Security Code (Locks & Alarm)",
-          "update_interval": "Update Interval"
-        },
-        "data_description": {
-          "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`.",
-          "update_interval": "Sets the rate at which Home Assistant checks Alarm.com for updates. Be careful! Updating too frequently may result in an account lockout."
-        },
-        "title": "General Settings"
-      },
-      "modes": {
-        "data": {
-          "arm_away_options": "Arm Away",
-          "arm_home_options": "Arm Home",
-          "arm_night_options": "Arm Night"
-        },
-        "data_description": {
-          "arm_night_options": "Arm Night may not be available on all partitions."
-        },
-        "description": "Set arming behavior for each arming mode.",
-        "title": "Arming Mode Profiles"
-      }
-    }
-  }
 }

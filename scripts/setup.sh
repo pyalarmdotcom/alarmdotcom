@@ -22,6 +22,16 @@ pip install -r "$workspace_dir/requirements-dev.txt"
 
 cat << EOF
 
+cat << EOF
+
+######################################
+INITIALIZING HOME ASSISTANT RUN SCRIPT
+######################################
+
+EOF
+
+chmod +x $workspace_dir/scripts/run.sh
+
 ####################################
 INITIALIZING LIBRARY "$library_name"
 ####################################
@@ -35,7 +45,7 @@ else
     echo "$library_name repository directory already exists."
 fi
 
-(cd "$lib_dir"; pip install --editable .)
+(cd "$lib_dir"; pip install --editable . --config-settings editable_mode=strict)
 
 pip install -r "$lib_dir/requirements-dev.txt"
 

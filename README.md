@@ -102,8 +102,8 @@ If you own one of the below devices and want to help build support, [open an iss
 
 ##### Help Needed Scale
 
-- **A lot:** You'll need to know how to capture web traffic. We'll ask you to log into Alarm.com and use your web browser's network inspector tool to capture requests for all of your device's functions.
-- **A little:** We'll ask you to run a Python script to dump metadata for your devices. This is straightforward and doesn't require much technical skill.
+-   **A lot:** You'll need to know how to capture web traffic. We'll ask you to log into Alarm.com and use your web browser's network inspector tool to capture requests for all of your device's functions.
+-   **A little:** We'll ask you to run a Python script to dump metadata for your devices. This is straightforward and doesn't require much technical skill.
 
 #### Device Blacklist
 
