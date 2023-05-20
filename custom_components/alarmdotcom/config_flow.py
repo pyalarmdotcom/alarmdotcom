@@ -156,7 +156,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             self.otp_method = OtpType(
                 {otp_type.name: otp_type.value for otp_type in OtpType}.get(user_input[CONF_OTP_METHOD])
             )
-            if self.otp_method in (OtpType.EMAIL, OtpType.SMS):
+            if self.otp_method in (OtpType.email, OtpType.sms):
                 # Ask Alarm.com to send OTP if selected method is EMAIL or SMS.
                 log.debug(f"Requesting One-Time Password via {self.otp_method.name}...")
                 await self._controller.api.async_request_otp(self.otp_method)
@@ -167,10 +167,10 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             # Get list of enabled OTP methods.
             if (
                 len(enabled_otp_methods := await self._controller.api.async_get_enabled_2fa_methods()) == 1
-                and enabled_otp_methods[0] == OtpType.APP
+                and enabled_otp_methods[0] == OtpType.app
             ):
                 # If APP is the only enabled OTP method, use it without prompting user.
-                self.otp_method = OtpType.APP
+                self.otp_method = OtpType.app
                 log.debug(f"Using {self.otp_method.value} for One-Time Password.")
                 return await self.async_step_otp_submit()
 

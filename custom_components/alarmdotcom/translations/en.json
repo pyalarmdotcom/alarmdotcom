@@ -65,9 +65,9 @@
     "selector": {
         "otp_methods_list": {
             "options": {
-                "APP": "Authenticator App",
-                "SMS": "Text Message",
-                "EMAIL": "Email"
+                "app": "Authenticator App",
+                "sms": "Text Message",
+                "email": "Email"
             }
         }
     }
