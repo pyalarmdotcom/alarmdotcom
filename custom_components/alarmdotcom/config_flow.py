@@ -28,7 +28,6 @@ from pyalarmdotcomajax.errors import DataFetchFailed as libDataFetchFailed
 from pyalarmdotcomajax.errors import (
     TwoFactor_ConfigurationRequired as libTwoFactor_ConfigurationRequired,
 )
-from pyalarmdotcomajax.errors import TwoFactor_OtpRequired as libTwoFactor_OtpRequired
 from pyalarmdotcomajax.errors import (
     UnexpectedDataStructure as libUnexpectedDataStructure,
 )
@@ -66,6 +65,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         self._imported_options = None
         self._controller: AlarmIntegrationController
         self._existing_entry: config_entries.ConfigEntry | None = None
+        self._enabled_otp_methods: list[OtpType] = []
 
         self._force_generic_name: bool = False
 
@@ -95,18 +95,17 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
             async with async_timeout.timeout(60):
                 try:
-                    await self._controller.initialize_lite(
+                    if enabled_otp_methods := await self._controller.initialize_lite(
                         username=self.config[CONF_USERNAME],
                         password=self.config[CONF_PASSWORD],
                         twofactorcookie=self.config[CONF_2FA_COOKIE],
-                    )
+                    ):
+                        log.debug("OTP code required.")
+                        self._enabled_otp_methods = enabled_otp_methods
+                        return await self.async_step_otp_select_method()
 
                 except libTwoFactor_ConfigurationRequired:
                     return self.async_abort(reason="must_enable_2fa")
-
-                except libTwoFactor_OtpRequired:
-                    log.debug("OTP code required.")
-                    return await self.async_step_otp_select_method()
 
                 except (
                     libUnexpectedDataStructure,
@@ -129,9 +128,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                         err,
                     )
                     errors["base"] = "invalid_auth"
-                # except Exception as err:  # pylint: disable=broad-except
-                #     log.error(f"Got error while initializing Alarm.com: {err}")
-                #     errors["base"] = "unknown"
+                except Exception as err:  # pylint: disable=broad-except
+                    log.error(f"Got error while initializing Alarm.com: {err}")
+                    errors["base"] = "unknown"
                 else:
                     return await self.async_step_final()
 
@@ -165,10 +164,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         try:
             # Get list of enabled OTP methods.
-            if (
-                len(enabled_otp_methods := await self._controller.api.async_get_enabled_2fa_methods()) == 1
-                and enabled_otp_methods[0] == OtpType.app
-            ):
+            if len(self._enabled_otp_methods) == 1 and self._enabled_otp_methods[0] == OtpType.app:
                 # If APP is the only enabled OTP method, use it without prompting user.
                 self.otp_method = OtpType.app
                 log.debug(f"Using {self.otp_method.value} for One-Time Password.")
@@ -184,9 +180,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         otp_method_schema = vol.Schema(
             {
-                vol.Required(CONF_OTP_METHOD, default=enabled_otp_methods[0].name): SelectSelector(
+                vol.Required(CONF_OTP_METHOD, default=self._enabled_otp_methods[0].name): SelectSelector(
                     SelectSelectorConfig(
-                        options=[otp_type.name for otp_type in enabled_otp_methods],
+                        options=[otp_type.name for otp_type in self._enabled_otp_methods],
                         mode=SelectSelectorMode.DROPDOWN,
                         translation_key=CONF_OTP_METHODS_LIST,
                     )
@@ -291,15 +287,21 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
         try:
             async with async_timeout.timeout(60):
-                await self._controller.initialize_lite(
-                    username=self.config[CONF_USERNAME],
-                    password=self.config[CONF_PASSWORD],
-                    twofactorcookie=self.config[CONF_2FA_COOKIE],
+                self._enabled_otp_methods = (
+                    await self._controller.initialize_lite(
+                        username=self.config[CONF_USERNAME],
+                        password=self.config[CONF_PASSWORD],
+                        twofactorcookie=self.config[CONF_2FA_COOKIE],
+                    )
+                    or []
                 )
+
+            if self._enabled_otp_methods:
+                raise libTwoFactor_ConfigurationRequired()
 
             log.debug("Logged in successfully.")
 
-        except (libTwoFactor_OtpRequired, libTwoFactor_ConfigurationRequired):
+        except libTwoFactor_ConfigurationRequired:
             # If provider requires 2FA, create config entry anyway. Will fail on update and prompt for reauth.
             self._force_generic_name = True
         except (

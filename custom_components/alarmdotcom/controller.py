@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 from types import MappingProxyType
 from typing import Any
 
@@ -13,14 +13,20 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyalarmdotcomajax import AlarmController as libAlarmController
+from pyalarmdotcomajax import OtpType
 from pyalarmdotcomajax.errors import (
     AuthenticationFailed,
     UnexpectedDataStructure,
 )
 
-from .const import CONF_2FA_COOKIE, CONF_UPDATE_INTERVAL_DEFAULT
+from .const import (
+    CONF_2FA_COOKIE,
+    COORDINATOR_UPDATE_INTERVAL_MINUTES,
+    KEEP_ALIVE_INTERVAL_MINUTES,
+)
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +52,10 @@ class AlarmIntegrationController:
     async def initialize(self) -> None:
         """Initialize connection to Alarm.com."""
 
+        #
+        # Create pyalarmdotcomajax controller
+        #
+
         self.api = libAlarmController(
             username=self.config_entry.data[CONF_USERNAME],
             password=self.config_entry.data[CONF_PASSWORD],
@@ -55,6 +65,10 @@ class AlarmIntegrationController:
 
         await self._login()
 
+        #
+        # Initialize DataUpdateCoordinator and pull device data
+        #
+
         self.options = self.config_entry.options
         self.config_entry.async_on_unload(self.config_entry.add_update_listener(_async_update_listener))
 
@@ -63,12 +77,25 @@ class AlarmIntegrationController:
             log,
             name=self.config_entry.title,
             update_method=self.async_update,
-            update_interval=timedelta(seconds=CONF_UPDATE_INTERVAL_DEFAULT),
+            update_interval=timedelta(minutes=COORDINATOR_UPDATE_INTERVAL_MINUTES),
         )
 
         await self.update_coordinator.async_config_entry_first_refresh()
 
-    async def initialize_lite(self, username: str, password: str, twofactorcookie: str | None) -> None:
+        #
+        # Start keep-alive task
+        #
+
+        async_track_time_interval(
+            hass=self.hass,
+            action=self._keep_alive,
+            interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
+            name="Alarm.com Session Keep Alive",
+        )
+
+    async def initialize_lite(
+        self, username: str, password: str, twofactorcookie: str | None
+    ) -> list[OtpType] | None:
         """Initialize connection to Alarm.com for config entry flow."""
 
         self.api = libAlarmController(
@@ -80,11 +107,20 @@ class AlarmIntegrationController:
 
         return await self._login()
 
-    async def _login(self) -> None:
+    async def _keep_alive(self, now: datetime) -> None:
+        """Pass through to pyalarmdotcomajax keep_alive().
+
+        This will be called by async_track_time_interval, which submits a datetime parameter.
+        Using now as a dummy to prevent errors.
+        """
+
+        return await self.api.keep_alive()  # type: ignore
+
+    async def _login(self) -> list[OtpType] | None:
         """Login to Alarm.com."""
 
         try:
-            await self.api.async_login()
+            return await self.api.async_login()  # type: ignore
         except (
             asyncio.TimeoutError,
             aiohttp.ClientError,
