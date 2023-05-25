@@ -48,13 +48,19 @@
                 "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
                 "python.formatting.provider": "black",
                 "python.linting.enabled": true,
+                "python.languageServer": "Pylance",
                 "python.testing.pytestEnabled": true,
-                "terminal.integrated.defaultProfile.linux": "bash",
-                "terminal.integrated.profiles.linux": {
-                    "zsh": {
-                        "path": "/bin/bash"
-                    }
-                }
+                "python.linting.mypyEnabled": false,
+                "python.linting.pylintEnabled": true,
+                "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
+                "python.analysis.diagnosticMode": "workspace",
+                "python.analysis.typeCheckingMode": "off",
+                "python.analysis.include": [
+                    "**/custom_components/alarmdotcom",
+                    "**/pyalarmdotcomajax/pyalarmdotcomajax",
+                    "**/pyalarmdotcomajax/tests",
+                    "**/pyalarmdotcomajax/examples"
+                ]
             }
         }
     },

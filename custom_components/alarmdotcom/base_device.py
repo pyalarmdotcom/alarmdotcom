@@ -138,6 +138,8 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         Alerts user that they lack permission to perform action.
         """
 
+        # TODO: Convert to Home Assistant Repair item.
+
         error_msg = (
             f"Your Alarm.com user does not have permission to {action} the"
             f" {self.device_type_name.lower()}, {self._device.name} ({self._adc_id})."

@@ -16,10 +16,12 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyalarmdotcomajax import AlarmController as libAlarmController
-from pyalarmdotcomajax import OtpType
-from pyalarmdotcomajax.errors import (
+from pyalarmdotcomajax.const import OtpType
+from pyalarmdotcomajax.exceptions import (
+    AlarmdotcomException,
     AuthenticationFailed,
-    UnexpectedDataStructure,
+    NotAuthorized,
+    UnexpectedResponse,
 )
 
 from .const import (
@@ -86,12 +88,21 @@ class AlarmIntegrationController:
         # Start keep-alive task
         #
 
-        async_track_time_interval(
-            hass=self.hass,
-            action=self._keep_alive,
-            interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
-            name="Alarm.com Session Keep Alive",
-        )
+        try:
+            # Home Assistant vers >=2023.4
+            async_track_time_interval(
+                hass=self.hass,
+                action=self._keep_alive,
+                interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
+                name="Alarm.com Session Keep Alive",
+            )
+        except TypeError:
+            # Home Assistant vers <2023.4
+            async_track_time_interval(
+                hass=self.hass,
+                action=self._keep_alive,
+                interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
+            )
 
     async def initialize_lite(
         self, username: str, password: str, twofactorcookie: str | None
@@ -125,13 +136,12 @@ class AlarmIntegrationController:
             asyncio.TimeoutError,
             aiohttp.ClientError,
             asyncio.exceptions.CancelledError,
-            ConnectionError,
         ) as err:
             raise ConfigEntryNotReady from err
-        except UnexpectedDataStructure as err:
-            raise UpdateFailed("Alarm.com returned data in an unexpected format.") from err
+        except (UnexpectedResponse, NotAuthorized) as err:
+            raise UpdateFailed from err
         except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed("Invalid account credentials found while logging in.") from err
+            raise ConfigEntryAuthFailed from err
 
     async def async_update(self) -> None:
         """Pull fresh data from Alarm.com for coordinator."""
@@ -141,23 +151,7 @@ class AlarmIntegrationController:
         try:
             await self.api.async_update()
 
-        except (UnexpectedDataStructure, ConnectionError) as err:
-            log.error(
-                "%s: Update failed: %s",
-                __name__,
-                err,
-            )
-            raise UpdateFailed("Error communicating with api.") from err
-
-        # TypeError encountered when importing from configuration.yaml using
-        # a provider that requires 2FA with an account that does not
-        # have 2FA set up.
-        except TypeError as err:
-            raise ConfigEntryAuthFailed(
-                "async_update(): Two-factor authentication must be enabled in order to log in with this provider."
-            ) from err
-
-        except PermissionError as err:
+        except NotAuthorized as err:
             raise ConfigEntryAuthFailed("Account has insufficient permissions.") from err
 
         # Typically captured during login. Should only be captured here when
@@ -165,14 +159,8 @@ class AlarmIntegrationController:
         except AuthenticationFailed as err:
             raise ConfigEntryAuthFailed("Invalid account credentials found while updating device states.") from err
 
-        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-            log.error(
-                "%s: Update failed: %s",
-                __name__,
-                err,
-            )
-            # Handled by Home Assistant Update Coordinator
-            raise
+        except AlarmdotcomException as err:
+            raise UpdateFailed(str(err)) from err
 
     @property
     def provider_name(self) -> str:

@@ -22,7 +22,7 @@ from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
 
-# TODO: This device contains behavior to the Skybell HD. It needs to be made more generic as other devices are supported.
+# TODO: This device contains behavior specific to the Skybell HD. It needs to be made more generic as other devices are supported.
 
 
 async def async_setup_entry(

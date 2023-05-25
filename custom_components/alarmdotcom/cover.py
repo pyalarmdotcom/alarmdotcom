@@ -16,6 +16,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
+from pyalarmdotcomajax.exceptions import NotAuthorized
 
 from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
@@ -79,7 +80,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
 
         try:
             await self._device.async_open()
-        except PermissionError:
+        except NotAuthorized:
             self._show_permission_error("open")
 
     async def async_close_cover(self, **kwargs: Any) -> None:
@@ -89,7 +90,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
 
         try:
             await self._device.async_close()
-        except PermissionError:
+        except NotAuthorized:
             self._show_permission_error("close")
 
     #

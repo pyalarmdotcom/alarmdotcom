@@ -136,12 +136,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     async def handle_alarmdotcom_debug_request_event(event: Event) -> None:
         """Dump debug data when requested via Home Assistant event."""
 
-        if device := controller.api.devices.get(str(event.data.get("device_id"))):
-            log.warning(
-                "ALARM.COM DEBUG DATA FOR %s: %s",
-                str(device.name).upper(),
-                json.dumps(device.debug_data),
-            )
+        log.warning(
+            "ALARM.COM DEBUG DATA FOR %s: %s",
+            str(controller.api.devices.get(str(event.data.get("device_id"))).name).upper(),
+            json.dumps(device.debug_data),
+        )
 
     # Listen for debug entity requests
     hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)

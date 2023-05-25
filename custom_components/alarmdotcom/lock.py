@@ -13,6 +13,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.lock import Lock as libLock
+from pyalarmdotcomajax.exceptions import NotAuthorized
 
 from .base_device import HardwareBaseDevice
 from .const import CONF_ARM_CODE, DATA_CONTROLLER, DOMAIN, MIGRATE_MSG_ALERT
@@ -109,7 +110,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
             try:
                 await self._device.async_lock()
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("lock")
 
     async def async_unlock(self, **kwargs: Any) -> None:
@@ -119,7 +120,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
             try:
                 await self._device.async_unlock()
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("unlock")
 
     #

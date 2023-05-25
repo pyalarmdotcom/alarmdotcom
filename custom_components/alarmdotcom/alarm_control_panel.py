@@ -25,6 +25,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
+from pyalarmdotcomajax.exceptions import NotAuthorized
 
 from .base_device import HardwareBaseDevice
 from .const import (
@@ -135,7 +136,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
             try:
                 await self._device.async_disarm()
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("disarm")
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
@@ -152,7 +153,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                     no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
                     silent_arming=CONF_SILENT_ARM in arm_options,
                 )
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("arm_night")
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
@@ -169,7 +170,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                     no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
                     silent_arming=CONF_SILENT_ARM in arm_options,
                 )
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("arm_home")
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
@@ -186,7 +187,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                     no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
                     silent_arming=CONF_SILENT_ARM in arm_options,
                 )
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("arm_away")
 
     #

@@ -32,11 +32,13 @@ repos:
       hooks:
           - id: mypy
             additional_dependencies: [types-all]
-    # - repo: https://github.com/adrienverge/yamllint.git
-    #   rev: v1.31.0
-    #   hooks:
-    #       - id: yamllint
-    #         exclude: (.vscode|.devcontainer|.github)
+    - repo: https://github.com/adrienverge/yamllint.git
+      rev: v1.31.0
+      hooks:
+          - id: yamllint
+            exclude: (.vscode|.devcontainer|.github)
+            args:
+                - -d relaxed
     - repo: https://github.com/pappasam/toml-sort
       rev: v0.23.1
       hooks:
