@@ -1,14 +1,23 @@
 """The alarmdotcom integration."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Event, HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
+from pyalarmdotcomajax import OtpRequired
+from pyalarmdotcomajax.exceptions import (
+    AlarmdotcomException,
+    AuthenticationFailed,
+    ConfigureTwoFactorAuthentication,
+)
 
 from .const import (
     CONF_ARM_AWAY,
@@ -62,7 +71,15 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     #
 
     controller = AlarmIntegrationController(hass, config_entry)
-    await controller.initialize()
+
+    try:
+        await controller.initialize()
+    except (OtpRequired, AuthenticationFailed) as ex:
+        raise ConfigEntryAuthFailed("Authentication failed. Please try logging in again.") from ex
+    except ConfigureTwoFactorAuthentication as ex:
+        raise ConfigEntryAuthFailed from ex
+    except (AlarmdotcomException, aiohttp.ClientError, asyncio.TimeoutError) as ex:
+        raise ConfigEntryNotReady from ex
 
     # Store integration data for use during platform setup.
     hass.data[DOMAIN][config_entry.entry_id] = {

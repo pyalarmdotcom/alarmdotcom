@@ -28,22 +28,23 @@
                 "charliermarsh.ruff",
                 "esbenp.prettier-vscode",
                 "EditorConfig.EditorConfig",
+                "ms-python.mypy-type-checker",
                 "ms-python.python"
             ],
             "settings": {
                 "[python]": {
                     "editor.codeActionsOnSave": {
                         "source.fixAll.ruff": true,
-                        "source.organizeImports.ruff": true
+                        "source.organizeImports": true
                     },
-                    "editor.defaultFormatter": "ms-python.black-formatter"
+                    "editor.defaultFormatter": "ms-python.black-formatter",
+                    "editor.formatOnPaste": false,
+                    "editor.formatOnSave": true,
+                    "editor.formatOnType": true
                 },
                 "[yaml]": {
                     "editor.defaultFormatter": "esbenp.prettier-vscode"
                 },
-                "editor.formatOnPaste": false,
-                "editor.formatOnSave": true,
-                "editor.formatOnType": true,
                 "python.analysis.autoSearchPaths": false,
                 "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
                 "python.formatting.provider": "black",
@@ -51,7 +52,7 @@
                 "python.languageServer": "Pylance",
                 "python.testing.pytestEnabled": true,
                 "python.linting.mypyEnabled": false,
-                "python.linting.pylintEnabled": true,
+                // "python.linting.pylintEnabled": true,
                 "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
                 "python.analysis.diagnosticMode": "workspace",
                 "python.analysis.typeCheckingMode": "off",
@@ -60,6 +61,13 @@
                     "**/pyalarmdotcomajax/pyalarmdotcomajax",
                     "**/pyalarmdotcomajax/tests",
                     "**/pyalarmdotcomajax/examples"
+                ],
+                "python.analysis.packageIndexDepths": [
+                    {
+                        "name": "pyalarmdotcomajax",
+                        "depth": 5,
+                        "includeAllSymbols": true
+                    }
                 ]
             }
         }

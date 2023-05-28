@@ -129,18 +129,17 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
 
     @classmethod
     def _determine_code_format(cls, code: str) -> str:
-        if isinstance(code, str):
-            code_patterns = [
-                r"^\d+$",  # Only digits
-                r"^\w\D+$",  # Only alpha
-                r"^\w+$",  # Alphanumeric
-            ]
+        code_patterns = [
+            r"^\d+$",  # Only digits
+            r"^\w\D+$",  # Only alpha
+            r"^\w+$",  # Alphanumeric
+        ]
 
-            for pattern in code_patterns:
-                if re.findall(pattern, code):
-                    return pattern
+        for pattern in code_patterns:
+            if re.findall(pattern, code):
+                return pattern
 
-            return "."  # All characters
+        return "."  # All characters
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""

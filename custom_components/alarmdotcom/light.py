@@ -113,7 +113,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
             if state == libLight.DeviceState.OFF:
                 return False
 
-            log.error(
+            log.exception(
                 "Cannot determine light state. Found raw state of %s.",
                 state,
             )

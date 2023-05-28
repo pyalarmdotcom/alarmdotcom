@@ -14,7 +14,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
+from pyalarmdotcomajax.devices.registry import AllDevices_t
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 from pyalarmdotcomajax.devices.water_sensor import WaterSensor as libWaterSensor
 
@@ -74,7 +74,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
 
     _device: libSensor
 
-    def __init__(self, controller: AlarmIntegrationController, device: libBaseDevice) -> None:
+    def __init__(self, controller: AlarmIntegrationController, device: AllDevices_t) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device, device.partition_id)
 
@@ -95,7 +95,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
         """Update the entity when coordinator is updated."""
 
         self._attr_is_on = self._determine_is_on(self._device.state)
-        self._attr_icon = self._determine_icon(self._attr_state)
+        self._attr_icon = self._determine_icon(self._attr_is_on)
 
     #
     # Helpers
@@ -125,25 +125,27 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
         if state == libSensor.DeviceState.UNKNOWN:
             return None
 
-        log.error(
+        log.exception(
             "Cannot determine binary sensor state. Found raw state of %s.",
             state,
         )
 
         return None
 
-    def _determine_icon(self, state: bool) -> str | None:
+    def _determine_icon(self, is_on: bool | None) -> str | None:
         """Return the icon to use in the frontend, if any."""
         if self.device_class in [
             BinarySensorDeviceClass.SMOKE,
             BinarySensorDeviceClass.CO,
             BinarySensorDeviceClass.GAS,
         ]:
-            if not self.available:
-                return "mdi:smoke-detector-variant-off"
-            if state:
+            if self.available and is_on:
                 return "mdi:smoke-detector-variant-alert"
-            return "mdi:smoke-detector-variant"
+
+            if self.available and not is_on:
+                return "mdi:smoke-detector-variant"
+
+            return "mdi:smoke-detector-variant-off"
 
         return str(super().icon) if isinstance(super().icon, str) else None
 
@@ -226,7 +228,7 @@ class BatteryAttributeSensor(AttributeBaseDevice, BinarySensorEntity):  # type: 
     def __init__(
         self,
         controller: AlarmIntegrationController,
-        device: libBaseDevice,
+        device: AllDevices_t,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device, self.subdevice_type)
@@ -267,7 +269,7 @@ class MalfunctionAttributeSensor(AttributeBaseDevice, BinarySensorEntity):  # ty
     def __init__(
         self,
         controller: AlarmIntegrationController,
-        device: libBaseDevice,
+        device: AllDevices_t,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device, self.subdevice_type)

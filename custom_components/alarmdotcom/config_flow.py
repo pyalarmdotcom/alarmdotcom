@@ -22,6 +22,7 @@ from homeassistant.helpers.selector import (
     TextSelectorType,
 )
 from pyalarmdotcomajax.const import OtpType
+from pyalarmdotcomajax.exceptions import AlarmdotcomException, OtpRequired
 from pyalarmdotcomajax.exceptions import AuthenticationFailed as libAuthenticationFailed
 from pyalarmdotcomajax.exceptions import (
     ConfigureTwoFactorAuthentication as libConfigureTwoFactorAuthentication,
@@ -92,14 +93,16 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
             async with async_timeout.timeout(60):
                 try:
-                    if enabled_otp_methods := await self._controller.initialize_lite(
+                    await self._controller.initialize_lite(
                         username=self.config[CONF_USERNAME],
                         password=self.config[CONF_PASSWORD],
                         twofactorcookie=self.config[CONF_2FA_COOKIE],
-                    ):
-                        log.debug("OTP code required.")
-                        self._enabled_otp_methods = enabled_otp_methods
-                        return await self.async_step_otp_select_method()
+                    )
+
+                except OtpRequired as exc:
+                    log.debug("OTP code required.")
+                    self._enabled_otp_methods = exc.enabled_2fa_methods
+                    return await self.async_step_otp_select_method()
 
                 except libConfigureTwoFactorAuthentication:
                     return self.async_abort(reason="must_enable_2fa")
@@ -109,23 +112,19 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     asyncio.TimeoutError,
                     aiohttp.ClientError,
                     asyncio.exceptions.CancelledError,
-                ) as err:
-                    log.error(
-                        "%s: user login failed to contact Alarm.com: %s",
+                ):
+                    log.exception(
+                        "%s: user login failed to contact Alarm.com.",
                         __name__,
-                        err,
                     )
                     errors["base"] = "cannot_connect"
 
-                except libAuthenticationFailed as err:
-                    log.error(
-                        "%s: user login failed with InvalidAuth exception: %s",
-                        __name__,
-                        err,
-                    )
+                except libAuthenticationFailed:
+                    log.exception("%s: user login failed with AuthenticationFailed exception.", __name__)
                     errors["base"] = "invalid_auth"
-                except Exception as err:  # pylint: disable=broad-except
-                    log.error(f"Got error while initializing Alarm.com: {err}")
+
+                except AlarmdotcomException:
+                    log.exception("Got error while initializing Alarm.com.")
                     errors["base"] = "unknown"
                 else:
                     return await self.async_step_final()
@@ -163,14 +162,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             if len(self._enabled_otp_methods) == 1 and self._enabled_otp_methods[0] == OtpType.app:
                 # If APP is the only enabled OTP method, use it without prompting user.
                 self.otp_method = OtpType.app
-                log.debug(f"Using {self.otp_method.value} for One-Time Password.")
+                log.debug(f"Using {self.otp_method.name} for One-Time Password.")
                 return await self.async_step_otp_submit()
 
-        except (aiohttp.ClientError, asyncio.TimeoutError, libUnexpectedResponse) as err:
-            log.error(
-                "%s: OTP submission failed connection exception: %s",
+        except (aiohttp.ClientError, asyncio.TimeoutError, libUnexpectedResponse):
+            log.exception(
+                "%s: OTP submission failed connection exception.",
                 __name__,
-                err,
             )
             errors["base"] = "cannot_connect"
 
@@ -194,6 +192,9 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         """Gather OTP when integration configured through UI."""
         errors = {}
         if user_input is not None:
+            if not self.otp_method:
+                raise AttributeError("OTP method not set.")
+
             try:
                 await self._controller.api.async_submit_otp(
                     method=self.otp_method,
@@ -207,19 +208,17 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     raise libAuthenticationFailed("OTP submission failed. Two-factor cookie not found.")
 
             # AttributeError raised if api has not been initialized.
-            except (AttributeError, libUnexpectedResponse, asyncio.TimeoutError, aiohttp.ClientError) as err:
-                log.error(
-                    "%s: OTP submission failed with CannotConnect exception: %s",
+            except (AttributeError, libUnexpectedResponse, asyncio.TimeoutError, aiohttp.ClientError):
+                log.exception(
+                    "%s: OTP submission failed with CannotConnect exception.",
                     __name__,
-                    err,
                 )
                 errors["base"] = "cannot_connect"
 
-            except libAuthenticationFailed as err:
-                log.error(
-                    "%s: Incorrect OTP: %s",
+            except libAuthenticationFailed:
+                log.exception(
+                    "%s: Incorrect OTP code entered.",
                     __name__,
-                    err,
                 )
                 errors["base"] = "invalid_otp"
 

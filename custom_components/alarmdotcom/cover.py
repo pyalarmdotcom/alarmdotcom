@@ -107,7 +107,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
             if state in [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]:
                 return True
 
-            log.error(
+            log.exception(
                 "Cannot determine cover state. Found raw state of %s.",
                 state,
             )

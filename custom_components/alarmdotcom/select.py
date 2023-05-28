@@ -85,7 +85,7 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
                 for member in libCameraSkybellControllerExtension.MotionSensitivity
             }
         else:
-            log.error(
+            log.exception(
                 "%s: Encountered unknown select configuration type when initializing %s.",
                 __name__,
                 self.unique_id,

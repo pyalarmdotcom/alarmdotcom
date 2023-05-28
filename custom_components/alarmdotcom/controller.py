@@ -16,7 +16,6 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyalarmdotcomajax import AlarmController as libAlarmController
-from pyalarmdotcomajax.const import OtpType
 from pyalarmdotcomajax.exceptions import (
     AlarmdotcomException,
     AuthenticationFailed,
@@ -58,14 +57,11 @@ class AlarmIntegrationController:
         # Create pyalarmdotcomajax controller
         #
 
-        self.api = libAlarmController(
+        await self.initialize_lite(
             username=self.config_entry.data[CONF_USERNAME],
             password=self.config_entry.data[CONF_PASSWORD],
             twofactorcookie=self.config_entry.data.get(CONF_2FA_COOKIE),
-            websession=async_get_clientsession(self.hass),
         )
-
-        await self._login()
 
         #
         # Initialize DataUpdateCoordinator and pull device data
@@ -104,9 +100,7 @@ class AlarmIntegrationController:
                 interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
             )
 
-    async def initialize_lite(
-        self, username: str, password: str, twofactorcookie: str | None
-    ) -> list[OtpType] | None:
+    async def initialize_lite(self, username: str, password: str, twofactorcookie: str | None) -> None:
         """Initialize connection to Alarm.com for config entry flow."""
 
         self.api = libAlarmController(
@@ -116,7 +110,18 @@ class AlarmIntegrationController:
             websession=async_get_clientsession(self.hass),
         )
 
-        return await self._login()
+        try:
+            await self.api.async_login()
+        except (
+            asyncio.TimeoutError,
+            aiohttp.ClientError,
+            asyncio.exceptions.CancelledError,
+        ) as err:
+            raise ConfigEntryNotReady from err
+        except UnexpectedResponse as err:
+            raise UpdateFailed from err
+        except (AuthenticationFailed, NotAuthorized) as err:
+            raise ConfigEntryAuthFailed from err
 
     async def _keep_alive(self, now: datetime) -> None:
         """Pass through to pyalarmdotcomajax keep_alive().
@@ -126,22 +131,6 @@ class AlarmIntegrationController:
         """
 
         return await self.api.keep_alive()  # type: ignore
-
-    async def _login(self) -> list[OtpType] | None:
-        """Login to Alarm.com."""
-
-        try:
-            return await self.api.async_login()  # type: ignore
-        except (
-            asyncio.TimeoutError,
-            aiohttp.ClientError,
-            asyncio.exceptions.CancelledError,
-        ) as err:
-            raise ConfigEntryNotReady from err
-        except (UnexpectedResponse, NotAuthorized) as err:
-            raise UpdateFailed from err
-        except AuthenticationFailed as err:
-            raise ConfigEntryAuthFailed from err
 
     async def async_update(self) -> None:
         """Pull fresh data from Alarm.com for coordinator."""

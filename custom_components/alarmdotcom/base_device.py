@@ -66,7 +66,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         """Return whether device is available."""
 
         if not self._device:
-            log.error(
+            log.exception(
                 "%s: No device data available for %s (%s).",
                 __name__,
                 self.name,
