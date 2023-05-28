@@ -66,7 +66,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         """Return whether device is available."""
 
         if not self._device:
-            log.error(
+            log.exception(
                 "%s: No device data available for %s (%s).",
                 __name__,
                 self.name,
@@ -137,6 +137,8 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         Alerts user that they lack permission to perform action.
         """
+
+        # TODO: Convert to Home Assistant Repair item.
 
         error_msg = (
             f"Your Alarm.com user does not have permission to {action} the"

@@ -14,7 +14,7 @@
   <a href="https://github.com/pyalarmdotcom/alarmdotcom/releases"><img src="https://img.shields.io/github/release/pyalarmdotcom/alarmdotcom.svg" /></a>
   <a href="https://github.com/pyalarmdotcom/alarmdotcom/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/pyalarmdotcom/alarmdotcom"></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" /></a>
-  <a href="https://github.com/PyCQA/pylint"><img src="https://img.shields.io/badge/linting-pylint-yellowgreen" /></a>
+  <a href="https://github.com/charliermarsh/ruff"><img alt="GitHub" src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json" /></a>
 </p>
 
 <hr />

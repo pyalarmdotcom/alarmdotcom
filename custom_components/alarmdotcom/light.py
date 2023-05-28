@@ -11,6 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.light import Light as libLight
+from pyalarmdotcomajax.exceptions import NotAuthorized
 
 from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
@@ -78,15 +79,15 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
 
         try:
             await self._device.async_turn_on(brightness)
-        except PermissionError:
-            self._show_permission_error("turn on")
+        except NotAuthorized:
+            self._show_permission_error("turn on or adjust brightness on")
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
 
         try:
             await self._device.async_turn_off()
-        except PermissionError:
+        except NotAuthorized:
             self._show_permission_error("turn off")
 
     #
@@ -112,7 +113,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
             if state == libLight.DeviceState.OFF:
                 return False
 
-            log.error(
+            log.exception(
                 "Cannot determine light state. Found raw state of %s.",
                 state,
             )

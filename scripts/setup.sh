@@ -22,15 +22,15 @@ pip install -r "$workspace_dir/requirements-dev.txt"
 
 cat << EOF
 
-cat << EOF
-
 ######################################
 INITIALIZING HOME ASSISTANT RUN SCRIPT
 ######################################
 
 EOF
 
-chmod +x $workspace_dir/scripts/run.sh
+chmod +x $workspace_dir/scripts/run-ha.sh
+
+cat << EOF
 
 ####################################
 INITIALIZING LIBRARY "$library_name"

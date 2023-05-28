@@ -5,8 +5,7 @@ import logging
 import re
 from enum import Enum
 
-from homeassistant import config_entries, core
-from homeassistant.components import persistent_notification
+from homeassistant import core
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
     AlarmControlPanelEntityFeature,
@@ -21,10 +20,10 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_DISARMING,
 )
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
+from pyalarmdotcomajax.exceptions import NotAuthorized
 
 from .base_device import HardwareBaseDevice
 from .const import (
@@ -37,35 +36,10 @@ from .const import (
     CONF_SILENT_ARM,
     DATA_CONTROLLER,
     DOMAIN,
-    MIGRATE_MSG_ALERT,
 )
 from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
-
-
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,  # pylint: disable=unused-argument
-    discovery_info: DiscoveryInfoType | None = None,  # pylint: disable=unused-argument
-) -> None:
-    """Set up the legacy platform."""
-
-    log.debug("Alarmdotcom: Detected legacy platform config entry. Converting to Home Assistant config flow.")
-
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config)
-    )
-
-    log.warning(MIGRATE_MSG_ALERT)
-
-    persistent_notification.async_create(
-        hass,
-        MIGRATE_MSG_ALERT,
-        title="Alarm.com Updated",
-        notification_id="alarmdotcom_migration",
-    )
 
 
 async def async_setup_entry(
@@ -135,7 +109,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
             try:
                 await self._device.async_disarm()
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("disarm")
 
     async def async_alarm_arm_night(self, code: str | None = None) -> None:
@@ -152,7 +126,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                     no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
                     silent_arming=CONF_SILENT_ARM in arm_options,
                 )
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("arm_night")
 
     async def async_alarm_arm_home(self, code: str | None = None) -> None:
@@ -169,7 +143,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                     no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
                     silent_arming=CONF_SILENT_ARM in arm_options,
                 )
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("arm_home")
 
     async def async_alarm_arm_away(self, code: str | None = None) -> None:
@@ -186,7 +160,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                     no_entry_delay=CONF_NO_ENTRY_DELAY in arm_options,
                     silent_arming=CONF_SILENT_ARM in arm_options,
                 )
-            except PermissionError:
+            except NotAuthorized:
                 self._show_permission_error("arm_away")
 
     #
@@ -208,7 +182,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             if state == libPartition.DeviceState.ARMED_NIGHT:
                 return str(STATE_ALARM_ARMED_NIGHT)
 
-            log.error(
+            log.exception(
                 "Cannot determine state. Found raw state of %s.",
                 state,
             )

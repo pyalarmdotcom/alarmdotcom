@@ -21,6 +21,7 @@ from homeassistant.const import ATTR_TEMPERATURE, TEMP_FAHRENHEIT
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.thermostat import Thermostat as libThermostat
+from pyalarmdotcomajax.exceptions import NotAuthorized
 
 from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
@@ -174,8 +175,8 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
             elif hvac_mode == HVACMode.OFF:
                 await self._device.async_set_attribute(state=libThermostat.DeviceState.OFF)
                 await self.async_set_fan_mode(FAN_AUTO)
-        except PermissionError:
-            self._show_permission_error("set")
+        except NotAuthorized:
+            self._show_permission_error("set the HVAC mode on")
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Change fan mode."""
@@ -191,32 +192,35 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
                 await self._device.async_set_attribute(fan=(libThermostat.FanMode.ON, max_fan_duration))
             elif fan_mode == FAN_AUTO:
                 await self._device.async_set_attribute(fan=(libThermostat.FanMode.AUTO, 0))
-        except PermissionError:
-            self._show_permission_error("set")
+        except NotAuthorized:
+            self._show_permission_error("set the fan mode on")
 
     async def async_set_temperature(self, **kwargs) -> None:  # type: ignore
         """Set new target temperature."""
 
-        # Change HVAC Mode First
-        if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
-            await self.async_set_hvac_mode(hvac_mode)
-            await self.async_update()
+        try:
+            # Change HVAC Mode First
+            if hvac_mode := kwargs.get(ATTR_HVAC_MODE):
+                await self.async_set_hvac_mode(hvac_mode)
+                await self.async_update()
 
-        # Heat/cool setpoint
-        heat_setpoint = None
-        cool_setpoint = None
-        if self.hvac_mode == HVACMode.HEAT:
-            heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
-        elif self.hvac_mode == HVACMode.COOL:
-            cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
-        else:
-            heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
-            cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
+            # Heat/cool setpoint
+            heat_setpoint = None
+            cool_setpoint = None
+            if self.hvac_mode == HVACMode.HEAT:
+                heat_setpoint = kwargs.get(ATTR_TEMPERATURE)
+            elif self.hvac_mode == HVACMode.COOL:
+                cool_setpoint = kwargs.get(ATTR_TEMPERATURE)
+            else:
+                heat_setpoint = kwargs.get(ATTR_TARGET_TEMP_LOW)
+                cool_setpoint = kwargs.get(ATTR_TARGET_TEMP_HIGH)
 
-        if heat_setpoint is not None:
-            await self._device.async_set_attribute(heat_setpoint=heat_setpoint)
-        if cool_setpoint is not None:
-            await self._device.async_set_attribute(cool_setpoint=cool_setpoint)
+            if heat_setpoint is not None:
+                await self._device.async_set_attribute(heat_setpoint=heat_setpoint)
+            if cool_setpoint is not None:
+                await self._device.async_set_attribute(cool_setpoint=cool_setpoint)
+        except NotAuthorized:
+            self._show_permission_error("set the temperature on")
 
     def _determine_features(self) -> None:
         """Determine which features are available for thermostat."""

@@ -45,7 +45,7 @@ CONF_ARM_AWAY = "arm_away_options"
 CONF_ARM_NIGHT = "arm_night_options"
 
 
-CONF_FORCE_BYPASS = "force_bypass"  # noqa: S105
+CONF_FORCE_BYPASS = "force_bypass"
 CONF_SILENT_ARM = "silent_arming"
 CONF_NO_ENTRY_DELAY = "no_entry_delay"
 CONF_ARM_MODE_OPTIONS = {

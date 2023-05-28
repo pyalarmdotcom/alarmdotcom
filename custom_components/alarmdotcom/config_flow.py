@@ -21,15 +21,14 @@ from homeassistant.helpers.selector import (
     TextSelectorConfig,
     TextSelectorType,
 )
-from pyalarmdotcomajax import AlarmController as libController
-from pyalarmdotcomajax import OtpType
-from pyalarmdotcomajax.errors import AuthenticationFailed as libAuthenticationFailed
-from pyalarmdotcomajax.errors import DataFetchFailed as libDataFetchFailed
-from pyalarmdotcomajax.errors import (
-    TwoFactor_ConfigurationRequired as libTwoFactor_ConfigurationRequired,
+from pyalarmdotcomajax.const import OtpType
+from pyalarmdotcomajax.exceptions import AlarmdotcomException, OtpRequired
+from pyalarmdotcomajax.exceptions import AuthenticationFailed as libAuthenticationFailed
+from pyalarmdotcomajax.exceptions import (
+    ConfigureTwoFactorAuthentication as libConfigureTwoFactorAuthentication,
 )
-from pyalarmdotcomajax.errors import (
-    UnexpectedDataStructure as libUnexpectedDataStructure,
+from pyalarmdotcomajax.exceptions import (
+    UnexpectedResponse as libUnexpectedResponse,
 )
 
 from .const import (
@@ -62,7 +61,6 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         self.system_id: str | None = None
         self.sensor_data: dict | None = {}
         self._config_title: str | None = None
-        self._imported_options = None
         self._controller: AlarmIntegrationController
         self._existing_entry: config_entries.ConfigEntry | None = None
         self._enabled_otp_methods: list[OtpType] = []
@@ -95,41 +93,38 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
             async with async_timeout.timeout(60):
                 try:
-                    if enabled_otp_methods := await self._controller.initialize_lite(
+                    await self._controller.initialize_lite(
                         username=self.config[CONF_USERNAME],
                         password=self.config[CONF_PASSWORD],
                         twofactorcookie=self.config[CONF_2FA_COOKIE],
-                    ):
-                        log.debug("OTP code required.")
-                        self._enabled_otp_methods = enabled_otp_methods
-                        return await self.async_step_otp_select_method()
+                    )
 
-                except libTwoFactor_ConfigurationRequired:
+                except OtpRequired as exc:
+                    log.debug("OTP code required.")
+                    self._enabled_otp_methods = exc.enabled_2fa_methods
+                    return await self.async_step_otp_select_method()
+
+                except libConfigureTwoFactorAuthentication:
                     return self.async_abort(reason="must_enable_2fa")
 
                 except (
-                    libUnexpectedDataStructure,
+                    libUnexpectedResponse,
                     asyncio.TimeoutError,
                     aiohttp.ClientError,
                     asyncio.exceptions.CancelledError,
-                    ConnectionError,
-                ) as err:
-                    log.error(
-                        "%s: user login failed to contact Alarm.com: %s",
+                ):
+                    log.exception(
+                        "%s: user login failed to contact Alarm.com.",
                         __name__,
-                        err,
                     )
                     errors["base"] = "cannot_connect"
 
-                except libAuthenticationFailed as err:
-                    log.error(
-                        "%s: user login failed with InvalidAuth exception: %s",
-                        __name__,
-                        err,
-                    )
+                except libAuthenticationFailed:
+                    log.exception("%s: user login failed with AuthenticationFailed exception.", __name__)
                     errors["base"] = "invalid_auth"
-                except Exception as err:  # pylint: disable=broad-except
-                    log.error(f"Got error while initializing Alarm.com: {err}")
+
+                except AlarmdotcomException:
+                    log.exception("Got error while initializing Alarm.com.")
                     errors["base"] = "unknown"
                 else:
                     return await self.async_step_final()
@@ -167,14 +162,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             if len(self._enabled_otp_methods) == 1 and self._enabled_otp_methods[0] == OtpType.app:
                 # If APP is the only enabled OTP method, use it without prompting user.
                 self.otp_method = OtpType.app
-                log.debug(f"Using {self.otp_method.value} for One-Time Password.")
+                log.debug(f"Using {self.otp_method.name} for One-Time Password.")
                 return await self.async_step_otp_submit()
 
-        except (ConnectionError, libDataFetchFailed) as err:
-            log.error(
-                "%s: OTP submission failed with CannotConnect exception: %s",
+        except (aiohttp.ClientError, asyncio.TimeoutError, libUnexpectedResponse):
+            log.exception(
+                "%s: OTP submission failed connection exception.",
                 __name__,
-                err,
             )
             errors["base"] = "cannot_connect"
 
@@ -198,42 +192,37 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         """Gather OTP when integration configured through UI."""
         errors = {}
         if user_input is not None:
-            try:
-                if not isinstance(self._controller.api, libController):
-                    raise ConnectionError("Failed to get ADC alarmhub.")
+            if not self.otp_method:
+                raise AttributeError("OTP method not set.")
 
-                try:
-                    await self._controller.api.async_submit_otp(
-                        method=self.otp_method,
-                        code=user_input[CONF_OTP],
-                        device_name=f"Home Assistant ({self.hass.config.location_name})",
-                    )
-                except (libDataFetchFailed, libAuthenticationFailed):
-                    log.error("OTP submission failed.")
-                    raise
+            try:
+                await self._controller.api.async_submit_otp(
+                    method=self.otp_method,
+                    code=user_input[CONF_OTP],
+                    device_name=f"Home Assistant ({self.hass.config.location_name})",
+                )
 
                 if cookie := self._controller.api.two_factor_cookie:
                     self.config[CONF_2FA_COOKIE] = cookie
                 else:
                     raise libAuthenticationFailed("OTP submission failed. Two-factor cookie not found.")
 
-                return await self.async_step_final()
-
-            except (ConnectionError, libDataFetchFailed) as err:
-                log.error(
-                    "%s: OTP submission failed with CannotConnect exception: %s",
+            # AttributeError raised if api has not been initialized.
+            except (AttributeError, libUnexpectedResponse, asyncio.TimeoutError, aiohttp.ClientError):
+                log.exception(
+                    "%s: OTP submission failed with CannotConnect exception.",
                     __name__,
-                    err,
                 )
                 errors["base"] = "cannot_connect"
 
-            except libAuthenticationFailed as err:
-                log.error(
-                    "%s: Incorrect OTP: %s",
+            except libAuthenticationFailed:
+                log.exception(
+                    "%s: Incorrect OTP code entered.",
                     __name__,
-                    err,
                 )
                 errors["base"] = "invalid_otp"
+
+            return await self.async_step_final()
 
         creds_schema = vol.Schema(
             {
@@ -261,65 +250,8 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
             return self.async_abort(reason="reauth_successful")
 
-        options = self._imported_options if self._imported_options else CONF_OPTIONS_DEFAULT
-
         # Named async_ but doesn't require await!
-        return self.async_create_entry(title=self._config_title, data=self.config, options=options)
-
-    # #
-    # Import from configuration.yaml
-    # #
-
-    # https://github.com/home-assistant/core/blob/56bda80e0a799404001efe309f52ea1f8a20f479/homeassistant/components/version/config_flow.py
-    async def async_step_import(self, import_config: dict[str, Any]) -> FlowResult:
-        """Import a config entry from configuration.yaml."""
-
-        log.debug("%s: Importing configuration data from configuration.yaml.", __name__)
-
-        self.config = _convert_v_0_1_imported_configuration(import_config)
-        self._imported_options = _convert_v_0_1_imported_options(import_config)
-
-        log.debug("%s: Done reading config options. Logging in...", __name__)
-
-        self._async_abort_entries_match({**self.config})
-
-        self._controller = AlarmIntegrationController(self.hass, self.config)
-
-        try:
-            async with async_timeout.timeout(60):
-                self._enabled_otp_methods = (
-                    await self._controller.initialize_lite(
-                        username=self.config[CONF_USERNAME],
-                        password=self.config[CONF_PASSWORD],
-                        twofactorcookie=self.config[CONF_2FA_COOKIE],
-                    )
-                    or []
-                )
-
-            if self._enabled_otp_methods:
-                raise libTwoFactor_ConfigurationRequired()
-
-            log.debug("Logged in successfully.")
-
-        except libTwoFactor_ConfigurationRequired:
-            # If provider requires 2FA, create config entry anyway. Will fail on update and prompt for reauth.
-            self._force_generic_name = True
-        except (
-            libAuthenticationFailed,
-            libUnexpectedDataStructure,
-            asyncio.exceptions.CancelledError,
-            ConnectionError,
-            asyncio.TimeoutError,
-            aiohttp.ClientError,
-        ) as err:
-            log.error(
-                "%s: Failed to log in when migrating from configuration.yaml: %s",
-                __name__,
-                err,
-            )
-            raise
-
-        return await self.async_step_final()
+        return self.async_create_entry(title=self._config_title, data=self.config, options=CONF_OPTIONS_DEFAULT)
 
     # #
     # Reauthentication Steps
@@ -406,71 +338,3 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             errors=errors,
             last_step=True,
         )
-
-
-def _convert_v_0_1_imported_configuration(config: dict[str, Any | None]) -> Any:
-    """Convert a key from the imported configuration."""
-
-    username = config.get("username")
-    password = config.get("password")
-    two_factor_cookie = config.get("two_factor_cookie")
-
-    data: dict = {}
-
-    data[CONF_USERNAME] = username
-    data[CONF_PASSWORD] = password
-    data[CONF_2FA_COOKIE] = two_factor_cookie if two_factor_cookie else None
-
-    return data
-
-
-def _convert_v_0_1_imported_options(config: dict[str, Any]) -> Any:
-    """Convert a key from the imported configuration."""
-
-    code: str | int | None = config.get("code")
-    force_bypass: LegacyArmingOptions | None = config.get("force_bypass")
-    no_entry_delay: LegacyArmingOptions | None = config.get("no_entry_delay")
-    silent_arming: LegacyArmingOptions | None = config.get("silent_arming")
-
-    data: dict = {}
-
-    if code:
-        data[CONF_ARM_CODE] = str(code)
-
-    # Populate Arm Home
-    new_arm_home = []
-
-    if force_bypass in ["home", "true"]:
-        new_arm_home.append("bypass")
-    if silent_arming in ["home", "true"]:
-        new_arm_home.append("silent")
-    if no_entry_delay not in ["home", "true"]:
-        new_arm_home.append("delay")
-
-    data[CONF_ARM_HOME] = new_arm_home
-
-    # Populate Arm Away
-    new_arm_away = []
-
-    if force_bypass in ["away", "true"]:
-        new_arm_away.append("bypass")
-    if silent_arming in ["away", "true"]:
-        new_arm_away.append("silent")
-    if no_entry_delay not in ["away", "true"]:
-        new_arm_away.append("delay")
-
-    data[CONF_ARM_AWAY] = new_arm_away
-
-    # Populate Arm Night
-    new_arm_night = []
-
-    if force_bypass == "true":  # noqa: S105
-        new_arm_night.append("bypass")
-    if silent_arming == "true":
-        new_arm_night.append("silent")
-    if no_entry_delay != "true":
-        new_arm_night.append("delay")
-
-    data[CONF_ARM_NIGHT] = new_arm_night
-
-    return data
