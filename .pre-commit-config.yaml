@@ -3,7 +3,7 @@ default_language_version:
 
 repos:
     - repo: https://github.com/charliermarsh/ruff-pre-commit
-      rev: v0.0.269
+      rev: v0.0.270
       hooks:
           - id: ruff
             args: [--fix, --exit-non-zero-on-fix]
@@ -33,7 +33,7 @@ repos:
           - id: mypy
             additional_dependencies: [types-all]
     - repo: https://github.com/adrienverge/yamllint.git
-      rev: v1.31.0
+      rev: v1.32.0
       hooks:
           - id: yamllint
             exclude: (.vscode|.devcontainer|.github)
