@@ -97,8 +97,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        if self._device.state and type(self._device.state):
-            self._attr_state = self._determine_state(self._device.state)
+        self._attr_state = self._determine_state(self._device.state)
 
         self._attr_extra_state_attributes.update({"uncleared_issues": str(self._device.uncleared_issues)})
 
@@ -167,12 +166,12 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     # Helpers
     #
 
-    def _determine_state(self, state: Enum) -> str | None:
+    def _determine_state(self, state: Enum | None) -> str | None:
         """Return the state of the device."""
 
         log.info("Processing state %s for %s", state, self.name or self._device.name)
 
-        if not self._device.malfunction:
+        if not self._device.malfunction and state:
             if state == libPartition.DeviceState.DISARMED:
                 return str(STATE_ALARM_DISARMED)
             if state == libPartition.DeviceState.ARMED_STAY:
@@ -182,10 +181,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             if state == libPartition.DeviceState.ARMED_NIGHT:
                 return str(STATE_ALARM_ARMED_NIGHT)
 
-            log.exception(
-                "Cannot determine state. Found raw state of %s.",
-                state,
-            )
+        log.error(f"Cannot determine state. Found raw state of {state}.")
 
         return None
 

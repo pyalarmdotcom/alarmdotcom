@@ -1,6 +1,7 @@
 """Base device."""
 from __future__ import annotations
 
+import contextlib
 import logging
 from abc import abstractmethod
 from collections.abc import MutableMapping
@@ -106,7 +107,9 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         await super().async_will_remove_from_hass()
 
-        self._device.unregister_external_update_callback(self._handle_coordinator_update)
+        # This will fail for devices that were removed from ADC during this session.
+        with contextlib.suppress(ValueError):
+            self._device.unregister_external_update_callback(self._handle_coordinator_update)
 
     @callback
     def _handle_coordinator_update(self) -> None:
