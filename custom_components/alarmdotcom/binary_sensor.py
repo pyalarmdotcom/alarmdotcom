@@ -43,7 +43,7 @@ async def async_setup_entry(
             device=device,
         )
         for device in [*controller.api.devices.sensors.values(), *controller.api.devices.water_sensors.values()]
-        if device.device_subtype not in SENSOR_SUBTYPE_BLACKLIST
+        if device.device_subtype not in SENSOR_SUBTYPE_BLACKLIST and device.has_state
     )
 
     # Create "virtual" low battery sensors.
@@ -55,6 +55,7 @@ async def async_setup_entry(
         for device in controller.api.devices.all.values()
         if None not in [device.battery_low, device.battery_critical]
         and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
+        and device.has_state
     )
 
     # Create "virtual" problem sensors for Alarm.com sensors and locks.
@@ -66,6 +67,7 @@ async def async_setup_entry(
         for device in controller.api.devices.all.values()
         if device.malfunction is not None
         and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
+        and device.has_state
     )
 
 

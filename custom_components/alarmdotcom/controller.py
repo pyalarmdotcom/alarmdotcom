@@ -25,8 +25,9 @@ from pyalarmdotcomajax.exceptions import (
 
 from .const import (
     CONF_2FA_COOKIE,
-    COORDINATOR_UPDATE_INTERVAL_MINUTES,
-    KEEP_ALIVE_INTERVAL_MINUTES,
+    CONF_DEFAULT_UPDATE_INTERVAL_SECONDS,
+    CONF_UPDATE_INTERVAL,
+    KEEP_ALIVE_INTERVAL_SECONDS,
 )
 
 log = logging.getLogger(__name__)
@@ -70,12 +71,14 @@ class AlarmIntegrationController:
         self.options = self.config_entry.options
         self.config_entry.async_on_unload(self.config_entry.add_update_listener(_async_update_listener))
 
+        update_interval = self.config_entry.data.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS)
+
         self.update_coordinator = DataUpdateCoordinator(
             self.hass,
             log,
             name=self.config_entry.title,
             update_method=self.async_update,
-            update_interval=timedelta(minutes=COORDINATOR_UPDATE_INTERVAL_MINUTES),
+            update_interval=timedelta(seconds=update_interval),
         )
 
         await self.update_coordinator.async_config_entry_first_refresh()
@@ -89,7 +92,7 @@ class AlarmIntegrationController:
             async_track_time_interval(
                 hass=self.hass,
                 action=self._keep_alive,
-                interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
+                interval=timedelta(seconds=KEEP_ALIVE_INTERVAL_SECONDS),
                 name="Alarm.com Session Keep Alive",
             )
         except TypeError:
@@ -97,7 +100,7 @@ class AlarmIntegrationController:
             async_track_time_interval(
                 hass=self.hass,
                 action=self._keep_alive,
-                interval=timedelta(minutes=KEEP_ALIVE_INTERVAL_MINUTES),
+                interval=timedelta(seconds=KEEP_ALIVE_INTERVAL_SECONDS),
             )
 
     async def initialize_lite(self, username: str, password: str, twofactorcookie: str | None) -> None:

@@ -29,6 +29,7 @@ from .const import (
     DATA_CONTROLLER,
     DEBUG_REQ_EVENT,
     DOMAIN,
+    SENSOR_SUBTYPE_BLACKLIST,
     STARTUP_MESSAGE,
 )
 from .controller import AlarmIntegrationController
@@ -105,7 +106,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Get devices from Alarm.com
     device_ids_via_adc: set[str] = set()
     for device in controller.api.devices.all.values():
-        device_ids_via_adc.add(device.id_)
+        if device.device_subtype not in SENSOR_SUBTYPE_BLACKLIST and device.has_state:
+            device_ids_via_adc.add(device.id_)
 
     log.debug(device_ids_via_adc)
 

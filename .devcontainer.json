@@ -29,7 +29,9 @@
                 "esbenp.prettier-vscode",
                 "EditorConfig.EditorConfig",
                 "ms-python.mypy-type-checker",
-                "ms-python.python"
+                "AykutSarac.jsoncrack-vscode",
+                "ms-python.python",
+                "yzhang.markdown-all-in-one"
             ],
             "settings": {
                 "[python]": {

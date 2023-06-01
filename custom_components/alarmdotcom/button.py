@@ -32,6 +32,7 @@ async def async_setup_entry(
         for device in controller.api.devices.all.values()
         if None not in [device.battery_low, device.battery_critical]
         and not (isinstance(device, libSensor) and device.device_subtype in SENSOR_SUBTYPE_BLACKLIST)
+        and device.has_state
     )
 
 
