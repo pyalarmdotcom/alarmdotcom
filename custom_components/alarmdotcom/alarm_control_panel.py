@@ -171,19 +171,21 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
 
         log.info("Processing state %s for %s", state, self.name or self._device.name)
 
-        if not self._device.malfunction and state:
-            if state == libPartition.DeviceState.DISARMED:
+        if self._device.malfunction or not state:
+            return None
+
+        match state:
+            case libPartition.DeviceState.DISARMED:
                 return str(STATE_ALARM_DISARMED)
-            if state == libPartition.DeviceState.ARMED_STAY:
+            case libPartition.DeviceState.ARMED_STAY:
                 return str(STATE_ALARM_ARMED_HOME)
-            if state == libPartition.DeviceState.ARMED_AWAY:
+            case libPartition.DeviceState.ARMED_AWAY:
                 return str(STATE_ALARM_ARMED_AWAY)
-            if state == libPartition.DeviceState.ARMED_NIGHT:
+            case libPartition.DeviceState.ARMED_NIGHT:
                 return str(STATE_ALARM_ARMED_NIGHT)
-
-        log.error(f"Cannot determine state. Found raw state of {state}.")
-
-        return None
+            case _:
+                log.error(f"Cannot determine state. Found raw state of {state}.")
+                return None
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
