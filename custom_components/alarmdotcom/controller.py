@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from datetime import datetime, timedelta
 from types import MappingProxyType
@@ -10,9 +11,9 @@ from typing import Any
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyalarmdotcomajax import AlarmController as libAlarmController
@@ -48,6 +49,8 @@ class AlarmIntegrationController:
         self.api: libAlarmController
 
         self.options: MappingProxyType[str, Any]
+
+        self._stop_keep_alive: CALLBACK_TYPE
 
         log.debug("%s: Registering update listener.", __name__)
 
@@ -89,7 +92,7 @@ class AlarmIntegrationController:
 
         try:
             # Home Assistant vers >=2023.4
-            async_track_time_interval(
+            self._stop_keep_alive = async_track_time_interval(
                 hass=self.hass,
                 action=self._keep_alive,
                 interval=timedelta(seconds=KEEP_ALIVE_INTERVAL_SECONDS),
@@ -97,11 +100,19 @@ class AlarmIntegrationController:
             )
         except TypeError:
             # Home Assistant vers <2023.4
-            async_track_time_interval(
+            self._stop_keep_alive = async_track_time_interval(
                 hass=self.hass,
                 action=self._keep_alive,
                 interval=timedelta(seconds=KEEP_ALIVE_INTERVAL_SECONDS),
             )
+
+    def stop_keep_alive(self) -> None:
+        """Stop keep-alive task."""
+
+        log.info("Stopping session keep-alive task.")
+
+        with contextlib.suppress(TypeError):
+            self._stop_keep_alive()
 
     async def initialize_lite(self, username: str, password: str, twofactorcookie: str | None) -> None:
         """Initialize connection to Alarm.com for config entry flow."""
@@ -110,7 +121,7 @@ class AlarmIntegrationController:
             username=username,
             password=password,
             twofactorcookie=twofactorcookie,
-            websession=async_get_clientsession(self.hass),
+            websession=async_create_clientsession(self.hass),
         )
 
         try:
