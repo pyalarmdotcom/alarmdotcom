@@ -11,6 +11,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_UNIT_OF_MEASUREMENT, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import selector
 from homeassistant.helpers.selector import (
@@ -121,7 +122,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     )
                     errors["base"] = "cannot_connect"
 
-                except libAuthenticationFailed:
+                except ConfigEntryAuthFailed:
                     log.exception("%s: user login failed with AuthenticationFailed exception.", __name__)
                     errors["base"] = "invalid_auth"
 
@@ -224,7 +225,8 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 )
                 errors["base"] = "invalid_otp"
 
-            return await self.async_step_final()
+            else:
+                return await self.async_step_final()
 
         creds_schema = vol.Schema(
             {
