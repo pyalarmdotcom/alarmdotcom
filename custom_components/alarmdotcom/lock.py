@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import re
+from enum import Enum
 from typing import Any
 
 from homeassistant import config_entries, core
@@ -87,21 +88,26 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     def _update_device_data(self) -> None:
         """Update the entity when coordinator is updated."""
 
-        self._attr_is_locked = self._determine_is_locked(libLock.DeviceState(self._device.state))
+        self._attr_is_locked = self._determine_is_locked(self._device.state)
         self._attr_is_locking = False
         self._attr_is_unlocking = False
 
-    def _determine_is_locked(self, state: libLock.DeviceState) -> bool | None:
+    def _determine_is_locked(self, state: Enum | None) -> bool | None:
         """Return true if the lock is locked."""
 
-        if not self._device.malfunction:
-            if state == libLock.DeviceState.LOCKED:
+        log.info("Processing is_locked %s for %s", state, self.name or self._device.name)
+
+        if self._device.malfunction or not state:
+            return None
+
+        match state:
+            case libLock.DeviceState.LOCKED:
                 return True
-
-            if state == libLock.DeviceState.UNLOCKED:
+            case libLock.DeviceState.UNLOCKED:
                 return False
-
-        return None
+            case _:
+                log.error(f"Cannot determine whether {self.name} is locked. Found raw state of {state}.")
+                return None
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the lock."""
