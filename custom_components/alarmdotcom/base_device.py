@@ -221,6 +221,12 @@ class AttributeBaseDevice(BaseDevice):
 
         self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
+        if not device.id_:
+            log.error(
+                f"{__name__}: No device ID available for {device.name}:\n{device}",
+            )
+            return
+
         self._attr_unique_id = f"{device.id_}_{subdevice_type.value.suffix}"
 
         self._attr_name = f"{subdevice_type.value.name}"
