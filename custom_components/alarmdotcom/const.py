@@ -1,6 +1,8 @@
 """Const for the Alarmdotcom integration."""
 from __future__ import annotations
 
+from homeassistant.const import Platform
+from pyalarmdotcomajax import const as libConst
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 
 INTEGRATION_NAME = "Alarm.com"
@@ -70,3 +72,22 @@ SENSOR_SUBTYPE_BLACKLIST = [
 
 DATA_CONTROLLER = "connection"
 DATA_LISTENER = "listener"
+
+ATTRIB_BATTERY_NORMAL = "Normal"
+ATTRIB_BATTERY_LOW = "Low"
+ATTRIB_BATTERY_CRITICAL = "Critical"
+
+PLATFORMS = [
+    Platform.ALARM_CONTROL_PANEL,
+    Platform.BINARY_SENSOR,
+    Platform.LOCK,
+    Platform.COVER,
+    Platform.LIGHT,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SWITCH,
+    Platform.SELECT,
+    Platform.CLIMATE,
+]
+
+DEVICE_STATIC_ATTRIBUTES = [libConst.ATTR_STATE_TEXT, libConst.ATTR_MAC_ADDRESS]

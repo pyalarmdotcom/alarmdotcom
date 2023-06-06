@@ -67,25 +67,22 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         device: AllDevices_t,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device, device.partition_id)
+        super().__init__(controller, device)
 
-        self._raw_attribs = self._device.attributes
         self._attr_target_temperature_step = 1.0
         self._determine_features()
 
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
-
-        self._raw_attribs = self._device.attributes
+    def _legacy_refresh_attributes(self) -> None:
+        """Update HA when device is updated."""
 
         #
         # Reported Values
         #
 
-        self._attr_current_temperature = self._raw_attribs.temp_average
+        self._attr_current_temperature = self._device.attributes.temp_average
 
-        if self._raw_attribs.supports_humidity:
-            self._attr_current_humidity = self._raw_attribs.humidity
+        if self._device.attributes.supports_humidity:
+            self._attr_current_humidity = self._device.attributes.humidity
 
         #
         # HVAC Mode
@@ -103,7 +100,7 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
             self._attr_hvac_mode = HVACMode.HEAT_COOL
         elif (
             self._device.state == libThermostat.DeviceState.OFF
-            and self._raw_attribs.fan_mode == libThermostat.FanMode.ON
+            and self._device.attributes.fan_mode == libThermostat.FanMode.ON
         ):
             self._attr_hvac_mode = HVACMode.FAN_ONLY
         elif self._device.state == libThermostat.DeviceState.OFF:
@@ -123,32 +120,32 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         self._attr_min_temp = None
 
         # Set target temperature parameters
-        if not self._raw_attribs.supports_setpoints:
+        if not self._device.attributes.supports_setpoints:
             pass
         elif self._device.state in [
             libThermostat.DeviceState.AUX_HEAT,
             libThermostat.DeviceState.HEAT,
         ]:
-            self._attr_target_temperature = self._raw_attribs.heat_setpoint
-            self._attr_max_temp = self._raw_attribs.max_heat_setpoint
-            self._attr_min_temp = self._raw_attribs.min_heat_setpoint
+            self._attr_target_temperature = self._device.attributes.heat_setpoint
+            self._attr_max_temp = self._device.attributes.max_heat_setpoint
+            self._attr_min_temp = self._device.attributes.min_heat_setpoint
         elif self._device.state == libThermostat.DeviceState.COOL:
-            self._attr_target_temperature = self._raw_attribs.cool_setpoint
-            self._attr_max_temp = self._raw_attribs.max_cool_setpoint
-            self._attr_min_temp = self._raw_attribs.min_cool_setpoint
+            self._attr_target_temperature = self._device.attributes.cool_setpoint
+            self._attr_max_temp = self._device.attributes.max_cool_setpoint
+            self._attr_min_temp = self._device.attributes.min_cool_setpoint
         elif self._device.state == libThermostat.DeviceState.AUTO:
-            self._attr_target_temperature_high = self._raw_attribs.cool_setpoint
-            self._attr_target_temperature_low = self._raw_attribs.heat_setpoint
-            self._attr_max_temp = self._raw_attribs.max_cool_setpoint
-            self._attr_min_temp = self._raw_attribs.min_heat_setpoint
+            self._attr_target_temperature_high = self._device.attributes.cool_setpoint
+            self._attr_target_temperature_low = self._device.attributes.heat_setpoint
+            self._attr_max_temp = self._device.attributes.max_cool_setpoint
+            self._attr_min_temp = self._device.attributes.min_heat_setpoint
 
         #
         # Fan Mode
         #
 
-        if self._raw_attribs.fan_mode == libThermostat.FanMode.AUTO:
+        if self._device.attributes.fan_mode == libThermostat.FanMode.AUTO:
             self._attr_fan_mode = FAN_AUTO
-        elif self._raw_attribs.fan_mode == libThermostat.FanMode.ON:
+        elif self._device.attributes.fan_mode == libThermostat.FanMode.ON:
             self._attr_fan_mode = FAN_ON
         else:
             self._attr_fan_mode = None
@@ -183,8 +180,9 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
         max_fan_duration = (
             0
-            if self._raw_attribs.supports_fan_indefinite or not self._raw_attribs.supported_fan_durations
-            else max(self._raw_attribs.supported_fan_durations)
+            if self._device.attributes.supports_fan_indefinite
+            or not self._device.attributes.supported_fan_durations
+            else max(self._device.attributes.supported_fan_durations)
         )
 
         try:
@@ -231,16 +229,16 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
         supported_features = 0
 
-        if self._raw_attribs.supports_setpoints:
+        if self._device.attributes.supports_setpoints:
             supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE
 
-        if self._raw_attribs.supports_auto:
+        if self._device.attributes.supports_auto:
             supported_features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
 
-        if self._raw_attribs.supports_fan_mode:
+        if self._device.attributes.supports_fan_mode:
             supported_features |= ClimateEntityFeature.FAN_MODE
 
-        if self._raw_attribs.supports_heat_aux:
+        if self._device.attributes.supports_heat_aux:
             supported_features |= ClimateEntityFeature.AUX_HEAT
 
         self._attr_supported_features = supported_features
@@ -251,16 +249,16 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
 
         hvac_modes = [HVACMode.OFF]
 
-        if self._raw_attribs.supports_heat:
+        if self._device.attributes.supports_heat:
             hvac_modes.append(HVACMode.HEAT)
 
-        if self._raw_attribs.supports_cool:
+        if self._device.attributes.supports_cool:
             hvac_modes.append(HVACMode.COOL)
 
-        if self._raw_attribs.supports_auto:
+        if self._device.attributes.supports_auto:
             hvac_modes.append(HVACMode.HEAT_COOL)
 
-        if self._raw_attribs.supports_fan_mode:
+        if self._device.attributes.supports_fan_mode:
             hvac_modes.append(HVACMode.FAN_ONLY)
 
         self._attr_hvac_modes = hvac_modes
@@ -269,5 +267,5 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         # FAN MODES
         #
 
-        if self._raw_attribs.supports_fan_mode:
+        if self._device.attributes.supports_fan_mode:
             self._attr_fan_modes = [FAN_AUTO, FAN_ON]
