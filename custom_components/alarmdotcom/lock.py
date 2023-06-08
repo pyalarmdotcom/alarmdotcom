@@ -19,7 +19,7 @@ from .base_device import HardwareBaseDevice
 from .const import CONF_ARM_CODE, DATA_CONTROLLER, DOMAIN, MIGRATE_MSG_ALERT
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_platform(
@@ -30,13 +30,13 @@ async def async_setup_platform(
 ) -> None:
     """Set up the legacy platform."""
 
-    log.debug("Alarmdotcom: Detected legacy lock config entry. Converting to Home Assistant config flow.")
+    LOGGER.debug("Alarmdotcom: Detected legacy lock config entry. Converting to Home Assistant config flow.")
 
     hass.async_create_task(
         hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config)
     )
 
-    log.warning(MIGRATE_MSG_ALERT)
+    LOGGER.warning(MIGRATE_MSG_ALERT)
 
     persistent_notification.async_create(
         hass,
@@ -114,7 +114,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     def is_locked(self) -> bool | None:
         """Return true if lock is locked."""
 
-        # log.info("Processing is_locked %s for %s", self._device.state, self.name or self._device.name)
+        # LOGGER.info("Processing is_locked %s for %s", self._device.state, self.name or self._device.name)
 
         if not self._device.malfunction:
             match self._device.state:
@@ -123,7 +123,7 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
                 case libLock.DeviceState.UNLOCKED:
                     return False
                 case _:
-                    log.error(
+                    LOGGER.error(
                         f"Cannot determine whether {self.name} is locked. Found raw state of {self._device.state}."
                     )
 
@@ -156,5 +156,5 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
             "",
         ] or code == arm_code
         if not check:
-            log.warning("Wrong code entered.")
+            LOGGER.warning("Wrong code entered.")
         return check

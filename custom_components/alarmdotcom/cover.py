@@ -20,7 +20,7 @@ from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -87,7 +87,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     def is_closed(self) -> bool | None:
         """Return true if lock is locked."""
 
-        log.info("Processing is_closed %s for %s", self._device.state, self.name or self._device.name)
+        LOGGER.info("Processing is_closed %s for %s", self._device.state, self.name or self._device.name)
 
         if not self._device.malfunction:
             match self._device.state:
@@ -96,7 +96,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
                 case libGarageDoor.DeviceState.CLOSED | libGate.DeviceState.CLOSED:
                     return True
 
-            log.error(
+            LOGGER.error(
                 "Cannot determine cover state. Found raw state of %s.",
                 self._device.state,
             )

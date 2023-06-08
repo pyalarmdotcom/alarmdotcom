@@ -27,7 +27,7 @@ from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 FAN_CIRCULATE = "Circulate"
 

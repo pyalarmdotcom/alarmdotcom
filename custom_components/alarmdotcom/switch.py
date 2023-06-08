@@ -19,7 +19,7 @@ from .base_device import ConfigBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 # TODO: This device contains behavior specific to the Skybell HD. It needs to be made more generic as other devices are supported.
 

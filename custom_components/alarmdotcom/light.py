@@ -16,7 +16,7 @@ from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -66,7 +66,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
     def is_on(self) -> bool | None:
         """Return True if entity is on."""
 
-        # log.info(
+        # LOGGER.info(
         #     "Processing state %s for %s",
         #     self._device.state,
         #     self.name or self._device.name,
@@ -80,7 +80,7 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
                 case libLight.DeviceState.OFF:
                     return False
 
-            log.exception(
+            LOGGER.exception(
                 "Cannot determine light state. Found raw state of %s.",
                 self._device.state,
             )

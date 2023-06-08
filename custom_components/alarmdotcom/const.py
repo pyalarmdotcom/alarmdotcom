@@ -1,6 +1,8 @@
 """Const for the Alarmdotcom integration."""
 from __future__ import annotations
 
+import logging
+
 from homeassistant.const import Platform
 from pyalarmdotcomajax import const as libConst
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
@@ -29,6 +31,8 @@ MIGRATE_MSG_ALERT = (
 
 KEEP_ALIVE_INTERVAL_SECONDS = 60
 CONF_DEFAULT_UPDATE_INTERVAL_SECONDS = 900  # 15 minutes
+
+LOGGER = logging.getLogger(__package__)
 
 # #
 # CONFIGURATION

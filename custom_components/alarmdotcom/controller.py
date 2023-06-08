@@ -31,7 +31,7 @@ from .const import (
     KEEP_ALIVE_INTERVAL_SECONDS,
 )
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 # TODO: Move websocket control here and include handler to restart if connection is lost.
 
@@ -52,7 +52,7 @@ class AlarmIntegrationController:
 
         self._stop_keep_alive: CALLBACK_TYPE
 
-        log.debug("%s: Registering update listener.", __name__)
+        LOGGER.debug("%s: Registering update listener.", __name__)
 
     async def initialize(self) -> None:
         """Initialize connection to Alarm.com."""
@@ -78,7 +78,7 @@ class AlarmIntegrationController:
 
         self.update_coordinator = DataUpdateCoordinator(
             self.hass,
-            log,
+            LOGGER,
             name=self.config_entry.title,
             update_method=self.async_update,
             update_interval=timedelta(seconds=update_interval),
@@ -109,7 +109,7 @@ class AlarmIntegrationController:
     def stop_keep_alive(self) -> None:
         """Stop keep-alive task."""
 
-        log.info("Stopping session keep-alive task.")
+        LOGGER.info("Stopping session keep-alive task.")
 
         with contextlib.suppress(TypeError):
             self._stop_keep_alive()
@@ -149,7 +149,7 @@ class AlarmIntegrationController:
     async def async_update(self) -> None:
         """Pull fresh data from Alarm.com for coordinator."""
 
-        log.debug("%s: Requesting update from Alarm.com.", __name__)
+        LOGGER.debug("%s: Requesting update from Alarm.com.", __name__)
 
         try:
             await self.api.async_update()
