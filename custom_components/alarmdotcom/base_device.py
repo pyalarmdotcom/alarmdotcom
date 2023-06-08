@@ -25,7 +25,7 @@ from .const import (
 )
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class BaseDevice(CoordinatorEntity):  # type: ignore
@@ -106,12 +106,12 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         self.async_write_ha_state()
 
-        # log.debug("************** START DEVICE UPDATE *****************")
-        log.info(
+        # LOGGER.debug("************** START DEVICE UPDATE *****************")
+        LOGGER.info(
             f"Updated {self.device_type_name} {self._friendly_name_internal()} ({self._adc_id}): {self.state}"
         )
-        # log.debug(json.dumps(self._device.raw_attributes, indent=4, sort_keys=True))
-        # log.debug("************** END DEVICE UPDATE *****************")
+        # LOGGER.debug(json.dumps(self._device.raw_attributes, indent=4, sort_keys=True))
+        # LOGGER.debug("************** END DEVICE UPDATE *****************")
 
     def _legacy_refresh_attributes(self) -> None:
         """Update HA when device is updated. Should be overridden by subclasses."""
@@ -182,7 +182,7 @@ class HardwareBaseDevice(BaseDevice):
     ) -> None:
         """Initialize class."""
 
-        log.info(
+        LOGGER.info(
             "%s: Initializing [%s: %s (%s)].",
             __name__,
             device.__class__.__name__.lower(),
@@ -217,7 +217,7 @@ class AttributeBaseDevice(BaseDevice):
     ) -> None:
         """Initialize class."""
 
-        log.info(
+        LOGGER.info(
             "%s: Initializing [%s: %s (%s)] [Attribute: %s].",
             __name__,
             device.__class__.__name__.title(),
@@ -244,7 +244,7 @@ class ConfigBaseDevice(BaseDevice):
     ) -> None:
         """Initialize class."""
 
-        log.info(
+        LOGGER.info(
             "%s: Initializing [%s: %s (%s)] [Config Option: %s].",
             __name__,
             device.__class__.__name__.title(),

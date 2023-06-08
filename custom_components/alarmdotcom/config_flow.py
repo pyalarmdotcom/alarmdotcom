@@ -49,7 +49,7 @@ from .const import (
 )
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 LegacyArmingOptions = Literal["home", "away", "true", "false"]
 
 
@@ -90,7 +90,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 CONF_2FA_COOKIE: user_input.get(CONF_2FA_COOKIE),
             }
 
-            log.debug("Logging in to Alarm.com...")
+            LOGGER.debug("Logging in to Alarm.com...")
 
             self._controller = AlarmIntegrationController(self.hass, self.config)
 
@@ -103,7 +103,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     )
 
                 except OtpRequired as exc:
-                    log.debug("OTP code required.")
+                    LOGGER.debug("OTP code required.")
                     self._enabled_otp_methods = exc.enabled_2fa_methods
                     return await self.async_step_otp_select_method()
 
@@ -116,18 +116,18 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     aiohttp.ClientError,
                     asyncio.exceptions.CancelledError,
                 ):
-                    log.exception(
+                    LOGGER.exception(
                         "%s: user login failed to contact Alarm.com.",
                         __name__,
                     )
                     errors["base"] = "cannot_connect"
 
                 except ConfigEntryAuthFailed:
-                    log.exception("%s: user login failed with AuthenticationFailed exception.", __name__)
+                    LOGGER.exception("%s: user login failed with AuthenticationFailed exception.", __name__)
                     errors["base"] = "invalid_auth"
 
                 except AlarmdotcomException:
-                    log.exception("Got error while initializing Alarm.com.")
+                    LOGGER.exception("Got error while initializing Alarm.com.")
                     errors["base"] = "unknown"
                 else:
                     return await self.async_step_final()
@@ -155,7 +155,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             )
             if self.otp_method in (OtpType.email, OtpType.sms):
                 # Ask Alarm.com to send OTP if selected method is EMAIL or SMS.
-                log.debug(f"Requesting One-Time Password via {self.otp_method.name}...")
+                LOGGER.debug(f"Requesting One-Time Password via {self.otp_method.name}...")
                 await self._controller.api.async_request_otp(self.otp_method)
 
             return await self.async_step_otp_submit()
@@ -165,11 +165,11 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             if len(self._enabled_otp_methods) == 1 and self._enabled_otp_methods[0] == OtpType.app:
                 # If APP is the only enabled OTP method, use it without prompting user.
                 self.otp_method = OtpType.app
-                log.debug(f"Using {self.otp_method.name} for One-Time Password.")
+                LOGGER.debug(f"Using {self.otp_method.name} for One-Time Password.")
                 return await self.async_step_otp_submit()
 
         except (aiohttp.ClientError, asyncio.TimeoutError, libUnexpectedResponse):
-            log.exception(
+            LOGGER.exception(
                 "%s: OTP submission failed connection exception.",
                 __name__,
             )
@@ -212,14 +212,14 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
             # AttributeError raised if api has not been initialized.
             except (AttributeError, libUnexpectedResponse, asyncio.TimeoutError, aiohttp.ClientError):
-                log.exception(
+                LOGGER.exception(
                     "%s: OTP submission failed with CannotConnect exception.",
                     __name__,
                 )
                 errors["base"] = "cannot_connect"
 
             except libAuthenticationFailed:
-                log.exception(
+                LOGGER.exception(
                     "%s: Incorrect OTP code entered.",
                     __name__,
                 )
@@ -248,7 +248,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         )
 
         if self._existing_entry:
-            log.debug("Existing config entry found. Updating entry, then aborting config flow.")
+            LOGGER.debug("Existing config entry found. Updating entry, then aborting config flow.")
             self.hass.config_entries.async_update_entry(self._existing_entry, data=self.config)
             await self.hass.config_entries.async_reload(self._existing_entry.entry_id)
 
@@ -263,7 +263,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
 
     async def async_step_reauth(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Perform reauth upon an API authentication error."""
-        log.debug("Reauthenticating.")
+        LOGGER.debug("Reauthenticating.")
         self._existing_entry = await self.async_set_unique_id(self._config_title)
         return await self.async_step_reauth_confirm(user_input)
 

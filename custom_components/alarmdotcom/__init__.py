@@ -35,13 +35,13 @@ from .const import (
 )
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up alarmdotcom hub from a config entry."""
 
-    log.info("%s: Initializing Alarmdotcom from config entry.", __name__)
+    LOGGER.info("%s: Initializing Alarmdotcom from config entry.", __name__)
 
     # As there currently is no way to import options from yaml
     # when setting up a config entry, we fall back to adding
@@ -51,7 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     if DOMAIN not in hass.data:
         # Print startup message
-        log.info(STARTUP_MESSAGE)
+        LOGGER.info(STARTUP_MESSAGE)
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -101,7 +101,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     for deleted_device in list(device_registry.deleted_devices.values()):
         for identifier in deleted_device.identifiers:
             if identifier[0] == DOMAIN:
-                log.info("Removing orphaned device from Home Assistant: %s", deleted_device.identifiers)
+                LOGGER.info("Removing orphaned device from Home Assistant: %s", deleted_device.identifiers)
                 del device_registry.deleted_devices[deleted_device.id]
 
     # Will be used during virtual device creation.
@@ -128,7 +128,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 device_ids_via_hass.add(identifier[1])
                 break
 
-            log.info(
+            LOGGER.info(
                 "Removing device no longer present on Alarm.com: %s (%s | %s)",
                 device_entry.name,
                 device_entry.identifiers,
@@ -161,7 +161,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
         event_device = controller.api.devices.get(str(event.data.get("device_id")))
 
-        log.warning(
+        LOGGER.warning(
             "ALARM.COM DEBUG DATA FOR %s: %s",
             str(event_device.name).upper(),
             json.dumps(event_device.debug_data),
@@ -170,7 +170,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Listen for debug entity requests
     hass.bus.async_listen(DEBUG_REQ_EVENT, handle_alarmdotcom_debug_request_event)
 
-    log.info("%s: Finished initializing Alarmdotcom from config entry.", __name__)
+    LOGGER.info("%s: Finished initializing Alarmdotcom from config entry.", __name__)
 
     return True
 
@@ -183,7 +183,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
     #
 
     if config_entry.version == 1:
-        log.debug("Migrating from version %s", config_entry.version)
+        LOGGER.debug("Migrating from version %s", config_entry.version)
 
         v2_options = {**config_entry.options}
 
@@ -195,14 +195,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         hass.config_entries.async_update_entry(config_entry, data={**config_entry.data}, options=v2_options)
 
-        log.info("Migration to version %s successful", config_entry.version)
+        LOGGER.info("Migration to version %s successful", config_entry.version)
 
     #
     # To v3
     #
 
     if config_entry.version == 2:
-        log.debug("Migrating from version %s", config_entry.version)
+        LOGGER.debug("Migrating from version %s", config_entry.version)
 
         v3_options = {**config_entry.options}
 
@@ -260,14 +260,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         hass.config_entries.async_update_entry(config_entry, data={**config_entry.data}, options=v3_options)
 
-        log.info("Migration to version %s successful", config_entry.version)
+        LOGGER.info("Migration to version %s successful", config_entry.version)
 
     #
     # To v4
     #
 
     if config_entry.version == 3:
-        log.debug("Migrating from version %s", config_entry.version)
+        LOGGER.debug("Migrating from version %s", config_entry.version)
 
         v4_options: dict = {**config_entry.options}
 
@@ -294,7 +294,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         hass.config_entries.async_update_entry(config_entry, data={**config_entry.data}, options=v4_options)
 
-        log.info("Migration to version %s successful", config_entry.version)
+        LOGGER.info("Migration to version %s successful", config_entry.version)
 
     return True
 
@@ -332,6 +332,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
     unload_ok: bool = await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
     if unload_ok:
-        log.debug("%s: Unloaded Alarm.com config entry.", __name__)
+        LOGGER.debug("%s: Unloaded Alarm.com config entry.", __name__)
 
     return unload_ok

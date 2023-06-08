@@ -25,7 +25,7 @@ from .const import DATA_CONTROLLER, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
 from .controller import AlarmIntegrationController
 from .device_type_langs import LANG_DOOR, LANG_WINDOW
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -190,7 +190,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
 
-        # log.info(
+        # LOGGER.info(
         #     "Processing state %s for %s",
         #     self._device.state,
         #     self.name or self._device.name,
@@ -202,7 +202,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
             case libSensor.DeviceState.OPEN | libSensor.DeviceState.ACTIVE | libWaterSensor.DeviceState.WET:
                 return True
 
-        log.error("Cannot determine binary sensor state. Found raw state of %s.", self._device.state)
+        LOGGER.error("Cannot determine binary sensor state. Found raw state of %s.", self._device.state)
         return None
 
 

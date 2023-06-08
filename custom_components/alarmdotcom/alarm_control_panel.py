@@ -39,7 +39,7 @@ from .const import (
 )
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -126,7 +126,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
                 case libPartition.DeviceState.ARMED_STAY | libPartition.DeviceState.ARMED_AWAY | libPartition.DeviceState.ARMED_NIGHT:
                     return str(STATE_ALARM_ARMING)
 
-        log.error(
+        LOGGER.error(
             f"Cannot determine state. Found raw state of {self._device.state} and desired state of"
             f" {self._device.desired_state}."
         )
@@ -197,5 +197,5 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             "",
         ] or code == arm_code
         if not check:
-            log.warning("Wrong code entered.")
+            LOGGER.warning("Wrong code entered.")
         return check
