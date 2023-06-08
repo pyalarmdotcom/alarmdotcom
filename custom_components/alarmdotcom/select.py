@@ -7,7 +7,6 @@ from enum import Enum
 from homeassistant import core
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.registry import AllDevices_t
@@ -93,9 +92,8 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
 
         self._attr_options: list = list(self._select_options_map.keys())
 
-        self._attr_current_option: str | None = self._config_option.current_value
-
-    def _determine_icon(self) -> str | None:
+    @property
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
         if self._config_option.option_type == libConfigurationOptionType.ADJUSTABLE_CHIME:
             if (
@@ -113,14 +111,13 @@ class ConfigOptionSelect(ConfigBaseDevice, SelectEntity):  # type: ignore
 
         return super().icon if isinstance(super().icon, str) else None
 
-    @callback
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
+    @property
+    def current_option(self) -> str | None:
+        """Return the selected option."""
 
         if isinstance(current_value := self._config_option.current_value, Enum):
-            self._attr_current_option = current_value.name.title().replace("_", " ")
-
-        self._attr_icon = self._determine_icon()
+            return current_value.name.title().replace("_", " ")
+        return None
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""

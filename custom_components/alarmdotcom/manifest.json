@@ -10,7 +10,7 @@
     "issue_tracker": "https://github.com/pyalarmdotcom/alarmdotcom/issues",
     "requirements": [
         "beautifulsoup4>=4.10.0",
-        "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax.git@session-isolation#pyalarmdotcomajax==0.5.3-beta.1"
+        "git+https://github.com/pyalarmdotcom/pyalarmdotcomajax.git@session-isolation#pyalarmdotcomajax==0.5.3-beta.2"
     ],
     "version": "3.0.4-beta.1"
 }

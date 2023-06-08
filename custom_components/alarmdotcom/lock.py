@@ -3,14 +3,13 @@ from __future__ import annotations
 
 import logging
 import re
-from enum import Enum
 from typing import Any
 
 from homeassistant import config_entries, core
 from homeassistant.components import persistent_notification
 from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.lock import Lock as libLock
@@ -72,48 +71,67 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     _device_type_name: str = "Lock"
     _device: libLock
 
-    def __init__(
-        self,
-        controller: AlarmIntegrationController,
-        device: libLock,
-    ) -> None:
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device, device.partition_id)
+    @property
+    def code_format(self) -> str | None:
+        """Return the format of the code."""
 
-        self._attr_code_format = (
-            self._determine_code_format(code) if (code := controller.options.get(CONF_ARM_CODE)) else ""
+        if code := self._controller.options.get(CONF_ARM_CODE):
+            code_patterns = [
+                r"^\d+$",  # Only digits
+                r"^\w\D+$",  # Only alpha
+                r"^\w+$",  # Alphanumeric
+            ]
+
+            for pattern in code_patterns:
+                if re.findall(pattern, code):
+                    return pattern
+
+            return "."  # All characters
+
+        return None
+
+    @property
+    def is_locking(self) -> bool | None:
+        """Return true if lock is locking."""
+
+        return (
+            not self._device.malfunction
+            and self._device.state == libLock.DeviceState.UNLOCKED
+            and self._device.desired_state == libLock.DeviceState.LOCKED
         )
 
-    @callback
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
+    @property
+    def is_unlocking(self) -> bool | None:
+        """Return true if lock is unlocking."""
 
-        self._attr_is_locked = self._determine_is_locked(self._device.state)
-        self._attr_is_locking = False
-        self._attr_is_unlocking = False
+        return (
+            not self._device.malfunction
+            and self._device.desired_state == libLock.DeviceState.UNLOCKED
+            and self._device.state == libLock.DeviceState.LOCKED
+        )
 
-    def _determine_is_locked(self, state: Enum | None) -> bool | None:
-        """Return true if the lock is locked."""
+    @property
+    def is_locked(self) -> bool | None:
+        """Return true if lock is locked."""
 
-        log.info("Processing is_locked %s for %s", state, self.name or self._device.name)
+        # log.info("Processing is_locked %s for %s", self._device.state, self.name or self._device.name)
 
-        if self._device.malfunction or not state:
-            return None
+        if not self._device.malfunction:
+            match self._device.state:
+                case libLock.DeviceState.LOCKED:
+                    return True
+                case libLock.DeviceState.UNLOCKED:
+                    return False
+                case _:
+                    log.error(
+                        f"Cannot determine whether {self.name} is locked. Found raw state of {self._device.state}."
+                    )
 
-        match state:
-            case libLock.DeviceState.LOCKED:
-                return True
-            case libLock.DeviceState.UNLOCKED:
-                return False
-            case _:
-                log.error(f"Cannot determine whether {self.name} is locked. Found raw state of {state}.")
-                return None
+        return None
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the lock."""
         if self._validate_code(kwargs.get("code")):
-            self._attr_is_locking = True
-
             try:
                 await self._device.async_lock()
             except NotAuthorized:
@@ -122,8 +140,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the lock."""
         if self._validate_code(kwargs.get("code")):
-            self._attr_is_unlocking = True
-
             try:
                 await self._device.async_unlock()
             except NotAuthorized:
@@ -132,20 +148,6 @@ class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
     #
     # Helpers
     #
-
-    @classmethod
-    def _determine_code_format(cls, code: str) -> str:
-        code_patterns = [
-            r"^\d+$",  # Only digits
-            r"^\w\D+$",  # Only alpha
-            r"^\w+$",  # Alphanumeric
-        ]
-
-        for pattern in code_patterns:
-            if re.findall(pattern, code):
-                return pattern
-
-        return "."  # All characters
 
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""

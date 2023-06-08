@@ -29,25 +29,13 @@ from .const import (
     DATA_CONTROLLER,
     DEBUG_REQ_EVENT,
     DOMAIN,
+    PLATFORMS,
     SENSOR_SUBTYPE_BLACKLIST,
     STARTUP_MESSAGE,
 )
 from .controller import AlarmIntegrationController
 
 log = logging.getLogger(__name__)
-
-PLATFORMS: list[str] = [
-    "alarm_control_panel",
-    "binary_sensor",
-    "lock",
-    "cover",
-    "light",
-    "button",
-    "number",
-    "switch",
-    "select",
-    "climate",
-]
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -109,7 +97,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         if device.device_subtype not in SENSOR_SUBTYPE_BLACKLIST and device.has_state:
             device_ids_via_adc.add(device.id_)
 
-    log.debug(device_ids_via_adc)
+    # Purge deleted devices from Home Assistant
+    for deleted_device in list(device_registry.deleted_devices.values()):
+        for identifier in deleted_device.identifiers:
+            if identifier[0] == DOMAIN:
+                log.info("Removing orphaned device from Home Assistant: %s", deleted_device.identifiers)
+                del device_registry.deleted_devices[deleted_device.id]
 
     # Will be used during virtual device creation.
     device_ids_via_hass: set[str] = set()
@@ -117,15 +110,26 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Compare against device registry
     for device_entry in dr.async_entries_for_config_entry(device_registry, config_entry.entry_id):
         for identifier in device_entry.identifiers:
-            # Remove _debug, _malfunction, etc. from IDs
-            id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
+            if identifier[1] is None:
+                continue
 
-            if id_matches is not None and identifier[0] == DOMAIN and id_matches.group(1) in device_ids_via_adc:
+            matched_id: str
+
+            try:
+                # Remove _debug, _malfunction, etc. from IDs
+                id_matches = re.search(r"([0-9]+-[0-9]+)(?:_[a-zA-Z_]+)*", identifier[1])
+            except TypeError:
+                matched_id = identifier[1]
+            else:
+                if id_matches is not None:
+                    matched_id = id_matches.group(1)
+
+            if id_matches is not None and identifier[0] == DOMAIN and matched_id in device_ids_via_adc:
                 device_ids_via_hass.add(identifier[1])
                 break
 
-            log.debug(
-                "Removing orphaned device %s (%s | %s)",
+            log.info(
+                "Removing device no longer present on Alarm.com: %s (%s | %s)",
                 device_entry.name,
                 device_entry.identifiers,
                 device_entry.id,
