@@ -85,7 +85,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         # This will fail for devices that were removed from ADC during this session.
         with contextlib.suppress(ValueError):
-            self._device.unregister_external_update_callback(self._handle_coordinator_update)
+            self._device.unregister_external_update_callback(self._update_device_data)
 
         await super().async_will_remove_from_hass()
 
@@ -105,6 +105,13 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         self._legacy_refresh_attributes()
 
         self.async_write_ha_state()
+
+        # log.debug("************** START DEVICE UPDATE *****************")
+        log.info(
+            f"Updated {self.device_type_name} {self._friendly_name_internal()} ({self._adc_id}): {self.state}"
+        )
+        # log.debug(json.dumps(self._device.raw_attributes, indent=4, sort_keys=True))
+        # log.debug("************** END DEVICE UPDATE *****************")
 
     def _legacy_refresh_attributes(self) -> None:
         """Update HA when device is updated. Should be overridden by subclasses."""

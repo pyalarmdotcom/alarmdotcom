@@ -5,7 +5,7 @@ import logging
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Final, cast
+from typing import Any, Final
 
 from homeassistant import core
 from homeassistant.components.binary_sensor import (
@@ -117,12 +117,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
     def device_type_name(self) -> str:
         """Return human readable device type name based on device class."""
 
-        device_class: BinarySensorDeviceClass | None = self._device.device_subtype
-
-        try:
-            return cast(str, BinarySensorDeviceClass[device_class].value).replace("_", " ").title()
-        except AttributeError:
-            return "Sensor"
+        return str(self.device_class.value.replace("_", " ").title()) if self.device_class else "Sensor"
 
     @property
     def device_class(self) -> BinarySensorDeviceClass | None:
@@ -209,27 +204,6 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
 
         log.error("Cannot determine binary sensor state. Found raw state of %s.", self._device.state)
         return None
-
-    #
-    # Helpers
-    #
-
-    # def _determine_icon(self, is_on: bool | None) -> str | None:
-    #     """Return the icon to use in the frontend, if any."""
-    #     if self.device_class in [
-    #         BinarySensorDeviceClass.SMOKE,
-    #         BinarySensorDeviceClass.CO,
-    #         BinarySensorDeviceClass.GAS,
-    #     ]:
-    #         if self.available and is_on:
-    #             return "mdi:smoke-detector-variant-alert"
-
-    #         if self.available and not is_on:
-    #             return "mdi:smoke-detector-variant"
-
-    #         return "mdi:smoke-detector-variant-off"
-
-    #     return str(super().icon) if isinstance(super().icon, str) else None
 
 
 class AttributeBinarySensor(AttributeBaseDevice, BinarySensorEntity):  # type: ignore

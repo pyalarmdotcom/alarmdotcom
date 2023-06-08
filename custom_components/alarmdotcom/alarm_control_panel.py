@@ -106,8 +106,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     def state(self) -> str | None:
         """Return the state of the device."""
 
-        log.info("Processing state %s for %s", self._device.state, self.name or self._device.name)
-
         if self._device.malfunction:
             return None
 
