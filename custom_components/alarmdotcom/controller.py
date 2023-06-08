@@ -74,7 +74,7 @@ class AlarmIntegrationController:
         self.options = self.config_entry.options
         self.config_entry.async_on_unload(self.config_entry.add_update_listener(_async_update_listener))
 
-        update_interval = self.config_entry.data.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS)
+        update_interval = self.config_entry.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS)
 
         self.update_coordinator = DataUpdateCoordinator(
             self.hass,
