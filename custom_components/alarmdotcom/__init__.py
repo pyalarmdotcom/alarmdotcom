@@ -43,12 +43,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     LOGGER.info("%s: Initializing Alarmdotcom from config entry.", __name__)
 
-    # As there currently is no way to import options from yaml
-    # when setting up a config entry, we fall back to adding
-    # the options to the config entry and pull them out here if
-    # they are missing from the options.
-    _async_import_options_from_data_if_missing(hass, config_entry)
-
     if DOMAIN not in hass.data:
         # Print startup message
         LOGGER.info(STARTUP_MESSAGE)
@@ -81,9 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     controller.api.start_websocket()
 
-    config_entry.async_on_unload(
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, controller.api.stop_websocket)
-    )
+    config_entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, controller.stop))
 
     #
     # Delete devices from Home Assistant that are no longer present on Alarm.com.
@@ -297,29 +289,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
         LOGGER.info("Migration to version %s successful", config_entry.version)
 
     return True
-
-
-def _async_import_options_from_data_if_missing(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Import options from configuration.yaml."""
-
-    options = dict(entry.options)
-    data = {}
-    importable_options = [
-        "force_bypass",
-        "no_entry_delay",
-        "silent_arming",
-        "code",
-    ]
-    found = False
-    for key in entry.data:
-        if key in importable_options and key not in options:
-            options[key] = entry.data[key]
-            found = True
-        else:
-            data[key] = entry.data[key]
-
-    if found:
-        hass.config_entries.async_update_entry(entry, data=data, options=options)
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:

@@ -60,12 +60,6 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         )
 
     @property
-    def available(self) -> bool:
-        """Return whether device is available."""
-
-        return not self.malfunction
-
-    @property
     def device_type_name(self) -> str:
         """Return human readable device type name."""
 
@@ -169,7 +163,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     def malfunction(self) -> bool | None:
         """Determine malfunction attribute."""
 
-        return bool(self._device.malfunction)
+        return bool(self._device.malfunction) if self._device.malfunction is not None else None
 
 
 class HardwareBaseDevice(BaseDevice):

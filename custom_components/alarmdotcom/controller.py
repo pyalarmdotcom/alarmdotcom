@@ -106,6 +106,14 @@ class AlarmIntegrationController:
                 interval=timedelta(seconds=KEEP_ALIVE_INTERVAL_SECONDS),
             )
 
+    async def stop(self) -> None:
+        """Stop the controller."""
+
+        self.stop_keep_alive()
+        self.api.stop_websocket()
+
+        await self.api.close_websession()
+
     def stop_keep_alive(self) -> None:
         """Stop keep-alive task."""
 
