@@ -13,9 +13,10 @@ from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
 )
 
-from .base_device import ConfigBaseDevice
-from .const import DATA_CONTROLLER, DOMAIN
-from .controller import AlarmIntegrationController
+from alarmdotcom.const import DATA_CONTROLLER, DOMAIN
+from alarmdotcom.controller import AlarmIntegrationController
+
+from . import ConfigBaseDevice
 
 LOGGER = logging.getLogger(__name__)
 

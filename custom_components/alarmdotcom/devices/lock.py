@@ -15,9 +15,10 @@ from homeassistant.helpers.typing import ConfigType
 from pyalarmdotcomajax.devices.lock import Lock as libLock
 from pyalarmdotcomajax.exceptions import NotAuthorized
 
-from .base_device import HardwareBaseDevice
-from .const import CONF_ARM_CODE, DATA_CONTROLLER, DOMAIN, MIGRATE_MSG_ALERT
-from .controller import AlarmIntegrationController
+from alarmdotcom.const import CONF_ARM_CODE, DATA_CONTROLLER, DOMAIN, MIGRATE_MSG_ALERT
+from alarmdotcom.controller import AlarmIntegrationController
+
+from . import HardwareBaseDevice
 
 LOGGER = logging.getLogger(__name__)
 

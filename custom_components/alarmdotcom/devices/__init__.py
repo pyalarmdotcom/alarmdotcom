@@ -15,15 +15,15 @@ from homeassistant.helpers.update_coordinator import (
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 
-from . import const as c
-from .const import (
+from alarmdotcom import const as c
+from alarmdotcom.const import (
     ATTRIB_BATTERY_CRITICAL,
     ATTRIB_BATTERY_LOW,
     ATTRIB_BATTERY_NORMAL,
     DEVICE_STATIC_ATTRIBUTES,
     DOMAIN,
 )
-from .controller import AlarmIntegrationController
+from alarmdotcom.controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
 
