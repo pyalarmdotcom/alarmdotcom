@@ -7,6 +7,7 @@ import logging
 import re
 
 import aiohttp
+from homeassistant import loader
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Event, HomeAssistant
@@ -43,9 +44,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     LOGGER.info("%s: Initializing Alarmdotcom from config entry.", __name__)
 
+    integration = await loader.async_get_integration(hass, DOMAIN)
+
     if DOMAIN not in hass.data:
         # Print startup message
-        LOGGER.info(STARTUP_MESSAGE)
+        LOGGER.info(STARTUP_MESSAGE.format(str(integration.version)))
 
     hass.data.setdefault(DOMAIN, {})
 
