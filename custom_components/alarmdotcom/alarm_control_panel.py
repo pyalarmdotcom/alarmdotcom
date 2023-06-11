@@ -25,7 +25,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback, Discovery
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
 from pyalarmdotcomajax.exceptions import NotAuthorized
 
-from alarmdotcom.const import (
+from .base_device import HardwareBaseDevice
+from .const import (
     CONF_ARM_AWAY,
     CONF_ARM_CODE,
     CONF_ARM_HOME,
@@ -36,9 +37,7 @@ from alarmdotcom.const import (
     DATA_CONTROLLER,
     DOMAIN,
 )
-from alarmdotcom.controller import AlarmIntegrationController
-
-from . import HardwareBaseDevice
+from .controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
 

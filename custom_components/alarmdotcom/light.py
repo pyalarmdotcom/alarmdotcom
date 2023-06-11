@@ -12,10 +12,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback, Discovery
 from pyalarmdotcomajax.devices.light import Light as libLight
 from pyalarmdotcomajax.exceptions import NotAuthorized
 
-from alarmdotcom.const import DATA_CONTROLLER, DOMAIN
-from alarmdotcom.controller import AlarmIntegrationController
-
-from . import HardwareBaseDevice
+from .base_device import HardwareBaseDevice
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
 

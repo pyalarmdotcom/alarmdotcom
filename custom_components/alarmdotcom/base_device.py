@@ -15,15 +15,15 @@ from homeassistant.helpers.update_coordinator import (
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 
-from alarmdotcom import const as c
-from alarmdotcom.const import (
+from . import const as c
+from .const import (
     ATTRIB_BATTERY_CRITICAL,
     ATTRIB_BATTERY_LOW,
     ATTRIB_BATTERY_NORMAL,
     DEVICE_STATIC_ATTRIBUTES,
     DOMAIN,
 )
-from alarmdotcom.controller import AlarmIntegrationController
+from .controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
 
@@ -68,13 +68,19 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 
+        await super().async_added_to_hass()
+
+        # Trace logging for @catellie
+        LOGGER.debug(
+            f"Device {self._friendly_name_internal} ({self._adc_id}) added to hass. Device is"
+            f" {'present' if self._device else 'not present'}"
+        )
+
         self._device.register_external_update_callback(
             self._update_device_data, f"{self._friendly_name_internal()} ({self._adc_id})"
         )
 
         self._update_device_data()
-
-        await super().async_added_to_hass()
 
     async def async_will_remove_from_hass(self) -> None:
         """Entity being removed from hass."""

@@ -14,15 +14,14 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 
-from alarmdotcom.const import (
+from .base_device import AttributeBaseDevice
+from .const import (
     DATA_CONTROLLER,
     DEBUG_REQ_EVENT,
     DOMAIN,
     SENSOR_SUBTYPE_BLACKLIST,
 )
-from alarmdotcom.controller import AlarmIntegrationController
-
-from . import AttributeBaseDevice
+from .controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
 

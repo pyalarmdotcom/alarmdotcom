@@ -20,10 +20,9 @@ from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 from pyalarmdotcomajax.devices.water_sensor import WaterSensor as libWaterSensor
 
-from alarmdotcom.const import DATA_CONTROLLER, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
-from alarmdotcom.controller import AlarmIntegrationController
-
-from . import AttributeBaseDevice, BaseDevice, HardwareBaseDevice
+from .base_device import AttributeBaseDevice, BaseDevice, HardwareBaseDevice
+from .const import DATA_CONTROLLER, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
+from .controller import AlarmIntegrationController
 from .device_type_langs import LANG_DOOR, LANG_WINDOW
 
 LOGGER = logging.getLogger(__name__)

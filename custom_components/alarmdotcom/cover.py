@@ -16,10 +16,9 @@ from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
 from pyalarmdotcomajax.exceptions import NotAuthorized
 
-from alarmdotcom.const import DATA_CONTROLLER, DOMAIN
-from alarmdotcom.controller import AlarmIntegrationController
-
-from . import HardwareBaseDevice
+from .base_device import HardwareBaseDevice
+from .const import DATA_CONTROLLER, DOMAIN
+from .controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
 
