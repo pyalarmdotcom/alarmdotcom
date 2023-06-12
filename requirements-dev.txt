@@ -1,4 +1,4 @@
 colorlog==6.7.0
-homeassistant==2023.5.4
+homeassistant==2023.6.1
 pip>=23.1.2
 pre-commit>=3.5.1

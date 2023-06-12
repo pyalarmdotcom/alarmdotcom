@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import logging
 import re
-from enum import Enum
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant import core
 from homeassistant.components.alarm_control_panel import (
@@ -20,7 +21,6 @@ from homeassistant.const import (
     STATE_ALARM_DISARMED,
     STATE_ALARM_DISARMING,
 )
-from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
 from pyalarmdotcomajax.exceptions import NotAuthorized
@@ -39,7 +39,7 @@ from .const import (
 )
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -74,7 +74,7 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
 
-        super().__init__(controller, device, device.system_id)
+        super().__init__(controller, device)
 
         self._attr_code_format = (
             (
@@ -93,19 +93,49 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         if self._device.supports_night_arming:
             self._attr_supported_features |= AlarmControlPanelEntityFeature.ARM_NIGHT
 
-    @callback
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return the state attributes of the entity."""
 
-        self._attr_state = self._determine_state(self._device.state)
+        return {
+            "uncleared_issues": str(self._device.uncleared_issues),
+            **getattr(super(), "extra_state_attributes", {}),
+        }
 
-        self._attr_extra_state_attributes.update({"uncleared_issues": str(self._device.uncleared_issues)})
+    @property
+    def state(self) -> str | None:
+        """Return the state of the device."""
+
+        if self._device.malfunction:
+            return None
+
+        if self._device.state == self._device.desired_state:
+            match self._device.state:
+                case libPartition.DeviceState.DISARMED:
+                    return str(STATE_ALARM_DISARMED)
+                case libPartition.DeviceState.ARMED_STAY:
+                    return str(STATE_ALARM_ARMED_HOME)
+                case libPartition.DeviceState.ARMED_AWAY:
+                    return str(STATE_ALARM_ARMED_AWAY)
+                case libPartition.DeviceState.ARMED_NIGHT:
+                    return str(STATE_ALARM_ARMED_NIGHT)
+        else:
+            match self._device.desired_state:
+                case libPartition.DeviceState.DISARMED:
+                    return str(STATE_ALARM_DISARMING)
+                case libPartition.DeviceState.ARMED_STAY | libPartition.DeviceState.ARMED_AWAY | libPartition.DeviceState.ARMED_NIGHT:
+                    return str(STATE_ALARM_ARMING)
+
+        LOGGER.error(
+            f"Cannot determine state. Found raw state of {self._device.state} and desired state of"
+            f" {self._device.desired_state}."
+        )
+
+        return None
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
         if self._validate_code(code):
-            self._attr_state = STATE_ALARM_DISARMING
-
             try:
                 await self._device.async_disarm()
             except NotAuthorized:
@@ -117,8 +147,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         arm_options = self._controller.options.get(CONF_ARM_NIGHT, {})
 
         if self._validate_code(code):
-            self._attr_state = STATE_ALARM_ARMING
-
             try:
                 await self._device.async_arm_night(
                     force_bypass=CONF_FORCE_BYPASS in arm_options,
@@ -134,8 +162,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         arm_options = self._controller.options.get(CONF_ARM_HOME, {})
 
         if self._validate_code(code):
-            self._attr_state = STATE_ALARM_ARMING
-
             try:
                 await self._device.async_arm_stay(
                     force_bypass=CONF_FORCE_BYPASS in arm_options,
@@ -151,8 +177,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
         arm_options = self._controller.options.get(CONF_ARM_AWAY, {})
 
         if self._validate_code(code):
-            self._attr_state = STATE_ALARM_ARMING
-
             try:
                 await self._device.async_arm_away(
                     force_bypass=CONF_FORCE_BYPASS in arm_options,
@@ -166,27 +190,6 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     # Helpers
     #
 
-    def _determine_state(self, state: Enum | None) -> str | None:
-        """Return the state of the device."""
-
-        log.info("Processing state %s for %s", state, self.name or self._device.name)
-
-        if self._device.malfunction or not state:
-            return None
-
-        match state:
-            case libPartition.DeviceState.DISARMED:
-                return str(STATE_ALARM_DISARMED)
-            case libPartition.DeviceState.ARMED_STAY:
-                return str(STATE_ALARM_ARMED_HOME)
-            case libPartition.DeviceState.ARMED_AWAY:
-                return str(STATE_ALARM_ARMED_AWAY)
-            case libPartition.DeviceState.ARMED_NIGHT:
-                return str(STATE_ALARM_ARMED_NIGHT)
-            case _:
-                log.error(f"Cannot determine state. Found raw state of {state}.")
-                return None
-
     def _validate_code(self, code: str | None) -> bool | str:
         """Validate given code."""
         check: bool | str = (arm_code := self._controller.options.get(CONF_ARM_CODE)) in [
@@ -194,5 +197,5 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             "",
         ] or code == arm_code
         if not check:
-            log.warning("Wrong code entered.")
+            LOGGER.warning("Wrong code entered.")
         return check

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-from enum import Enum
 from typing import Any
 
 from homeassistant import core
@@ -12,7 +11,6 @@ from homeassistant.components.cover import (
     CoverEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.garage_door import GarageDoor as libGarageDoor
 from pyalarmdotcomajax.devices.gate import Gate as libGate
@@ -22,7 +20,7 @@ from .base_device import HardwareBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
@@ -57,7 +55,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
         device: libGarageDoor | libGate,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device, device.partition_id)
+        super().__init__(controller, device)
 
         self._attr_device_class: CoverDeviceClass = (
             CoverDeviceClass.GARAGE if isinstance(device, libGarageDoor) else CoverDeviceClass.GATE
@@ -65,18 +63,48 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
 
         self._attr_supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
-    @callback
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
+    @property
+    def is_closing(self) -> bool | None:
+        """Return true if lock is unlocking."""
 
-        self._attr_is_closed = self._determine_is_closed(self._device.state)
-        self._attr_is_closing = False
-        self._attr_is_opening = False
+        return (
+            not self._device.malfunction
+            and self._device.state != self._device.desired_state
+            and self._device.desired_state in [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]
+        )
+
+    @property
+    def is_opening(self) -> bool | None:
+        """Return true if lock is unlocking."""
+
+        return (
+            not self._device.malfunction
+            and self._device.state != self._device.desired_state
+            and self._device.desired_state in [libGarageDoor.DeviceState.OPEN, libGate.DeviceState.OPEN]
+        )
+
+    @property
+    def is_closed(self) -> bool | None:
+        """Return true if lock is locked."""
+
+        LOGGER.info("Processing is_closed %s for %s", self._device.state, self.name or self._device.name)
+
+        if not self._device.malfunction:
+            match self._device.state:
+                case libGarageDoor.DeviceState.OPEN | libGate.DeviceState.OPEN:
+                    return False
+                case libGarageDoor.DeviceState.CLOSED | libGate.DeviceState.CLOSED:
+                    return True
+
+            LOGGER.error(
+                "Cannot determine cover state. Found raw state of %s.",
+                self._device.state,
+            )
+
+        return None
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""
-
-        self._attr_is_opening = True
 
         try:
             await self._device.async_open()
@@ -86,30 +114,7 @@ class Cover(HardwareBaseDevice, CoverEntity):  # type: ignore
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the cover."""
 
-        self._attr_is_closing = True
-
         try:
             await self._device.async_close()
         except NotAuthorized:
             self._show_permission_error("close")
-
-    #
-    # Helpers
-    #
-
-    def _determine_is_closed(self, state: Enum | None) -> bool | None:
-        """Return if the cover is closed or not."""
-
-        if not self._device.malfunction:
-            if state in [libGarageDoor.DeviceState.OPEN, libGate.DeviceState.OPEN]:
-                return False
-
-            if state in [libGarageDoor.DeviceState.CLOSED, libGate.DeviceState.CLOSED]:
-                return True
-
-            log.exception(
-                "Cannot determine cover state. Found raw state of %s.",
-                state,
-            )
-
-        return None

@@ -6,9 +6,8 @@ import logging
 from homeassistant import core
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices.registry import AllDevices_t
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
@@ -18,7 +17,7 @@ from .base_device import ConfigBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 # TODO: This device contains behavior specific to the Skybell HD. It needs to be made more generic as other devices are supported.
 
@@ -52,7 +51,7 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
     def __init__(
         self,
         controller: AlarmIntegrationController,
-        device: AllDevices_t,
+        device: libBaseDevice,
         config_option: libConfigurationOption,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
@@ -69,21 +68,19 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
         else:
             self._attr_mode = NumberMode.AUTO
 
-    def _determine_icon(self) -> str | None:
+    @property
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
         if self._config_option.option_type == libConfigurationOptionType.BRIGHTNESS:
             return "mdi:brightness-5"
 
         return super().icon if isinstance(super().icon, str) else None
 
-    @callback
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
+    @property
+    def native_value(self) -> float | None:
+        """Return the state of the sensor."""
 
-        if current_value := self._config_option.current_value:
-            self._attr_native_value = float(current_value)
-
-        self._attr_icon = self._determine_icon()
+        return float(current_value) if (current_value := self._config_option.current_value) else None
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""

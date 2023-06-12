@@ -6,7 +6,6 @@ import logging
 from homeassistant import core
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.extensions import (
     CameraSkybellControllerExtension as libCameraSkybellControllerExtension,
@@ -20,7 +19,7 @@ from .base_device import ConfigBaseDevice
 from .const import DATA_CONTROLLER, DOMAIN
 from .controller import AlarmIntegrationController
 
-log = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 # TODO: This device contains behavior specific to the Skybell HD. It needs to be made more generic as other devices are supported.
 
@@ -53,15 +52,13 @@ class ConfigOptionSwitch(ConfigBaseDevice, SwitchEntity):  # type: ignore
 
     _attr_device_class = SwitchDeviceClass.SWITCH
 
-    @callback
-    def _update_device_data(self) -> None:
-        """Update the entity when coordinator is updated."""
+    @property
+    def is_on(self) -> bool:
+        """Return true if the binary sensor is on."""
+        return self._config_option.current_value is libCameraSkybellControllerExtension.ChimeOnOff.ON
 
-        self._attr_is_on = self._config_option.current_value is libCameraSkybellControllerExtension.ChimeOnOff.ON
-
-        self._attr_icon = self._determine_icon()
-
-    def _determine_icon(self) -> str | None:
+    @property
+    def icon(self) -> str | None:
         """Return the icon to use in the frontend, if any."""
         if self._config_option.option_type is libConfigurationOptionType.BINARY_CHIME:
             return "mdi:bell" if self.is_on else "mdi:bell-off"
