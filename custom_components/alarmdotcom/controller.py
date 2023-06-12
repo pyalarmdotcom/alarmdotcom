@@ -163,7 +163,7 @@ class AlarmIntegrationController:
             raise ConfigEntryAuthFailed("Invalid account credentials found while updating device states.") from err
 
         except AlarmdotcomException as err:
-            raise UpdateFailed(str(err)) from err
+            raise UpdateFailed from err
 
     @property
     def provider_name(self) -> str:
