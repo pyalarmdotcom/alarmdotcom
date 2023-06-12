@@ -27,7 +27,7 @@ E.g.: Alarm Net, ADT, Surety Home, etc.
 **Include pyalarmdotcomajax Server Output**
 This is an important step. It's helpful for us to see how this device is represented on the Alarm.com server. We have a tool for dumping this data via the command line.
 
-1. Install the `adc` command line tool using [these instructions].
+1. Install the `adc` command line tool using the instructions at https://github.com/pyalarmdotcom/alarmdotcom/wiki/How-to-Test-&-Debug#install-the-adc-command-line-tool.
 2. Run the `Unsupported Devices` command template in the table on the adc instructions page.
 3. Copy & paste here the relevant data from the output of the Unsupported Devices command.
 
@@ -42,4 +42,4 @@ This is a more technical than the last step, but in order to support actions for
 
 (Opening a garage door requires submitting a request to `https://www.alarm.com/web/api/devices/garageDoors/open`.)
 
-Basic instructions for capturing action data in Chrome are [here](https://github.com/pyalarmdotcom/alarmdotcom/wiki/How-to-Test-&-Debug#capturing-post-data-in-chrome). Be sure to post both request body data and request URL data.
+Basic instructions for capturing action data in Chrome are available at https://github.com/pyalarmdotcom/alarmdotcom/wiki/How-to-Test-&-Debug#capturing-post-data-in-chrome. Be sure to post both request body data and request URL data.
