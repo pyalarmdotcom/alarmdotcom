@@ -1,10 +1,9 @@
 ---
 name: Request support for a new device
 about: Help us support new Alarm.com devices
-title: ''
+title: ""
 labels: new device
-assignees: ''
-
+assignees: ""
 ---
 
 The alarmdotcom maintainers don't have direct access to all Alarm.com devices. We need your help to support new devices.
