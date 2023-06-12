@@ -14,6 +14,9 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.dispatcher import (
+    async_dispatcher_send,
+)
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyalarmdotcomajax import AlarmController as libAlarmController
@@ -52,8 +55,6 @@ class AlarmIntegrationController:
 
         self._stop_keep_alive: CALLBACK_TYPE
 
-        LOGGER.debug("%s: Registering update listener.", __name__)
-
     async def initialize(self) -> None:
         """Initialize connection to Alarm.com."""
 
@@ -73,6 +74,9 @@ class AlarmIntegrationController:
 
         self.options = self.config_entry.options
         self.config_entry.async_on_unload(self.config_entry.add_update_listener(_async_update_listener))
+
+        LOGGER.debug("%s: Registering event listener.", __name__)
+        await self.api.register_event_listener(self.dispatch_state_update)
 
         update_interval = self.config_entry.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS)
 
@@ -172,6 +176,21 @@ class AlarmIntegrationController:
 
         except AlarmdotcomException as err:
             raise UpdateFailed(str(err)) from err
+
+    async def dispatch_state_update(self, adc_id: str) -> None:
+        """Emit an event to be handled by Alarm.com integration entities when we receive a state update via WebSocket."""
+
+        signal_name = await self.get_state_update_signal(adc_id)
+
+        # Trace logging for @catellie
+        LOGGER.debug("%s: Dispatching state update signal of %s for %s.", __name__, signal_name, adc_id)
+
+        async_dispatcher_send(self.hass, signal_name)
+
+    async def get_state_update_signal(self, adc_id: str) -> str:
+        """Return the signal name for a given ADC ID."""
+
+        return f"alarmdotcom-{self.config_entry.entry_id}-state-{adc_id}"
 
     @property
     def provider_name(self) -> str:
