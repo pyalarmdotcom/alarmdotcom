@@ -1,13 +1,13 @@
 """Base device."""
 from __future__ import annotations
 
-import contextlib
 import logging
 from collections.abc import Mapping, MutableMapping
 from typing import Any, Final
 
 from homeassistant.components import persistent_notification
 from homeassistant.core import callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory, EntityDescription
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -68,24 +68,15 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 
-        self._device.register_external_update_callback(
-            self._update_device_data, f"{self._friendly_name_internal()} ({self._adc_id})"
+        await super().async_added_to_hass()
+
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, await self._controller.get_state_update_signal(self._adc_id), self._update_device_data
+            )
         )
 
         self._update_device_data()
-
-        await super().async_added_to_hass()
-
-    async def async_will_remove_from_hass(self) -> None:
-        """Entity being removed from hass."""
-
-        # This will fail for devices that were removed from ADC during this session.
-        with contextlib.suppress(ValueError):
-            self._device.unregister_external_update_callback(
-                self._update_device_data, f"{self._friendly_name_internal()} ({self._adc_id})"
-            )
-
-        await super().async_will_remove_from_hass()
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -95,6 +86,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         self._update_device_data()
 
+    @callback
     def _update_device_data(self) -> None:
         """Device-type specific update processes to run when new device data is available."""
 
