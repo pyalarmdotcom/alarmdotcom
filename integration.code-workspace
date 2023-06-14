@@ -13,7 +13,7 @@
         "editor.formatOnType": true,
         "python.analysis.autoSearchPaths": false,
         "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
-        "python.formatting.provider": "black",
+        "python.formatting.provider": "none",
         "python.linting.enabled": true,
         "python.languageServer": "Pylance",
         "python.testing.pytestEnabled": true,

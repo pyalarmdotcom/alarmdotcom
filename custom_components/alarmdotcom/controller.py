@@ -143,8 +143,12 @@ class AlarmIntegrationController:
             aiohttp.ClientError,
             asyncio.exceptions.CancelledError,
         ) as err:
+            # Trace logging for @catellie
+            LOGGER.exception("Failed to initialize controller due to issue with connection.")
             raise ConfigEntryNotReady from err
         except UnexpectedResponse as err:
+            # Trace logging for @catellie
+            LOGGER.exception("Failed to initialize controller due to unexpected response.")
             raise UpdateFailed from err
         except (AuthenticationFailed, NotAuthorized) as err:
             raise ConfigEntryAuthFailed from err
@@ -175,7 +179,16 @@ class AlarmIntegrationController:
             raise ConfigEntryAuthFailed("Invalid account credentials found while updating device states.") from err
 
         except AlarmdotcomException as err:
+            # Trace logging for @catellie
+            LOGGER.exception("Failed to refresh data due to unexpected error.")
             raise UpdateFailed from err
+
+        except (
+            asyncio.TimeoutError,
+            aiohttp.ClientError,
+            asyncio.exceptions.CancelledError,
+        ):
+            LOGGER.exception("Failed to refresh data due to issue with connection to Alarm.com.")
 
     async def dispatch_state_update(self, adc_id: str) -> None:
         """Emit an event to be handled by Alarm.com integration entities when we receive a state update via WebSocket."""
