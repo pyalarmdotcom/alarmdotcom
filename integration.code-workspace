@@ -17,7 +17,10 @@
         "python.linting.enabled": true,
         "python.languageServer": "Pylance",
         "python.testing.pytestEnabled": true,
-        "python.linting.mypyEnabled": false,
+        "python.linting.mypyArgs": [
+            "--config-file=${workspaceFolder}/pyproject.toml"
+        ],
+        "python.linting.mypyEnabled": true,
         // "python.linting.pylintEnabled": true,
         "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
         "python.analysis.diagnosticMode": "workspace",
@@ -42,6 +45,10 @@
                 "depth": 5,
                 "includeAllSymbols": true
             }
-        ]
+        ],
+        "mypy-type-checker.importStrategy": "fromEnvironment",
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter"
+        }
     }
 }
