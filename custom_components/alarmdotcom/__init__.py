@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import re
@@ -152,7 +153,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 f" {entity_entry.name,} (entity_entry.unique_id) ({adc_id})"
             )
 
-            entity_registry.async_remove(entity_entry.id)
+            with contextlib.suppress(KeyError):
+                entity_registry.async_remove(entity_entry.id)
 
     # Create virtual DEVICES.
     # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.
