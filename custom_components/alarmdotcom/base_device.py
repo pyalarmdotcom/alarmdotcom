@@ -1,8 +1,8 @@
 """Base device."""
 from __future__ import annotations
 
-from enum import Enum
 import logging
+from enum import Enum
 from typing import NamedTuple
 
 from homeassistant.components import persistent_notification
@@ -164,11 +164,13 @@ class HardwareBaseDevice(BaseDevice):
             self._attr_extra_state_attributes["mac_address"] = mac_address
 
         self._attr_device_info = {
-            "default_manufacturer": "Alarm.com",
+            "manufacturer": "Alarm.com",
             "name": device.name,
             "identifiers": {(DOMAIN, self.unique_id)},
             "via_device": (DOMAIN, self.parent_id),
         }
+
+        self._attr_name = device.name
 
 
 class AttributeBaseDevice(BaseDevice):

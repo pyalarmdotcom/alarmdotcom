@@ -10,5 +10,11 @@
     {
       "path": "/workspaces/pyalarmdotcomajax"
     }
-  ]
+  ],
+  "settings": {
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none"
+  }
 }
