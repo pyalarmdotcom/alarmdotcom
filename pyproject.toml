@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 115
-target-version = ["py310"]
+target-version = ["py311"]
 exclude = 'generated'
 preview = "True"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 show_error_codes = true
 # follow_imports = "silent"
 ignore_missing_imports = true
@@ -39,7 +39,7 @@ norecursedirs = [".git", "testing_config"]
 asyncio_mode = "auto"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 unfixable = [
   "F841" # Unused variables
 ]

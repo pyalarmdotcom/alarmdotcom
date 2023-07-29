@@ -52,8 +52,8 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         self._attr_device_info = DeviceInfo(
             {
-                "default_manufacturer": "Alarm.com",
-                "default_name": device.name,
+                "manufacturer": "Alarm.com",
+                "name": device.name,
                 "identifiers": {(DOMAIN, self._adc_id)},
                 "via_device": (DOMAIN, self._device.partition_id),
             }
@@ -185,6 +185,8 @@ class HardwareBaseDevice(BaseDevice):
         )
 
         self._attr_unique_id = device.id_
+
+        self._attr_name = device.name
 
         super().__init__(controller, device)
 
