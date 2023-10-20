@@ -32,6 +32,7 @@ repos:
       hooks:
           - id: mypy
             additional_dependencies: [types-all]
+            args: [--config-file=pyproject.toml]
     - repo: https://github.com/adrienverge/yamllint.git
       rev: v1.32.0
       hooks:
