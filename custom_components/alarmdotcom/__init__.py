@@ -127,10 +127,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 break
 
             LOGGER.info(
-                (
-                    "Removing device no longer supported by integration or no longer present on Alarm.com: %s (%s"
-                    " | %s)"
-                ),
+                "Removing device no longer supported by integration or no longer present on Alarm.com: %s (%s"
+                " | %s)",
                 device_entry.name,
                 device_entry.identifiers,
                 device_entry.id,
