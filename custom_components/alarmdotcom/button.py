@@ -12,10 +12,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices.registry import AllDevices_t
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 
 from .base_device import AttributeBaseDevice
-from .const import DATA_CONTROLLER, DEBUG_REQ_EVENT, DOMAIN, SENSOR_SUBTYPE_BLACKLIST
+from .const import (
+    DATA_CONTROLLER,
+    DEBUG_REQ_EVENT,
+    DOMAIN,
+    SENSOR_SUBTYPE_BLACKLIST,
+)
 from .controller import AlarmIntegrationController
 
 LOGGER = logging.getLogger(__name__)
@@ -25,8 +30,8 @@ LOGGER = logging.getLogger(__name__)
 class AlarmdotcomButtonDescriptionMixin:
     """Functions for an attribute entity."""
 
-    filter_fn: Callable[[AllDevices_t], bool]
-    press_fn: Callable[[HomeAssistant, AllDevices_t], Any]
+    filter_fn: Callable[[libBaseDevice], bool]
+    press_fn: Callable[[HomeAssistant, libBaseDevice], Any]
 
 
 @dataclass
