@@ -2,16 +2,19 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import re
 
 import aiohttp
+from homeassistant import loader
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import Event, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from pyalarmdotcomajax import OtpRequired
 from pyalarmdotcomajax.exceptions import (
     AlarmdotcomException,
@@ -43,9 +46,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     LOGGER.info("%s: Initializing Alarmdotcom from config entry.", __name__)
 
+    integration = await loader.async_get_integration(hass, DOMAIN)
+
     if DOMAIN not in hass.data:
         # Print startup message
-        LOGGER.info(STARTUP_MESSAGE)
+        LOGGER.info(STARTUP_MESSAGE.format(str(integration.version)))
 
     hass.data.setdefault(DOMAIN, {})
 
@@ -78,10 +83,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     config_entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, controller.stop))
 
     #
-    # Delete devices from Home Assistant that are no longer present on Alarm.com.
+    # Delete devices and entities from Home Assistant that are no longer present on Alarm.com.
     #
 
     device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
 
     # Get devices from Alarm.com
     device_ids_via_adc: set[str] = set()
@@ -99,7 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Will be used during virtual device creation.
     device_ids_via_hass: set[str] = set()
 
-    # Compare against device registry
+    # # Purge device registry
     for device_entry in dr.async_entries_for_config_entry(device_registry, config_entry.entry_id):
         for identifier in device_entry.identifiers:
             if identifier[1] is None:
@@ -121,13 +127,32 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
                 break
 
             LOGGER.info(
-                "Removing device no longer present on Alarm.com: %s (%s | %s)",
+                "Removing device no longer supported by integration or no longer present on Alarm.com: %s (%s"
+                " | %s)",
                 device_entry.name,
                 device_entry.identifiers,
                 device_entry.id,
             )
 
             device_registry.async_remove_device(device_entry.id)
+
+    # Purge entity registry
+    for entity_entry in er.async_entries_for_config_entry(entity_registry, config_entry.entry_id):
+        entity_id_parts = entity_entry.unique_id.split("_")
+
+        if len(entity_id_parts) == 0:
+            continue
+
+        adc_id = entity_id_parts[0]
+
+        if adc_id not in device_ids_via_adc:
+            LOGGER.info(
+                "Removing entity no longer supported by integration or no longer present on Alarm.com:"
+                f" {entity_entry.name,} (entity_entry.unique_id) ({adc_id})"
+            )
+
+            with contextlib.suppress(KeyError):
+                entity_registry.async_remove(entity_entry.id)
 
     # Create virtual DEVICES.
     # Currently, only Skybell cameras are virtual devices. We support modifying configuration attributes but not viewing video.

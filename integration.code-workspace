@@ -38,6 +38,10 @@
                 "depth": 5,
                 "includeAllSymbols": true
             }
-        ]
+        ],
+        "mypy-type-checker.importStrategy": "fromEnvironment",
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter"
+        }
     }
 }

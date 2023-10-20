@@ -16,7 +16,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices.registry import AllDevices_t
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
 from pyalarmdotcomajax.devices.water_sensor import WaterSensor as libWaterSensor
 
@@ -33,7 +33,7 @@ class AlarmdotcomAttributeDescriptionMixin:
     """Functions for an attribute entity."""
 
     value_fn: Callable[[BaseDevice], bool | None]
-    filter_fn: Callable[[AllDevices_t], bool]
+    filter_fn: Callable[[libBaseDevice], bool]
     extra_attribs_fn: Callable[[BaseDevice], dict | None]
 
 
@@ -109,7 +109,7 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
 
     _device: libSensor
 
-    def __init__(self, controller: AlarmIntegrationController, device: AllDevices_t) -> None:
+    def __init__(self, controller: AlarmIntegrationController, device: libBaseDevice) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device)
 
@@ -224,7 +224,7 @@ class AttributeBinarySensor(AttributeBaseDevice, BinarySensorEntity):  # type: i
     def __init__(
         self,
         controller: AlarmIntegrationController,
-        device: AllDevices_t,
+        device: libBaseDevice,
         description: AlarmdotcomAttributeDescription,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""

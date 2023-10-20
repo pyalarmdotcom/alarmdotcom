@@ -50,6 +50,9 @@
                 "python.analysis.autoSearchPaths": false,
                 "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
                 "python.languageServer": "Pylance",
+                "python.linting.mypyArgs": [
+                    "--config-file=${workspaceFolder}/pyproject.toml"
+                ],
                 "python.testing.pytestEnabled": true,
                 "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
                 "python.analysis.diagnosticMode": "workspace",
