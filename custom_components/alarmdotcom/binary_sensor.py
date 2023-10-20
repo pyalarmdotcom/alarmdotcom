@@ -187,6 +187,12 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
         return None
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+
+        return self.is_on is not None
+
+    @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
 
@@ -202,7 +208,11 @@ class BinarySensor(HardwareBaseDevice, BinarySensorEntity):  # type: ignore
             case libSensor.DeviceState.OPEN | libSensor.DeviceState.ACTIVE | libWaterSensor.DeviceState.WET:
                 return True
 
-        LOGGER.error("Cannot determine binary sensor state. Found raw state of %s.", self._device.state)
+        LOGGER.info(
+            "Cannot determine binary sensor state for sensor %s. Found raw state of %s.",
+            self._attr_name,
+            self._device.state,
+        )
         return None
 
 

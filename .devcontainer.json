@@ -49,12 +49,8 @@
                 },
                 "python.analysis.autoSearchPaths": false,
                 "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
-                "python.formatting.provider": "black",
-                "python.linting.enabled": true,
                 "python.languageServer": "Pylance",
                 "python.testing.pytestEnabled": true,
-                "python.linting.mypyEnabled": false,
-                // "python.linting.pylintEnabled": true,
                 "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
                 "python.analysis.diagnosticMode": "workspace",
                 "python.analysis.typeCheckingMode": "off",
@@ -78,7 +74,7 @@
         "github-cli": "latest"
     },
     "forwardPorts": [8123],
-    "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.10-bullseye",
+    "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.11-bullseye",
     "name": "alarmdotcom",
     "postCreateCommand": ["scripts/setup.sh"],
     "remoteUser": "vscode"

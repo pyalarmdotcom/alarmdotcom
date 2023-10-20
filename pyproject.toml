@@ -47,6 +47,7 @@ exclude = ["examples", "tests", "pylint", "build"]
 select = [
   "B007", # Loop control variable {name} not used within loop body
   "B014", # Exception handler with duplicate exception
+  "B006", # Do not use mutable data structures for argument defaults
   "C", # complexity
   "D", # docstrings
   "E", # pycodestyle
