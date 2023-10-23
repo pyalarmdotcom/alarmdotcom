@@ -8,7 +8,6 @@ from typing import Any, Final
 
 from homeassistant.components import persistent_notification
 from homeassistant.core import callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory, EntityDescription
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
