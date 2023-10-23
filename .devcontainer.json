@@ -77,7 +77,7 @@
         "github-cli": "latest"
     },
     "forwardPorts": [8123],
-    "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.11-bullseye",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11",
     "name": "alarmdotcom",
     "postCreateCommand": ["scripts/setup.sh"],
     "remoteUser": "vscode"
