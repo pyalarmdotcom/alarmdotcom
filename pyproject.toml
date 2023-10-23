@@ -55,7 +55,7 @@ select = [
   "I", # isort
   "PL", # pylint
   "RUF", # ruff-specific
-  "FA", # flake-8 future annotations
+  # "FA", # flake-8 future annotations
   "TID", # flake-8 tidy imports
   "SLF", # flake-8 self
   "SIM", # flake-8 simplify

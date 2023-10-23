@@ -20,7 +20,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_FAHRENHEIT
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices.registry import AllDevices_t
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.devices.thermostat import Thermostat as libThermostat
 from pyalarmdotcomajax.exceptions import NotAuthorized
 
@@ -65,7 +65,7 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
     def __init__(
         self,
         controller: AlarmIntegrationController,
-        device: AllDevices_t,
+        device: libBaseDevice,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(controller, device)

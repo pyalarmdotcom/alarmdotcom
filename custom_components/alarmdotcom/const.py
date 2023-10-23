@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+import pyalarmdotcomajax
 from homeassistant.const import Platform
 from pyalarmdotcomajax import const as libConst
 from pyalarmdotcomajax.devices.sensor import Sensor as libSensor
@@ -13,10 +14,13 @@ DOMAIN = "alarmdotcom"
 ISSUE_URL = "https://github.com/pyalarmdotcom/alarmdotcom/issues"
 STARTUP_MESSAGE = f"""
 ===================================================================
-{DOMAIN}
+{DOMAIN.upper()} v{{}}
+
 This is a custom component
 If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
+
+pyalarmdotcomajax v{pyalarmdotcomajax.__version__}
 ===================================================================
 """
 

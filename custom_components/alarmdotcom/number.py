@@ -8,7 +8,7 @@ from homeassistant import core
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices.registry import AllDevices_t
+from pyalarmdotcomajax.devices import BaseDevice as libBaseDevice
 from pyalarmdotcomajax.extensions import ConfigurationOption as libConfigurationOption
 from pyalarmdotcomajax.extensions import (
     ConfigurationOptionType as libConfigurationOptionType,
@@ -52,7 +52,7 @@ class ConfigOptionNumber(ConfigBaseDevice, NumberEntity):  # type: ignore
     def __init__(
         self,
         controller: AlarmIntegrationController,
-        device: AllDevices_t,
+        device: libBaseDevice,
         config_option: libConfigurationOption,
     ) -> None:
         """Pass coordinator to CoordinatorEntity."""
