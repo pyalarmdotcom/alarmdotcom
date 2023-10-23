@@ -1,5 +1,4 @@
 """Alarmdotcom implementation of an HA switch."""
-
 from __future__ import annotations
 
 import logging

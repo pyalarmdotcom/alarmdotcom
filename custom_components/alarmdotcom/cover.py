@@ -1,5 +1,4 @@
 """Alarmdotcom implementation of an HA cover (garage door)."""
-
 from __future__ import annotations
 
 import logging

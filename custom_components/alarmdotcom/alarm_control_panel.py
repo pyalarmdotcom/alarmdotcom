@@ -1,5 +1,4 @@
 """Interfaces with Alarm.com alarm control panels."""
-
 from __future__ import annotations
 
 import logging

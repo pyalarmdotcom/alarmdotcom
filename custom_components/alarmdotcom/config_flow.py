@@ -1,5 +1,4 @@
 """Config flow to configure Alarmdotcom."""
-
 from __future__ import annotations
 
 import asyncio

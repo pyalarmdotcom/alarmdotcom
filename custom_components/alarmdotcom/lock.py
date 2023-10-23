@@ -1,5 +1,4 @@
 """Alarmdotcom implementation of an HA lock."""
-
 from __future__ import annotations
 
 import logging

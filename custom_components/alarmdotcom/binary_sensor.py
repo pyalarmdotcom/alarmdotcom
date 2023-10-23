@@ -1,5 +1,4 @@
 """Alarmdotcom implementation of an HA binary sensor."""
-
 from __future__ import annotations
 
 import logging
