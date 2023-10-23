@@ -1,4 +1,5 @@
 """Alarmdotcom implementation of an HA thermostat."""
+
 from __future__ import annotations
 
 import logging
