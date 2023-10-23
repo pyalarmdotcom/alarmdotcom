@@ -1,4 +1,5 @@
 """Controller interfaces with the Alarm.com API via pyalarmdotcomajax."""
+
 from __future__ import annotations
 
 import asyncio
