@@ -1,4 +1,5 @@
 """Const for the Alarmdotcom integration."""
+
 from __future__ import annotations
 
 import logging
@@ -75,7 +76,8 @@ SENSOR_SUBTYPE_BLACKLIST = [
 ]
 
 DATA_CONTROLLER = "connection"
-DATA_LISTENER = "listener"
+
+EVENT_LISTENER_BASE_DEVICE = "Device Controller"
 
 ATTRIB_BATTERY_NORMAL = "Normal"
 ATTRIB_BATTERY_LOW = "Low"
