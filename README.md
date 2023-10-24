@@ -25,7 +25,7 @@
 
 ## Intro
 
-This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. This component is designed primarily integrate the Alarm.com security system functions, so it requires an Alarm.com package which includes security system support. We're just starting to add support for smart devices like lights, garage doors, etc.
+This is a custom component to allow Home Assistant to interface with the [Alarm.com](https://www.alarm.com/) site by scraping the Alarm.com web portal. This component is designed primarily to integrate the Alarm.com security system functions; as such, it requires an Alarm.com package which includes security system support.
 
 Please note that Alarm.com may break functionality at any time.
 
@@ -74,7 +74,7 @@ Note that Alarm.com can has multiple designations for each sensor and not all ar
 
 #### Subsensors
 
-Each sensor in your system is created as both a device and as an entity within Home Assistant. Each sensor and lock has an associated low battery sensor that activates when the device's battery is low. Each sensor, lock, and control panel has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
+Each sensor in your system is created as both a device and as an entity within Home Assistant. Each device has an associated low battery sensor that activates when the device's battery is low. Each device also has an associated malfunction sensor that activates when either Alarm.com reports an issue or when this integration is unable to process data for a sensor.
 
 ### Future Support
 

@@ -19,7 +19,6 @@
                 "ryanluker.vscode-coverage-gutters",
                 "donjayamanne.githistory",
                 "github.vscode-pull-request-github",
-                "bungcip.better-toml",
                 "donjayamanne.python-extension-pack",
                 "marklarah.pre-commit-vscode",
                 "eamodio.gitlens",
@@ -31,7 +30,8 @@
                 "ms-python.mypy-type-checker",
                 "AykutSarac.jsoncrack-vscode",
                 "ms-python.python",
-                "yzhang.markdown-all-in-one"
+                "yzhang.markdown-all-in-one",
+                "tamasfe.even-better-toml"
             ],
             "settings": {
                 "[python]": {

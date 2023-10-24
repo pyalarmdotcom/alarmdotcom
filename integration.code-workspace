@@ -38,6 +38,7 @@
                 "depth": 5,
                 "includeAllSymbols": true
             }
-        ]
+        ],
+        "githubPullRequests.ignoredPullRequestBranches": ["master"]
     }
 }
