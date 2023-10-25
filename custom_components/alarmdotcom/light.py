@@ -61,32 +61,18 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
 
         self._attr_color_mode = light.COLOR_MODE_BRIGHTNESS if self._device.brightness else light.COLOR_MODE_ONOFF
 
-        self._attr_assumed_state = self._device.supports_state_tracking is True
+        self._attr_assumed_state = self._device.supports_state_tracking is False
+
+        LOGGER.debug(f"Light {self._device.name} using assumed state: {self._attr_assumed_state}")
+
+        # Independently track state to support lights that do not support state tracking
+        self._state: bool | None = None
 
     @property
     def is_on(self) -> bool | None:
         """Return True if entity is on."""
 
-        # LOGGER.info(
-        #     "Processing state %s for %s",
-        #     self._device.state,
-        #     self.name or self._device.name,
-        # )
-
-        if not self._device.malfunction:
-            match self._device.state:
-                case libLight.DeviceState.ON | libLight.DeviceState.LEVELCHANGE:
-                    return True
-
-                case libLight.DeviceState.OFF:
-                    return False
-
-            LOGGER.exception(
-                "Cannot determine light state. Found raw state of %s.",
-                self._device.state,
-            )
-
-        return None
+        return self._state
 
     @property
     def brightness(self) -> int | None:
@@ -109,6 +95,10 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
         except NotAuthorized:
             self._show_permission_error("turn on or adjust brightness on")
 
+        if self.assumed_state:
+            # optimistically assume that light has changed state
+            self._state = True
+
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
 
@@ -116,3 +106,21 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
             await self._device.async_turn_off()
         except NotAuthorized:
             self._show_permission_error("turn off")
+
+        if self.assumed_state:
+            # optimistically assume that light has changed state
+            self._state = False
+
+    def _legacy_refresh_attributes(self) -> None:
+        """Perform action whenever device is updated."""
+
+        # Update state
+        if not self._device.malfunction and not self.assumed_state:
+            match self._device.state:
+                case libLight.DeviceState.ON | libLight.DeviceState.LEVELCHANGE:
+                    self._state = True
+
+                case libLight.DeviceState.OFF:
+                    self._state = False
+
+            LOGGER.debug(f"Light {self._device.name} state: {self._device.state}")
