@@ -61,41 +61,23 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
 
         self._attr_color_mode = light.COLOR_MODE_BRIGHTNESS if self._device.brightness else light.COLOR_MODE_ONOFF
 
-        self._attr_assumed_state = self._device.supports_state_tracking is True
+        self._attr_assumed_state = self._device.supports_state_tracking is False
+
+        # Independently track state for lights that don't support state tracking
+        self._local_state: bool | None = None
+        self._local_brightness: int | None = None
 
     @property
     def is_on(self) -> bool | None:
         """Return True if entity is on."""
 
-        # LOGGER.info(
-        #     "Processing state %s for %s",
-        #     self._device.state,
-        #     self.name or self._device.name,
-        # )
-
-        if not self._device.malfunction:
-            match self._device.state:
-                case libLight.DeviceState.ON | libLight.DeviceState.LEVELCHANGE:
-                    return True
-
-                case libLight.DeviceState.OFF:
-                    return False
-
-            LOGGER.exception(
-                "Cannot determine light state. Found raw state of %s.",
-                self._device.state,
-            )
-
-        return None
+        return self._local_state
 
     @property
     def brightness(self) -> int | None:
         """Return the brightness of the light."""
 
-        if raw_bright := self._device.brightness:
-            return int((raw_bright * 255) / 100)
-
-        return None
+        return self._local_brightness
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light or adjust brightness."""
@@ -109,6 +91,11 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
         except NotAuthorized:
             self._show_permission_error("turn on or adjust brightness on")
 
+        if self.assumed_state:
+            # optimistically assume that light has changed state
+            self._local_state = True
+            self._local_brightness = kwargs.get(ATTR_BRIGHTNESS)
+
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
 
@@ -116,3 +103,22 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
             await self._device.async_turn_off()
         except NotAuthorized:
             self._show_permission_error("turn off")
+
+        if self.assumed_state:
+            # optimistically assume that light has changed state
+            self._local_state = False
+            self._local_brightness = None
+
+    def _legacy_refresh_attributes(self) -> None:
+        """Perform action whenever device is updated."""
+
+        # Update state
+        if not self._device.malfunction and not self.assumed_state:
+            match self._device.state:
+                case libLight.DeviceState.ON | libLight.DeviceState.LEVELCHANGE:
+                    self._local_state = True
+
+                case libLight.DeviceState.OFF:
+                    self._local_state = False
+
+            self._local_brightness = (self._device.brightness * 255) / 100 if self._device.brightness else None

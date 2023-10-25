@@ -23,7 +23,6 @@ from .const import (
     ATTRIB_BATTERY_NORMAL,
     DEVICE_STATIC_ATTRIBUTES,
     DOMAIN,
-    EVENT_LISTENER_BASE_DEVICE,
 )
 from .controller import AlarmIntegrationController
 
@@ -70,7 +69,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 
-        self._device.register_external_update_callback(self._update_device_data, EVENT_LISTENER_BASE_DEVICE)
+        self._device.register_external_update_callback(self._update_device_data, self.name)
 
         self._update_device_data()
 
@@ -81,7 +80,7 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
 
         # This will fail for devices that were removed from ADC during this session.
         with contextlib.suppress(ValueError):
-            self._device.unregister_external_update_callback(self._update_device_data, EVENT_LISTENER_BASE_DEVICE)
+            self._device.unregister_external_update_callback(self._update_device_data, self.name)
 
         await super().async_will_remove_from_hass()
 
