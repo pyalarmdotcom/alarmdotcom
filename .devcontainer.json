@@ -23,7 +23,6 @@
                 "marklarah.pre-commit-vscode",
                 "eamodio.gitlens",
                 "ms-python.black-formatter",
-                "ms-python.mypy-type-checker",
                 "charliermarsh.ruff",
                 "esbenp.prettier-vscode",
                 "EditorConfig.EditorConfig",
@@ -40,13 +39,16 @@
                         "source.organizeImports": true
                     },
                     "editor.defaultFormatter": "ms-python.black-formatter",
-                    "editor.formatOnPaste": false,
+                    "editor.formatOnPaste": true,
                     "editor.formatOnSave": true,
                     "editor.formatOnType": true
                 },
                 "[yaml]": {
                     "editor.defaultFormatter": "esbenp.prettier-vscode"
                 },
+                "mypy-type-checker.args": ["--config-file=pyproject.toml"],
+                "mypy-type-checker.reportingScope": "workspace",
+                "mypy-type-checker.importStrategy": "useBundled",
                 "python.analysis.autoSearchPaths": false,
                 "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
                 "python.languageServer": "Pylance",
