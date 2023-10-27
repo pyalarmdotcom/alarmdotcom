@@ -8,6 +8,9 @@
         }
     ],
     "settings": {
+        "mypy-type-checker.args": ["--config-file=pyproject.toml"],
+        "mypy-type-checker.reportingScope": "workspace",
+        "mypy-type-checker.importStrategy": "useBundled",
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": false,
@@ -39,6 +42,16 @@
                 "includeAllSymbols": true
             }
         ],
-        "githubPullRequests.ignoredPullRequestBranches": ["master"]
+        "githubPullRequests.ignoredPullRequestBranches": ["master"],
+        "[python]": {
+            "editor.codeActionsOnSave": {
+                "source.fixAll.ruff": true,
+                "source.organizeImports": true
+            },
+            "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.formatOnPaste": true,
+            "editor.formatOnSave": true,
+            "editor.formatOnType": true
+        }
     }
 }
