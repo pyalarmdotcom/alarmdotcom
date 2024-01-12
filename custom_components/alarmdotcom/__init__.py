@@ -106,8 +106,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             if identifier[1] is None:
                 continue
 
+            id_matches: str
             matched_id: str
-            id_matches = None
 
             try:
                 # Remove _debug, _malfunction, etc. from IDs
