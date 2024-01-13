@@ -41,11 +41,13 @@
                 "title": "General Settings",
                 "data": {
                     "arm_code": "Security Code (Locks & Alarm)",
-                    "update_interval": "Update Interval"
+                    "update_interval": "Update Interval",
+                    "ws_reconnect_timeout": "Websocket Reconnect Timeout"
                 },
                 "data_description": {
                     "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the pin, enter `CLEAR!`.",
-                    "update_interval": "Sets the rate at which Home Assistant checks Alarm.com for updates. Be careful! Updating too frequently may result in an account lockout."
+                    "update_interval": "Sets the rate at which Home Assistant checks Alarm.com for updates. Be careful! Updating too frequently may result in an account lockout.",
+                    "ws_reconnect_timeout": "Sets the time to wait before attempting to reconnect the websocket on disconnection."
                 }
             },
             "modes": {

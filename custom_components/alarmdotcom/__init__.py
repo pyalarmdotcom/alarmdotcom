@@ -74,7 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # Initialize WebSocket listener
     #
 
-    controller.api.start_websocket()
+    asyncio.get_running_loop().create_task(controller.async_start_websocket_monitor())
 
     config_entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, controller.stop))
 

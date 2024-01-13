@@ -41,11 +41,13 @@ from .const import (
     CONF_ARM_MODE_OPTIONS,
     CONF_ARM_NIGHT,
     CONF_DEFAULT_UPDATE_INTERVAL_SECONDS,
+    CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT,
     CONF_OPTIONS_DEFAULT,
     CONF_OTP,
     CONF_OTP_METHOD,
     CONF_OTP_METHODS_LIST,
     CONF_UPDATE_INTERVAL,
+    CONF_WEBSOCKET_RECONNECT_TIMEOUT,
     DOMAIN,
 )
 from .controller import AlarmIntegrationController
@@ -305,6 +307,17 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
                 vol.Required(
                     CONF_UPDATE_INTERVAL,
                     default=self.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS),
+                ): selector.selector(
+                    {
+                        "number": {
+                            "mode": "box",
+                            CONF_UNIT_OF_MEASUREMENT: "seconds",
+                        }
+                    }
+                ),
+                vol.Required(
+                    CONF_WEBSOCKET_RECONNECT_TIMEOUT,
+                    default=self.options.get(CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT),
                 ): selector.selector(
                     {
                         "number": {
