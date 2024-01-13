@@ -317,7 +317,9 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
                 ),
                 vol.Required(
                     CONF_WEBSOCKET_RECONNECT_TIMEOUT,
-                    default=self.options.get(CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT),
+                    default=self.options.get(
+                        CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
+                    ),
                 ): selector.selector(
                     {
                         "number": {

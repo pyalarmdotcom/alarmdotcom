@@ -17,10 +17,8 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from pyalarmdotcomajax import (
-    AlarmController as libAlarmController,
-    WebSocketState
-)
+from pyalarmdotcomajax import AlarmController as libAlarmController
+from pyalarmdotcomajax import WebSocketState
 from pyalarmdotcomajax.exceptions import (
     AlarmdotcomException,
     AuthenticationFailed,
@@ -38,6 +36,7 @@ from .const import (
 )
 
 LOGGER = logging.getLogger(__name__)
+
 
 class AlarmIntegrationController:
     """Config-entry initiated Alarm Hub."""
@@ -178,7 +177,7 @@ class AlarmIntegrationController:
 
         except AlarmdotcomException as err:
             raise UpdateFailed(str(err)) from err
-    
+
     def _ws_state_handler(self, state: WebSocketState) -> None:
         """Callback that handles websocket state changes in the Alarm.com API."""
 
@@ -190,7 +189,9 @@ class AlarmIntegrationController:
     async def async_start_websocket_monitor(self) -> None:
         """Starts websocket connection and then monitors it for disconnection."""
 
-        ws_reconnect_timeout = self.config_entry.options.get(CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT)
+        ws_reconnect_timeout = self.config_entry.options.get(
+            CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
+        )
 
         while True:
             self._ws_close_event.clear()
