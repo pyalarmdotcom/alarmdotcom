@@ -179,15 +179,15 @@ class AlarmIntegrationController:
             raise UpdateFailed(str(err)) from err
 
     def _ws_state_handler(self, state: WebSocketState) -> None:
-        """Callback that handles websocket state changes in the Alarm.com API."""
+        """Handle websocket state changes in the Alarm.com API."""
 
         self._ws_state = state
 
-        if state == WebSocketState.DISCONNECTED or state == WebSocketState.STOPPED:
+        if state in {WebSocketState.DISCONNECTED, WebSocketState.STOPPED}:
             self._ws_close_event.set()
 
     async def async_start_websocket_monitor(self) -> None:
-        """Starts websocket connection and then monitors it for disconnection."""
+        """Start a websocket connection and monitor it for disconnection."""
 
         ws_reconnect_timeout = self.config_entry.options.get(
             CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
