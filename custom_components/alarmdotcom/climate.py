@@ -225,7 +225,9 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         # UNIT OF MEASUREMENT
         #
 
-        self._attr_temperature_unit = UnitOfTemperature.CELSIUS if self._device.attributes.uses_celsius else UnitOfTemperature.FAHRENHEIT
+        self._attr_temperature_unit = (
+            UnitOfTemperature.CELSIUS if self._device.attributes.uses_celsius else UnitOfTemperature.FAHRENHEIT
+        )
 
         #
         # SUPPORTED FEATURES
