@@ -3,12 +3,12 @@ default_language_version:
 
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.1.1
+      rev: v0.1.13
       hooks:
           - id: ruff
             args: [--fix, --exit-non-zero-on-fix]
     - repo: https://github.com/psf/black
-      rev: 23.10.0
+      rev: 23.12.1
       hooks:
           - id: black
             args:
@@ -24,17 +24,17 @@ repos:
                 - --quiet-level=2
             exclude_types: [csv, json]
     - repo: https://github.com/pre-commit/mirrors-prettier
-      rev: v3.0.3
+      rev: v4.0.0-alpha.8
       hooks:
           - id: prettier
     - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.6.1
+      rev: v1.8.0
       hooks:
           - id: mypy
             additional_dependencies: [types-all]
             args: [--config-file=pyproject.toml]
     - repo: https://github.com/adrienverge/yamllint.git
-      rev: v1.32.0
+      rev: v1.33.0
       hooks:
           - id: yamllint
             exclude: (.vscode|.devcontainer|.github)
