@@ -92,7 +92,6 @@ PLATFORMS = [
     Platform.SWITCH,
     Platform.SELECT,
     Platform.CLIMATE,
-    Platform.SCENE,
 ]
 
 DEVICE_STATIC_ATTRIBUTES = [libConst.ATTR_STATE_TEXT, libConst.ATTR_MAC_ADDRESS]

@@ -121,4 +121,6 @@ class Light(HardwareBaseDevice, LightEntity):  # type: ignore
                 case libLight.DeviceState.OFF:
                     self._local_state = False
 
-            self._local_brightness = (self._device.brightness * 255) / 100 if self._device.brightness else None
+            self._local_brightness = (
+                int((self._device.brightness * 255) / 100) if self._device.brightness else None
+            )
