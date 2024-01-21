@@ -18,7 +18,7 @@ from homeassistant.components.climate.const import (
     FAN_ON,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS, TEMP_FAHRENHEIT
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.registry import AllDevices_t
 from pyalarmdotcomajax.devices.thermostat import Thermostat as libThermostat
@@ -225,7 +225,9 @@ class Climate(HardwareBaseDevice, ClimateEntity):  # type: ignore
         # UNIT OF MEASUREMENT
         #
 
-        self._attr_temperature_unit = TEMP_CELSIUS if self._device.attributes.uses_celsius else TEMP_FAHRENHEIT
+        self._attr_temperature_unit = (
+            UnitOfTemperature.CELSIUS if self._device.attributes.uses_celsius else UnitOfTemperature.FAHRENHEIT
+        )
 
         #
         # SUPPORTED FEATURES

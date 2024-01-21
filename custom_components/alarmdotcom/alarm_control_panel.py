@@ -124,7 +124,11 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             match self._device.desired_state:
                 case libPartition.DeviceState.DISARMED:
                     return str(STATE_ALARM_DISARMING)
-                case libPartition.DeviceState.ARMED_STAY | libPartition.DeviceState.ARMED_AWAY | libPartition.DeviceState.ARMED_NIGHT:
+                case (
+                    libPartition.DeviceState.ARMED_STAY
+                    | libPartition.DeviceState.ARMED_AWAY
+                    | libPartition.DeviceState.ARMED_NIGHT
+                ):
                     return str(STATE_ALARM_ARMING)
 
         LOGGER.error(
