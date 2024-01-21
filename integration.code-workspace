@@ -1,11 +1,11 @@
 {
     "folders": [
         {
-            "path": "/workspaces/alarmdotcom"
+            "path": "/workspaces/alarmdotcom",
         },
         {
-            "path": "/workspaces/pyalarmdotcomajax"
-        }
+            "path": "/workspaces/pyalarmdotcomajax",
+        },
     ],
     "settings": {
         "mypy-type-checker.args": ["--config-file=pyproject.toml"],
@@ -25,10 +25,10 @@
             "**/custom_components/alarmdotcom",
             "**/pyalarmdotcomajax/pyalarmdotcomajax",
             "**/pyalarmdotcomajax/tests",
-            "**/pyalarmdotcomajax/examples"
+            "**/pyalarmdotcomajax/examples",
         ],
         "files.associations": {
-            "*.yaml": "home-assistant"
+            "*.yaml": "home-assistant",
         },
         "python.analysis.autoImportCompletions": true,
         "python.analysis.inlayHints.callArgumentNames": "off",
@@ -39,19 +39,19 @@
             {
                 "name": "pyalarmdotcomajax",
                 "depth": 5,
-                "includeAllSymbols": true
-            }
+                "includeAllSymbols": true,
+            },
         ],
         "githubPullRequests.ignoredPullRequestBranches": ["master"],
         "[python]": {
             "editor.codeActionsOnSave": {
                 "source.fixAll.ruff": true,
-                "source.organizeImports": true
+                "source.organizeImports": true,
             },
             "editor.defaultFormatter": "ms-python.black-formatter",
             "editor.formatOnPaste": true,
             "editor.formatOnSave": true,
-            "editor.formatOnType": true
-        }
-    }
+            "editor.formatOnType": true,
+        },
+    },
 }
