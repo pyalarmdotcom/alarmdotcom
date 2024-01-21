@@ -306,22 +306,22 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
                         "mode": "box",
                         CONF_UNIT_OF_MEASUREMENT: "seconds",
                     }
+                }
+            ),
+            vol.Required(
+                CONF_WEBSOCKET_RECONNECT_TIMEOUT,
+                default=self.options.get(
+                    CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
                 ),
-                vol.Required(
-                    CONF_WEBSOCKET_RECONNECT_TIMEOUT,
-                    default=self.options.get(
-                        CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
-                    ),
-                ): selector.selector(
-                    {
-                        "number": {
-                            "mode": "box",
-                            CONF_UNIT_OF_MEASUREMENT: "seconds",
-                        }
+            ): selector.selector(
+                {
+                    "number": {
+                        "mode": "box",
+                        CONF_UNIT_OF_MEASUREMENT: "seconds",
                     }
-                ),
-            }
-        )
+                }
+            ),
+        })
 
         return self.async_show_form(
             step_id="init",
