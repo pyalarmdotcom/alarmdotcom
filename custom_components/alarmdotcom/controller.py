@@ -139,11 +139,7 @@ class AlarmIntegrationController:
 
         try:
             await self.api.async_login()
-        except (
-            asyncio.TimeoutError,
-            aiohttp.ClientError,
-            asyncio.exceptions.CancelledError,
-        ) as err:
+        except (TimeoutError, aiohttp.ClientError, asyncio.exceptions.CancelledError) as err:
             raise ConfigEntryNotReady from err
         except UnexpectedResponse as err:
             raise UpdateFailed from err
