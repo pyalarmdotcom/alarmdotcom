@@ -62,7 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         raise ConfigEntryAuthFailed("Authentication failed. Please try logging in again.") from ex
     except ConfigureTwoFactorAuthentication as ex:
         raise ConfigEntryAuthFailed from ex
-    except (AlarmdotcomException, aiohttp.ClientError, asyncio.TimeoutError) as ex:
+    except (TimeoutError, AlarmdotcomException, aiohttp.ClientError) as ex:
         raise ConfigEntryNotReady from ex
 
     # Store integration data for use during platform setup.

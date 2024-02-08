@@ -114,8 +114,8 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     return self.async_abort(reason="must_enable_2fa")
 
                 except (
+                    TimeoutError,
                     libUnexpectedResponse,
-                    asyncio.TimeoutError,
                     aiohttp.ClientError,
                     asyncio.exceptions.CancelledError,
                 ):
@@ -169,7 +169,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 LOGGER.debug(f"Using {self.otp_method.name} for One-Time Password.")
                 return await self.async_step_otp_submit()
 
-        except (aiohttp.ClientError, asyncio.TimeoutError, libUnexpectedResponse):
+        except (TimeoutError, aiohttp.ClientError, libUnexpectedResponse):
             LOGGER.exception(
                 "%s: OTP submission failed connection exception.",
                 __name__,
@@ -210,7 +210,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                     raise libAuthenticationFailed("OTP submission failed. Two-factor cookie not found.")
 
             # AttributeError raised if api has not been initialized.
-            except (AttributeError, libUnexpectedResponse, asyncio.TimeoutError, aiohttp.ClientError):
+            except (TimeoutError, AttributeError, libUnexpectedResponse, aiohttp.ClientError):
                 LOGGER.exception(
                     "%s: OTP submission failed with CannotConnect exception.",
                     __name__,
