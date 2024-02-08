@@ -45,8 +45,8 @@
         "githubPullRequests.ignoredPullRequestBranches": ["master"],
         "[python]": {
             "editor.codeActionsOnSave": {
-                "source.fixAll.ruff": true,
-                "source.organizeImports": true,
+                "source.fixAll.ruff": "explicit",
+                "source.organizeImports": "explicit",
             },
             "editor.defaultFormatter": "ms-python.black-formatter",
             "editor.formatOnPaste": true,
