@@ -135,14 +135,16 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 else:
                     return await self.async_step_final()
 
-        creds_schema = vol.Schema({
-            vol.Required(CONF_USERNAME): TextSelector(
-                TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
-            ),
-            vol.Required(CONF_PASSWORD): TextSelector(
-                TextSelectorConfig(type=TextSelectorType.PASSWORD, autocomplete="current-password")
-            ),
-        })
+        creds_schema = vol.Schema(
+            {
+                vol.Required(CONF_USERNAME): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
+                ),
+                vol.Required(CONF_PASSWORD): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD, autocomplete="current-password")
+                ),
+            }
+        )
 
         return self.async_show_form(step_id="user", data_schema=creds_schema, errors=errors, last_step=False)
 
@@ -176,15 +178,17 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             )
             errors["base"] = "cannot_connect"
 
-        otp_method_schema = vol.Schema({
-            vol.Required(CONF_OTP_METHOD, default=self._enabled_otp_methods[0].name): SelectSelector(
-                SelectSelectorConfig(
-                    options=[otp_type.name for otp_type in self._enabled_otp_methods],
-                    mode=SelectSelectorMode.DROPDOWN,
-                    translation_key=CONF_OTP_METHODS_LIST,
-                )
-            ),
-        })
+        otp_method_schema = vol.Schema(
+            {
+                vol.Required(CONF_OTP_METHOD, default=self._enabled_otp_methods[0].name): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[otp_type.name for otp_type in self._enabled_otp_methods],
+                        mode=SelectSelectorMode.DROPDOWN,
+                        translation_key=CONF_OTP_METHODS_LIST,
+                    )
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id="otp_select_method", data_schema=otp_method_schema, errors=errors, last_step=False
@@ -227,11 +231,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             else:
                 return await self.async_step_final()
 
-        creds_schema = vol.Schema({
-            vol.Required(CONF_OTP): TextSelector(
-                TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="one-time-code")
-            ),
-        })
+        creds_schema = vol.Schema(
+            {
+                vol.Required(CONF_OTP): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="one-time-code")
+                ),
+            }
+        )
 
         return self.async_show_form(step_id="otp_submit", data_schema=creds_schema, errors=errors, last_step=True)
 
@@ -292,36 +298,38 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             self.options.update(user_input)
             return await self.async_step_modes()
 
-        schema = vol.Schema({
-            vol.Optional(
-                CONF_ARM_CODE,
-                default=("" if not (arm_code_raw := self.options.get(CONF_ARM_CODE)) else arm_code_raw),
-            ): selector.selector({"text": {"type": "password"}}),
-            vol.Required(
-                CONF_UPDATE_INTERVAL,
-                default=self.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS),
-            ): selector.selector(
-                {
-                    "number": {
-                        "mode": "box",
-                        CONF_UNIT_OF_MEASUREMENT: "seconds",
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_ARM_CODE,
+                    default=("" if not (arm_code_raw := self.options.get(CONF_ARM_CODE)) else arm_code_raw),
+                ): selector.selector({"text": {"type": "password"}}),
+                vol.Required(
+                    CONF_UPDATE_INTERVAL,
+                    default=self.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS),
+                ): selector.selector(
+                    {
+                        "number": {
+                            "mode": "box",
+                            CONF_UNIT_OF_MEASUREMENT: "seconds",
+                        }
                     }
-                }
-            ),
-            vol.Required(
-                CONF_WEBSOCKET_RECONNECT_TIMEOUT,
-                default=self.options.get(
-                    CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
                 ),
-            ): selector.selector(
-                {
-                    "number": {
-                        "mode": "box",
-                        CONF_UNIT_OF_MEASUREMENT: "seconds",
+                vol.Required(
+                    CONF_WEBSOCKET_RECONNECT_TIMEOUT,
+                    default=self.options.get(
+                        CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
+                    ),
+                ): selector.selector(
+                    {
+                        "number": {
+                            "mode": "box",
+                            CONF_UNIT_OF_MEASUREMENT: "seconds",
+                        }
                     }
-                }
-            ),
-        })
+                ),
+            }
+        )
 
         return self.async_show_form(
             step_id="init",
@@ -338,20 +346,22 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             self.options.update(user_input)
             return self.async_create_entry(title="", data=self.options)
 
-        schema = vol.Schema({
-            vol.Required(
-                CONF_ARM_HOME,
-                default=self.options.get(CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]),
-            ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-            vol.Required(
-                CONF_ARM_AWAY,
-                default=self.options.get(CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]),
-            ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-            vol.Required(
-                CONF_ARM_NIGHT,
-                default=self.options.get(CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]),
-            ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-        })
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_ARM_HOME,
+                    default=self.options.get(CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+                vol.Required(
+                    CONF_ARM_AWAY,
+                    default=self.options.get(CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+                vol.Required(
+                    CONF_ARM_NIGHT,
+                    default=self.options.get(CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]),
+                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+            }
+        )
 
         return self.async_show_form(
             step_id="modes",
