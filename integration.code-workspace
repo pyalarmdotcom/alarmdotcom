@@ -1,57 +1,51 @@
 {
     "folders": [
         {
-            "path": "/workspaces/alarmdotcom",
+            "path": "/workspaces/alarmdotcom"
         },
         {
-            "path": "/workspaces/pyalarmdotcomajax",
-        },
+            "path": "/workspaces/pyalarmdotcomajax"
+        }
     ],
     "settings": {
+        "[python]": {
+            "editor.codeActionsOnSave": {
+                "source.fixAll.ruff": "explicit",
+                "source.organizeImports": "explicit"
+            },
+            "editor.defaultFormatter": "charliermarsh.ruff",
+            "editor.formatOnPaste": true,
+            "editor.formatOnSave": true,
+            "editor.formatOnType": false
+        },
+        "[yaml]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[markdown]": {
+            "editor.formatOnSave": true,
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "python.analysis.autoImportCompletions": true,
+        "terminal.integrated.scrollback": 10000,
+        "mypy-type-checker.preferDaemon": false,
+        "win-ca.inject": "append",
+        "mypy-type-checker.importStrategy": "fromEnvironment",
         "mypy-type-checker.args": ["--config-file=pyproject.toml"],
         "mypy-type-checker.reportingScope": "workspace",
-        "mypy-type-checker.importStrategy": "useBundled",
-        "editor.formatOnPaste": false,
-        "editor.formatOnSave": true,
-        "editor.formatOnType": false,
         "python.analysis.autoSearchPaths": false,
-        "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
-        "python.languageServer": "Pylance",
         "python.testing.pytestEnabled": true,
-        "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
-        "python.analysis.diagnosticMode": "workspace",
         "python.analysis.typeCheckingMode": "off",
+        "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
+        "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
         "python.analysis.include": [
             "**/custom_components/alarmdotcom",
             "**/pyalarmdotcomajax/pyalarmdotcomajax",
             "**/pyalarmdotcomajax/tests",
-            "**/pyalarmdotcomajax/examples",
+            "**/pyalarmdotcomajax/examples"
         ],
         "files.associations": {
-            "*.yaml": "home-assistant",
+            "*.yaml": "home-assistant"
         },
-        "python.analysis.autoImportCompletions": true,
-        "python.analysis.inlayHints.callArgumentNames": "off",
-        "python.analysis.inlayHints.functionReturnTypes": false,
-        "python.analysis.inlayHints.pytestParameters": false,
-        "python.analysis.inlayHints.variableTypes": false,
-        "python.analysis.packageIndexDepths": [
-            {
-                "name": "pyalarmdotcomajax",
-                "depth": 5,
-                "includeAllSymbols": true,
-            },
-        ],
-        "githubPullRequests.ignoredPullRequestBranches": ["master"],
-        "[python]": {
-            "editor.codeActionsOnSave": {
-                "source.fixAll.ruff": "explicit",
-                "source.organizeImports": "explicit",
-            },
-            "editor.defaultFormatter": "ms-python.black-formatter",
-            "editor.formatOnPaste": true,
-            "editor.formatOnSave": true,
-            "editor.formatOnType": true,
-        },
-    },
+        "python.analysis.diagnosticMode": "workspace"
+    }
 }

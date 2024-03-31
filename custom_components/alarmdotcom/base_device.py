@@ -112,7 +112,8 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         """Update HA when device is updated. Should be overridden by subclasses."""
 
     def _show_permission_error(self, action: str = "") -> None:
-        """Show Home Assistant notification.
+        """
+        Show Home Assistant notification.
 
         Alerts user that they lack permission to perform action.
         """
@@ -201,7 +202,8 @@ class HardwareBaseDevice(BaseDevice):
 
 
 class AttributeBaseDevice(BaseDevice):
-    """Base device for attributes of real hardware.
+    """
+    Base device for attributes of real hardware.
 
     Includes battery level, malfunction, debug, etc.
     """

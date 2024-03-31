@@ -147,7 +147,8 @@ class AlarmIntegrationController:
             raise ConfigEntryAuthFailed from err
 
     async def _keep_alive(self, now: datetime) -> None:
-        """Pass through to pyalarmdotcomajax keep_alive().
+        """
+        Pass through to pyalarmdotcomajax keep_alive().
 
         This will be called by async_track_time_interval, which submits a datetime parameter.
         Using now as a dummy to prevent errors.

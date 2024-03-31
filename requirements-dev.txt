@@ -1,4 +1,4 @@
 colorlog==6.8.2
 homeassistant==2024.3.3
-pip>=23.3.1
-pre-commit>=3.3.3
+pre-commit>=3.7.0
+-e /workspaces/pyalarmdotcomajax

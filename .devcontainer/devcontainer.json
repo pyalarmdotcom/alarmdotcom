@@ -1,0 +1,40 @@
+{
+    "containerEnv": {
+        "INTEGRATION_NAME": "alarmdotcom",
+        "LIBRARY_GIT_URL": "https://github.com/pyalarmdotcom/pyalarmdotcomajax.git",
+        "LIBRARY_NAME": "pyalarmdotcomajax",
+        "WORKSPACE_DIRECTORY": "/workspaces/alarmdotcom"
+    },
+    "customizations": {
+        "codespaces": {
+            "repositories": {
+                "pyalarmdotcom/pyalarmdotcomajax": {
+                    "permissions": "write-all"
+                }
+            }
+        },
+        "vscode": {
+            "extensions": [
+                "github.codespaces",
+                "ryanluker.vscode-coverage-gutters",
+                "donjayamanne.githistory",
+                "github.vscode-pull-request-github",
+                "tamasfe.even-better-toml",
+                "donjayamanne.python-extension-pack",
+                "marklarah.pre-commit-vscode",
+                "eamodio.gitlens",
+                "ms-python.mypy-type-checker",
+                "charliermarsh.ruff",
+                "esbenp.prettier-vscode",
+                "EditorConfig.EditorConfig",
+                "ms-python.python"
+            ]
+        }
+    },
+    "features": {
+        "github-cli": "latest"
+    },
+    "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
+    "name": "alarmdotcom",
+    "postCreateCommand": ["chmod +x scripts/setup.sh && scripts/setup.sh"]
+}
