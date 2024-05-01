@@ -1,10 +1,20 @@
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
+[tool.codespell]
+skip = "./.*,*.csv,*.json,*.html,*.aspx,tests/test_device_extensions.py,pyalarmdotcomajax/models/jsonapi/*"
+count = ""
+quiet-level = 2
+ignore-words-list = "hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo"
 
 [tool.mypy]
-python_version = "3.11"
+exclude = [
+    "tests/",
+    "build/",
+    ".ruff_cache/",
+    ".mypy_cache/",
+    "references/",
+    ".pytest_cache",
+    "**/old/"
+]
+python_version = "3.12"
 show_error_codes = true
 ignore_missing_imports = true
 strict_equality = true
@@ -14,7 +24,7 @@ warn_unused_configs = true
 warn_unused_ignores = true
 check_untyped_defs = true
 disallow_incomplete_defs = true
-disallow_subclassing_any = true
+disallow_subclassing_any = false
 disallow_untyped_defs = true
 no_implicit_optional = true
 warn_return_any = true
@@ -23,87 +33,127 @@ pretty = true
 show_absolute_path = true
 show_error_context = true
 disallow_untyped_calls = false
-exclude = ["tests/", "build/", ".ruff_cache/", ".mypy_cache/", "references/"]
 explicit_package_bases = true
 
-
 [tool.ruff]
-target-version = "py311"
-lint.unfixable = ["F841"]
-lint.select = [
-  "B007",
-  "B014",
-  "B006",
-  "C",
-  "D",
-  "E",
-  "F",
-  "I",
-  "PL",
-  "RUF",
-  "FA",
-  "TID",
-  "SLF",
-  "SIM",
-  "ICN001",
-  "PGH004",
-  "PLC0414",
-  "RET",
-  "S",
-  "T20",
-  "TRY",
-  "UP",
-  "W",
-]
-lint.ignore = [
-  "D202",
-  "D203",
-  "D404",
-  "D212",
-  "D406",
-  "D407",
-  "E731",
-  "TRY003",
-  "TRY301",
-  "PLR2004",
-  "PLR0913",
-  "PLR0912",
-  "PLR0915",
-  "PLR0911",
-  "S301",
-  "W191",
-  "E111",
-  "E114",
-  "E117",
-  "D206",
-  "Q000",
-  "Q001",
-  "Q002",
-  "Q003",
-  "COM812",
-  "COM819",
-  "ISC001",
-  "ISC002",
-  "E501",
-  "TRY400",
+target-version = "py312"
+exclude = [
+    "examples",
+    "build",
+    "references",
+    ".ruff_cache/",
+    ".mypy_cache/",
+    ".pytest_cache",
+    "**/_version.py",
+    "**/old/"
 ]
 line-length = 115
-lint.extend-safe-fixes = ["UP006"]
-
-[tool.ruff.lint.flake8-pytest-style]
-fixture-parentheses = false
+respect-gitignore = true
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+docstring-code-format = true
+
+[tool.ruff.lint]
+ignore = [
+    "D202",
+    "D203",
+    "D404",
+    "D212",
+    "D406",
+    "D407",
+    "E731",
+    "TRY003",
+    "TRY301",
+    "PLR2004",
+    "PLR0913",
+    "PLR0912",
+    "PLR0915",
+    "PLR0911",
+    "S301",
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "COM812",
+    "COM819",
+    "ISC001",
+    "ISC002",
+    "E501",
+    "TRY400",
+    "D107",
+    "TD002",
+    "TD003",
+    "TCH003",
+    "TCH002",
+    "TID252"
+]
+unfixable = ["F841"]
+select = [
+    "A",
+    "ASYNC",
+    # "B007",
+    # "B014",
+    # "B006",
+    "B",
+    "C",
+    "D",
+    "E",
+    # "ERA001",
+    "F",
+    "I",
+    "G",
+    "PL",
+    "RUF",
+    "FA",
+    "FBT",
+    "TID",
+    "SLF",
+    "SIM",
+    "ICN001",
+    "PGH004",
+    "PLC0414",
+    "RET",
+    "S",
+    "LOG",
+    "PERF",
+    # "FURB",
+    "PIE",
+    "ICN",
+    "TCH",
+    "TD",
+    "T20",
+    "PT",
+    "Q",
+    "YTT",
+    "TRY",
+    "UP",
+    "W"
+]
+extend-safe-fixes = ["UP006"]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["id", "type"]
+
+[tool.ruff.lint.flake8-type-checking]
+quote-annotations = true
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
 
-[tool.codespell]
-skip = "./.*,*.csv,*.json,*.html,*.aspx"
-count = ""
-quiet-level = 2
-ignore-words-list = "hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo"
+[tool.tomlsort]
+in_place = true
+spaces_before_inline_comment = 4
+spaces_indent_inline_array = 4
+trailing_comma_inline_array = false
