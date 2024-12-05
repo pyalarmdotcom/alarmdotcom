@@ -82,7 +82,7 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
         """Tell Home Assistant that this integration supports configuration options."""
         return ADCOptionsFlowHandler(config_entry)
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Gather configuration data when flow is initiated via the user interface."""
         errors = {}
 
@@ -135,20 +135,18 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
                 else:
                     return await self.async_step_final()
 
-        creds_schema = vol.Schema(
-            {
-                vol.Required(CONF_USERNAME): TextSelector(
-                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
-                ),
-                vol.Required(CONF_PASSWORD): TextSelector(
-                    TextSelectorConfig(type=TextSelectorType.PASSWORD, autocomplete="current-password")
-                ),
-            }
-        )
+        creds_schema = vol.Schema({
+            vol.Required(CONF_USERNAME): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="username")
+            ),
+            vol.Required(CONF_PASSWORD): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.PASSWORD, autocomplete="current-password")
+            ),
+        })
 
         return self.async_show_form(step_id="user", data_schema=creds_schema, errors=errors, last_step=False)
 
-    async def async_step_otp_select_method(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_otp_select_method(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Select OTP method when integration configured through UI."""
         errors = {}
 
@@ -178,23 +176,21 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             )
             errors["base"] = "cannot_connect"
 
-        otp_method_schema = vol.Schema(
-            {
-                vol.Required(CONF_OTP_METHOD, default=self._enabled_otp_methods[0].name): SelectSelector(
-                    SelectSelectorConfig(
-                        options=[otp_type.name for otp_type in self._enabled_otp_methods],
-                        mode=SelectSelectorMode.DROPDOWN,
-                        translation_key=CONF_OTP_METHODS_LIST,
-                    )
-                ),
-            }
-        )
+        otp_method_schema = vol.Schema({
+            vol.Required(CONF_OTP_METHOD, default=self._enabled_otp_methods[0].name): SelectSelector(
+                SelectSelectorConfig(
+                    options=[otp_type.name for otp_type in self._enabled_otp_methods],
+                    mode=SelectSelectorMode.DROPDOWN,
+                    translation_key=CONF_OTP_METHODS_LIST,
+                )
+            ),
+        })
 
         return self.async_show_form(
             step_id="otp_select_method", data_schema=otp_method_schema, errors=errors, last_step=False
         )
 
-    async def async_step_otp_submit(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_otp_submit(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Gather OTP when integration configured through UI."""
         errors = {}
         if user_input is not None:
@@ -231,17 +227,15 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
             else:
                 return await self.async_step_final()
 
-        creds_schema = vol.Schema(
-            {
-                vol.Required(CONF_OTP): TextSelector(
-                    TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="one-time-code")
-                ),
-            }
-        )
+        creds_schema = vol.Schema({
+            vol.Required(CONF_OTP): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, autocomplete="one-time-code")
+            ),
+        })
 
         return self.async_show_form(step_id="otp_submit", data_schema=creds_schema, errors=errors, last_step=True)
 
-    async def async_step_final(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_final(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Create configuration entry using entered data."""
 
         self._config_title = (
@@ -264,13 +258,13 @@ class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore
     # Reauthentication Steps
     # #
 
-    async def async_step_reauth(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reauth(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Perform reauth upon an API authentication error."""
         LOGGER.debug("Reauthenticating.")
         self._existing_entry = await self.async_set_unique_id(self._config_title)
         return await self.async_step_reauth_confirm(user_input)
 
-    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reauth_confirm(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Dialog that informs the user that reauth is required."""
         if user_input is None:
             return self.async_show_form(
@@ -285,10 +279,9 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
         self.options = dict(config_entry.options)
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """First screen for configuration options. Sets arming code."""
         errors: dict = {}
 
@@ -298,38 +291,36 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             self.options.update(user_input)
             return await self.async_step_modes()
 
-        schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_ARM_CODE,
-                    default=("" if not (arm_code_raw := self.options.get(CONF_ARM_CODE)) else arm_code_raw),
-                ): selector.selector({"text": {"type": "password"}}),
-                vol.Required(
-                    CONF_UPDATE_INTERVAL,
-                    default=self.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS),
-                ): selector.selector(
-                    {
-                        "number": {
-                            "mode": "box",
-                            CONF_UNIT_OF_MEASUREMENT: "seconds",
-                        }
+        schema = vol.Schema({
+            vol.Optional(
+                CONF_ARM_CODE,
+                default=("" if not (arm_code_raw := self.options.get(CONF_ARM_CODE)) else arm_code_raw),
+            ): selector.selector({"text": {"type": "password"}}),
+            vol.Required(
+                CONF_UPDATE_INTERVAL,
+                default=self.options.get(CONF_UPDATE_INTERVAL, CONF_DEFAULT_UPDATE_INTERVAL_SECONDS),
+            ): selector.selector(
+                {
+                    "number": {
+                        "mode": "box",
+                        CONF_UNIT_OF_MEASUREMENT: "seconds",
                     }
+                }
+            ),
+            vol.Required(
+                CONF_WEBSOCKET_RECONNECT_TIMEOUT,
+                default=self.options.get(
+                    CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
                 ),
-                vol.Required(
-                    CONF_WEBSOCKET_RECONNECT_TIMEOUT,
-                    default=self.options.get(
-                        CONF_WEBSOCKET_RECONNECT_TIMEOUT, CONF_DEFAULT_WEBSOCKET_RECONNECT_TIMEOUT
-                    ),
-                ): selector.selector(
-                    {
-                        "number": {
-                            "mode": "box",
-                            CONF_UNIT_OF_MEASUREMENT: "seconds",
-                        }
+            ): selector.selector(
+                {
+                    "number": {
+                        "mode": "box",
+                        CONF_UNIT_OF_MEASUREMENT: "seconds",
                     }
-                ),
-            }
-        )
+                }
+            ),
+        })
 
         return self.async_show_form(
             step_id="init",
@@ -338,7 +329,7 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             last_step=False,
         )
 
-    async def async_step_modes(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_modes(self, config_entry, user_input: dict[str, Any] | None = None) -> FlowResult:
         """First screen for configuration options. Sets arming mode profiles."""
         errors: dict = {}
 
@@ -346,22 +337,20 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
             self.options.update(user_input)
             return self.async_create_entry(title="", data=self.options)
 
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_ARM_HOME,
-                    default=self.options.get(CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]),
-                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-                vol.Required(
-                    CONF_ARM_AWAY,
-                    default=self.options.get(CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]),
-                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-                vol.Required(
-                    CONF_ARM_NIGHT,
-                    default=self.options.get(CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]),
-                ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
-            }
-        )
+        schema = vol.Schema({
+            vol.Required(
+                CONF_ARM_HOME,
+                default=self.options.get(CONF_ARM_HOME, CONF_OPTIONS_DEFAULT[CONF_ARM_HOME]),
+            ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+            vol.Required(
+                CONF_ARM_AWAY,
+                default=self.options.get(CONF_ARM_AWAY, CONF_OPTIONS_DEFAULT[CONF_ARM_AWAY]),
+            ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+            vol.Required(
+                CONF_ARM_NIGHT,
+                default=self.options.get(CONF_ARM_NIGHT, CONF_OPTIONS_DEFAULT[CONF_ARM_NIGHT]),
+            ): cv.multi_select(CONF_ARM_MODE_OPTIONS),
+        })
 
         return self.async_show_form(
             step_id="modes",
