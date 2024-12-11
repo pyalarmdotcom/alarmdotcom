@@ -10,17 +10,18 @@ from typing import Any
 from homeassistant import core
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
+    AlarmControlPanelState,
     AlarmControlPanelEntityFeature,
     CodeFormat,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    STATE_ALARM_ARMED_AWAY,
-    STATE_ALARM_ARMED_HOME,
-    STATE_ALARM_ARMED_NIGHT,
-    STATE_ALARM_ARMING,
-    STATE_ALARM_DISARMED,
-    STATE_ALARM_DISARMING,
+    AlarmControlPanelState.ARMED_AWAY,
+    AlarmControlPanelState.ARMED_HOME,
+    AlarmControlPanelState.ARMED_NIGHT,
+    AlarmControlPanelState.ARMING,
+    AlarmControlPanelState.DISARMED,
+    AlarmControlPanelState.DISARMING,
 )
 from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
 from pyalarmdotcomajax.devices.partition import Partition as libPartition
@@ -102,9 +103,43 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
             "uncleared_issues": str(self._device.uncleared_issues),
             **getattr(super(), "extra_state_attributes", {}),
         }
+    @property
+    def alarm_state(self) -> AlarmControlPanelState:
+        """Return the current state of the alarm using AlarmControlPanelState enum."""
+        if self._device.malfunction:
+            return AlarmControlPanelState.UNKNOWN
+        
+        if self._device.state == self._device.desired_state:
+            match self._device.state:
+                case libPartition.DeviceState.DISARMED:
+                    return AlarmControlPanelState.DISARMED
+                case libPartition.DeviceState.ARMED_STAY:
+                    return AlarmControlPanelState.ARMED_HOME
+                case libPartition.DeviceState.ARMED_AWAY:
+                    return AlarmControlPanelState.ARMED_AWAY
+                case libPartition.DeviceState.ARMED_NIGHT:
+                    return AlarmControlPanelState.ARMED_NIGHT
+        else:
+            match self._device.desired_state:
+                case libPartition.DeviceState.DISARMED:
+                    return AlarmControlPanelState.DISARMING
+                case (
+                    libPartition.DeviceState.ARMED_STAY
+                    | libPartition.DeviceState.ARMED_AWAY
+                    | libPartition.DeviceState.ARMED_NIGHT
+                ):
+                    return AlarmControlPanelState.ARMING
+        
+        LOGGER.error(
+            f"Cannot determine state. Found raw state of {self._device.state} and desired state of"
+            f" {self._device.desired_state}."
+        )
+        return AlarmControlPanelState.UNKNOWN
 
     @property
-    def state(self) -> str | None:
+    def state(self) -> AlarmControlPanelState:
+        """Return the state property via alarm_state."""
+        return self.alarm_state
         """Return the state of the device."""
 
         if self._device.malfunction:
