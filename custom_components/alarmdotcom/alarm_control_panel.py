@@ -68,6 +68,8 @@ class AlarmControlPanel(HardwareBaseDevice, AlarmControlPanelEntity):  # type: i
     device_type_name: str = "Alarm Control Panel"
     _device: libPartition
 
+    _attr_code_arm_required = False
+
     def __init__(
         self,
         controller: AlarmIntegrationController,
