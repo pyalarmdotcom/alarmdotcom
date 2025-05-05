@@ -1,4 +1,8 @@
-colorlog==6.8.2
-homeassistant==2024.3.3
-pre-commit>=3.7.0
--e /workspaces/pyalarmdotcomajax
+colorlog==6.9.0
+homeassistant==2025.4.1
+ruff>=0.11.8
+mypy>=1.15.0
+codespell>=2.4.1
+yamllint>=1.37.0
+pre-commit>=4.2.0
+# -e /workspaces/pyalarmdotcomajax

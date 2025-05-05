@@ -1,23 +1,23 @@
 {
+    "version": "2.0.0",
     "tasks": [
-        {
-            "command": "pre-commit run --all-files",
-            "label": "Run pre-commit checks.",
-            "problemMatcher": [],
-            "type": "shell"
-        },
-        {
-            "command": "scripts/run-ha.sh",
-            "label": "Run Home Assistant on port 8123",
-            "problemMatcher": [],
-            "type": "shell"
-        },
-        {
-            "command": "pip install --editable /workspaces/pyalarmdotcomajax --config-settings editable_mode=strict",
-            "label": "Install pyalarmdotcomajax in editable mode",
-            "problemMatcher": [],
-            "type": "shell"
-        }
-    ],
-    "version": "2.0.0"
-}
+      {
+        "label": "Run pre-commit checks",
+        "type": "shell",
+        "command": "pre-commit run --all-files",
+        "group": "test"
+      },
+      {
+        "label": "Run Home Assistant (port 8123)",
+        "type": "shell",
+        "command": "${workspaceFolder}/scripts/run-ha.sh",
+        "group": "build"
+      },
+      {
+        "label": "Install pyalarmdotcomajax (editable)",
+        "type": "shell",
+        "command": "pip install --editable ../pyalarmdotcomajax --config-settings editable_mode=strict",
+        "group": "build"
+      }
+    ]
+  }

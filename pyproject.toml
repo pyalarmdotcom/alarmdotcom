@@ -12,9 +12,9 @@ exclude = [
     ".mypy_cache/",
     "references/",
     ".pytest_cache",
-    "**/old/"
+    "old",
 ]
-python_version = "3.12"
+python_version = "3.13"
 show_error_codes = true
 ignore_missing_imports = true
 strict_equality = true
@@ -33,32 +33,13 @@ pretty = true
 show_absolute_path = true
 show_error_context = true
 disallow_untyped_calls = false
-explicit_package_bases = true
+# explicit_package_bases = true
 
 [tool.ruff]
-target-version = "py312"
-exclude = [
-    "examples",
-    "build",
-    "references",
-    ".ruff_cache/",
-    ".mypy_cache/",
-    ".pytest_cache",
-    "**/_version.py",
-    "**/old/"
-]
+target-version = "py313"
 line-length = 115
 respect-gitignore = true
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-docstring-code-format = true
-
-[tool.ruff.lint]
-ignore = [
+lint.ignore = [
     "D202",
     "D203",
     "D404",
@@ -92,22 +73,19 @@ ignore = [
     "D107",
     "TD002",
     "TD003",
-    "TCH003",
-    "TCH002",
-    "TID252"
+    "TC003",
+    "TC002",
+    "T201",
+    "TID252",
 ]
-unfixable = ["F841"]
-select = [
+lint.unfixable = ["F841"]
+lint.select = [
     "A",
     "ASYNC",
-    # "B007",
-    # "B014",
-    # "B006",
     "B",
     "C",
     "D",
     "E",
-    # "ERA001",
     "F",
     "I",
     "G",
@@ -125,10 +103,9 @@ select = [
     "S",
     "LOG",
     "PERF",
-    # "FURB",
     "PIE",
     "ICN",
-    "TCH",
+    "TC",
     "TD",
     "T20",
     "PT",
@@ -136,9 +113,16 @@ select = [
     "YTT",
     "TRY",
     "UP",
-    "W"
+    "W",
 ]
-extend-safe-fixes = ["UP006"]
+lint.extend-safe-fixes = ["UP006"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
 
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["id", "type"]

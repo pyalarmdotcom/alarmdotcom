@@ -1,51 +1,29 @@
 {
     "folders": [
-        {
-            "path": "/workspaces/alarmdotcom"
-        },
-        {
-            "path": "/workspaces/pyalarmdotcomajax"
-        }
+      {
+        "path": "/workspaces/alarmdotcom"
+      },
+      {
+        "path": "/workspaces/pyalarmdotcomajax"
+      }
     ],
     "settings": {
-        "[python]": {
-            "editor.codeActionsOnSave": {
-                "source.fixAll.ruff": "explicit",
-                "source.organizeImports": "explicit"
-            },
-            "editor.defaultFormatter": "charliermarsh.ruff",
-            "editor.formatOnPaste": true,
-            "editor.formatOnSave": true,
-            "editor.formatOnType": false
-        },
-        "[yaml]": {
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "[markdown]": {
-            "editor.formatOnSave": true,
-            "editor.defaultFormatter": "esbenp.prettier-vscode"
-        },
-        "python.analysis.autoImportCompletions": true,
-        "terminal.integrated.scrollback": 10000,
-        "mypy-type-checker.preferDaemon": false,
-        "win-ca.inject": "append",
-        "mypy-type-checker.importStrategy": "fromEnvironment",
-        "mypy-type-checker.args": ["--config-file=pyproject.toml"],
-        "mypy-type-checker.reportingScope": "workspace",
-        "python.analysis.autoSearchPaths": false,
-        "python.testing.pytestEnabled": true,
-        "python.analysis.typeCheckingMode": "off",
-        "python.analysis.extraPaths": ["/workspaces/pyalarmdotcomajax"],
-        "python.analysis.exclude": ["/**/.*/", "**/__pycache__"],
-        "python.analysis.include": [
-            "**/custom_components/alarmdotcom",
-            "**/pyalarmdotcomajax/pyalarmdotcomajax",
-            "**/pyalarmdotcomajax/tests",
-            "**/pyalarmdotcomajax/examples"
-        ],
-        "files.associations": {
-            "*.yaml": "home-assistant"
-        },
-        "python.analysis.diagnosticMode": "workspace"
+      "editor.formatOnSave": true
+    },
+    "extensions": {
+      "recommendations": [
+        "github.codespaces",
+        "ryanluker.vscode-coverage-gutters",
+        "donjayamanne.githistory",
+        "github.vscode-pull-request-github",
+        "tamasfe.even-better-toml",
+        "marklarah.pre-commit-vscode",
+        "eamodio.gitlens",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+        "esbenp.prettier-vscode",
+        "EditorConfig.EditorConfig",
+        "ms-python.python"
+      ]
     }
-}
+  }

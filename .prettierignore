@@ -1,0 +1,10 @@
+# Prettier doesn't support pyproject.toml
+
+# Ignore everything
+**/**
+tests/responses/**
+
+# Except
+!*.yaml
+!*.md
+!*.json
