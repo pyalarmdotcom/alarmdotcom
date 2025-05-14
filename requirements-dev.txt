@@ -1,8 +1,12 @@
 colorlog==6.9.0
 homeassistant==2025.4.1
 ruff>=0.11.8
-mypy>=1.15.0
 codespell>=2.4.1
 yamllint>=1.37.0
 pre-commit>=4.2.0
+mypy>=1.15.0
+wheel>=0.45.1
+pathspec>=0.11.1
+gitpython>=3.1.40
+homeassistant==2025.5.0
 # -e /workspaces/pyalarmdotcomajax

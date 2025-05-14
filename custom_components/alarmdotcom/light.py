@@ -1,126 +1,195 @@
-"""Alarmdotcom implementation of an HA light."""
+"""Interfaces with Alarm.com lights."""
 
 from __future__ import annotations
 
 import logging
-from typing import Any
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic, Literal
 
-from homeassistant import core
-from homeassistant.components import light
-from homeassistant.components.light import ATTR_BRIGHTNESS, LightEntity
+import pyalarmdotcomajax as pyadc
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,
+    ColorMode,
+    LightEntity,
+    LightEntityDescription,
+    LightEntityFeature,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from pyalarmdotcomajax.devices.light import Light as libLight
-from pyalarmdotcomajax.exceptions import NotAuthorized
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .base_device import HardwareBaseDevice
-from .const import DATA_CONTROLLER, DOMAIN
-from .controller import AlarmIntegrationController
+from .const import DATA_HUB, DOMAIN
+from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
+from .util import cleanup_orphaned_entities_and_devices
 
-LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from .hub import AlarmHub
+
+log = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: core.HomeAssistant,
+    hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the light platform."""
 
-    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
+    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
 
-    async_add_entities(
-        Light(
-            controller=controller,
-            device=device,
-        )
-        for device in controller.api.devices.lights.values()
+    entities = [
+        AdcLightEntity(hub=hub, resource_id=device.id, description=entity_description)
+        for entity_description in ENTITY_DESCRIPTIONS
+        for device in hub.api.lights
+        if entity_description.supported_fn(hub, device.id)
+    ]
+    async_add_entities(entities)
+
+    current_entity_ids = {entity.entity_id for entity in entities}
+    current_unique_ids = {
+        uid for uid in (entity.unique_id for entity in entities) if uid is not None
+    }
+    await cleanup_orphaned_entities_and_devices(
+        hass, config_entry, current_entity_ids, current_unique_ids, "light"
     )
 
 
-class Light(HardwareBaseDevice, LightEntity):  # type: ignore
-    """Integration Light Entity."""
+@callback
+def is_on_fn(hub: AlarmHub, light_id: str) -> bool:
+    """Return whether the light is on."""
 
-    _device_type_name: str = "Light"
-    _device: libLight
+    resource = hub.api.lights[light_id]
+    return resource.attributes.state == pyadc.light.LightState.ON
 
-    def __init__(
-        self,
-        controller: AlarmIntegrationController,
-        device: libLight,
-    ) -> None:
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(controller, device)
 
+@callback
+def brightness_fn(hub: AlarmHub, light_id: str) -> int | None:
+    """Return the brightness of the light."""
+
+    resource = hub.api.lights[light_id]
+    return resource.attributes.light_level
+
+
+@callback
+def supported_features_fn(
+    controller: pyadc.LightController, light_id: str
+) -> LightEntityFeature:
+    """Return the supported features for the light."""
+
+    # We don't support light entity features yet.
+
+    return LightEntityFeature(0)
+
+
+@callback
+async def control_fn(
+    controller: pyadc.LightController,
+    light_id: str,
+    command: Literal["turn_on", "turn_off"],
+    options: dict[str, Any],
+) -> None:
+    """Turn the light on or off."""
+
+    brightness = options.get(ATTR_BRIGHTNESS)
+
+    try:
+        if command == "turn_on":
+            await controller.turn_on(light_id, brightness=brightness)
+        elif command == "turn_off":
+            await controller.turn_off(light_id)
+        else:
+            raise ValueError(f"Unsupported command: {command}")
+    except (pyadc.ServiceUnavailable, pyadc.UnexpectedResponse) as err:
+        log.error("Failed to execute light command: %s", err)
+        raise
+
+
+@dataclass(frozen=True, kw_only=True)
+class AdcLightEntityDescription(
+    Generic[AdcManagedDeviceT, AdcControllerT],
+    AdcEntityDescription[AdcManagedDeviceT, AdcControllerT],
+    LightEntityDescription,
+):
+    """Base Alarm.com light entity description."""
+
+    is_on_fn: Callable[[AlarmHub, str], bool]
+    """Return whether the light is on."""
+    brightness_fn: Callable[[AlarmHub, str], int | None]
+    """Return the brightness of the light."""
+    supported_features_fn: Callable[[AdcControllerT, str], LightEntityFeature]
+    """Return the supported features for the light."""
+    control_fn: Callable[
+        [AdcControllerT, str, Literal["turn_on", "turn_off"], dict[str, Any]],
+        Coroutine[Any, Any, None],
+    ]
+    supported_color_modes_fn: Callable[[AdcControllerT, str], set[ColorMode]]
+    """Turn the light on or off."""
+
+
+ENTITY_DESCRIPTIONS: list[
+    AdcLightEntityDescription[pyadc.light.Light, pyadc.LightController]
+] = [
+    AdcLightEntityDescription(
+        key="lights",
+        controller_fn=lambda hub, _: hub.api.lights,
+        is_on_fn=is_on_fn,
+        brightness_fn=brightness_fn,
+        supported_features_fn=supported_features_fn,
+        control_fn=control_fn,
+        supported_color_modes_fn=lambda hub, _: {ColorMode.BRIGHTNESS},
+    )
+]
+
+
+class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
+    """Base Alarm.com light entity."""
+
+    entity_description: AdcLightEntityDescription
+
+    @callback
+    def initiate_state(self) -> None:
+        """Initiate entity state."""
+
+        self._attr_is_on = self.entity_description.is_on_fn(self.hub, self.resource_id)
+        self._attr_brightness = self.entity_description.brightness_fn(
+            self.hub, self.resource_id
+        )
+        self._attr_supported_features = self.entity_description.supported_features_fn(
+            self.controller, self.resource_id
+        )
         self._attr_supported_color_modes = (
-            [light.COLOR_MODE_BRIGHTNESS] if self._device.brightness else [light.COLOR_MODE_ONOFF]
+            self.entity_description.supported_color_modes_fn(
+                self.controller, self.resource_id
+            )
         )
 
-        self._attr_supported_features = light.SUPPORT_BRIGHTNESS
+        super().initiate_state()
 
-        self._attr_color_mode = light.COLOR_MODE_BRIGHTNESS if self._device.brightness else light.COLOR_MODE_ONOFF
+    @callback
+    def update_state(self, message: pyadc.EventBrokerMessage | None = None) -> None:
+        """Update entity state."""
 
-        self._attr_assumed_state = self._device.supports_state_tracking is False
-
-        # Independently track state for lights that don't support state tracking
-        self._local_state: bool | None = None
-        self._local_brightness: int | None = None
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return True if entity is on."""
-
-        return self._local_state
-
-    @property
-    def brightness(self) -> int | None:
-        """Return the brightness of the light."""
-
-        return self._local_brightness
+        if isinstance(message, pyadc.ResourceEventMessage):
+            self._attr_is_on = self.entity_description.is_on_fn(
+                self.hub, self.resource_id
+            )
+            self._attr_brightness = self.entity_description.brightness_fn(
+                self.hub, self.resource_id
+            )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the light or adjust brightness."""
+        """Turn the light on."""
 
-        brightness: int | None = None
-        if ATTR_BRIGHTNESS in kwargs:
-            brightness = int((kwargs[ATTR_BRIGHTNESS] / 255) * 100)
-
-        try:
-            await self._device.async_turn_on(brightness)
-        except NotAuthorized:
-            self._show_permission_error("turn on or adjust brightness on")
-
-        if self.assumed_state:
-            # optimistically assume that light has changed state
-            self._local_state = True
-            self._local_brightness = kwargs.get(ATTR_BRIGHTNESS)
+        await self.entity_description.control_fn(
+            self.controller, self.resource_id, "turn_on", kwargs
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the light."""
+        """Turn the light off."""
 
-        try:
-            await self._device.async_turn_off()
-        except NotAuthorized:
-            self._show_permission_error("turn off")
-
-        if self.assumed_state:
-            # optimistically assume that light has changed state
-            self._local_state = False
-            self._local_brightness = None
-
-    def _legacy_refresh_attributes(self) -> None:
-        """Perform action whenever device is updated."""
-
-        # Update state
-        if not self._device.malfunction and not self.assumed_state:
-            match self._device.state:
-                case libLight.DeviceState.ON | libLight.DeviceState.LEVELCHANGE:
-                    self._local_state = True
-
-                case libLight.DeviceState.OFF:
-                    self._local_state = False
-
-            self._local_brightness = (
-                int((self._device.brightness * 255) / 100) if self._device.brightness else None
-            )
+        await self.entity_description.control_fn(
+            self.controller, self.resource_id, "turn_off", kwargs
+        )

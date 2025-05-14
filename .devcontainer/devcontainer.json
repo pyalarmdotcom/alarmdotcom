@@ -13,6 +13,7 @@
                 }
             }
         },
+        "remote.extensionAutoInstall": false,
         "vscode": {
             "extensions": [
                 "github.codespaces",
@@ -20,10 +21,8 @@
                 "donjayamanne.githistory",
                 "github.vscode-pull-request-github",
                 "tamasfe.even-better-toml",
-                "donjayamanne.python-extension-pack",
                 "marklarah.pre-commit-vscode",
                 "eamodio.gitlens",
-                "ms-python.mypy-type-checker",
                 "charliermarsh.ruff",
                 "esbenp.prettier-vscode",
                 "EditorConfig.EditorConfig",
@@ -32,9 +31,15 @@
         }
     },
     "features": {
+        "ghcr.io/devcontainers/features/python:1": {
+            "version": "3.13",
+            "installTools": false
+        },
         "github-cli": "latest"
     },
-    "image": "mcr.microsoft.com/devcontainers/python:3.13",
+    "image": "mcr.microsoft.com/devcontainers/base:debian",
     "name": "alarmdotcom",
-    "postCreateCommand": ["scripts/setup.sh"]
+    "postCreateCommand": [
+        "scripts/setup.sh"
+    ]
 }

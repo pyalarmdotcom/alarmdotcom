@@ -1,31 +1,46 @@
 {
-    "editor.formatOnSave": true,
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.wordWrap": "off",
+    },
     "[python]": {
-      "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit",
-        "source.fixAll": "explicit"
-      },
-      "editor.defaultFormatter": "charliermarsh.ruff",
-      "editor.formatOnPaste": true
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "always",
+            "source.organizeImports": "always"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true
     },
     "[yaml]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-    "[markdown]": {
-      "editor.formatOnSave": true,
-      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "off",
+    "python.analysis.aiCodeActions": {
+        "generateDocstring": true,
+        "generateSymbol": true,
+        "implementAbstractClasses": true
     },
-    "files.associations": {
-      "*.yaml": "home-assistant"
-    },
-    "terminal.integrated.scrollback": 10000,
-    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
     "python.analysis.diagnosticMode": "workspace",
-    "python.languageServer": "Default",
-    "ruff.configurationPreference": "filesystemFirst",
-    "ruff.nativeServer": "on",
-    "mypy-type-checker.preferDaemon": false,
-    "mypy-type-checker.importStrategy": "fromEnvironment",
-    "mypy-type-checker.args": ["--config-file=pyproject.toml"],
-    "mypy-type-checker.reportingScope": "workspace"
-  }
+    "python.analysis.exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "**/.pytest_cache",
+        "**/.mypy_cache",
+        "**/.ruff_cache",
+        "**/.coverage",
+        "custom_components/alarmdotcom/old",
+        "/usr/local/python"
+    ],
+    "python.analysis.generateWithTypeAnnotation": true,
+    "python.analysis.indexing": true,
+    "python.analysis.packageIndexDepths": [
+        {
+            "depth": 4,
+            "name": "pyalarmdotcomajax"
+        }
+    ]
+}

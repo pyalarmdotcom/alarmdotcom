@@ -1,161 +1,243 @@
-"""Alarmdotcom implementation of an HA lock."""
+"""Interfaces with Alarm.com locks."""
 
 from __future__ import annotations
 
 import logging
-import re
-from typing import Any
+from collections.abc import Callable, Coroutine
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic
 
-from homeassistant import config_entries, core
-from homeassistant.components import persistent_notification
-from homeassistant.components.lock import LockEntity
+import pyalarmdotcomajax as pyadc
+from homeassistant.components.lock import (
+    LockEntity,
+    LockEntityDescription,
+    LockEntityFeature,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
-from homeassistant.helpers.typing import ConfigType
-from pyalarmdotcomajax.devices.lock import Lock as libLock
-from pyalarmdotcomajax.exceptions import NotAuthorized
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .base_device import HardwareBaseDevice
-from .const import CONF_ARM_CODE, DATA_CONTROLLER, DOMAIN, MIGRATE_MSG_ALERT
-from .controller import AlarmIntegrationController
+from .const import DATA_HUB, DOMAIN
+from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
+from .util import cleanup_orphaned_entities_and_devices
 
-LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from .hub import AlarmHub
 
-
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> None:
-    """Set up the legacy platform."""
-
-    LOGGER.debug("Alarmdotcom: Detected legacy lock config entry. Converting to Home Assistant config flow.")
-
-    hass.async_create_task(
-        hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_IMPORT}, data=config)
-    )
-
-    LOGGER.warning(MIGRATE_MSG_ALERT)
-
-    persistent_notification.async_create(
-        hass,
-        MIGRATE_MSG_ALERT,
-        title="Alarm.com Updated",
-        notification_id="alarmdotcom_migration",
-    )
+log = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: core.HomeAssistant,
+    hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the lock platform."""
 
-    controller: AlarmIntegrationController = hass.data[DOMAIN][config_entry.entry_id][DATA_CONTROLLER]
+    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
 
-    async_add_entities(
-        Lock(
-            controller=controller,
-            device=device,
-        )
-        for device in controller.api.devices.locks.values()
+    entities = [
+        AdcLockEntity(hub=hub, resource_id=device.id, description=entity_description)
+        for entity_description in ENTITY_DESCRIPTIONS
+        for device in hub.api.locks
+        if entity_description.supported_fn(hub, device.id)
+    ]
+    async_add_entities(entities)
+
+    current_entity_ids = {entity.entity_id for entity in entities}
+    current_unique_ids = {
+        uid for uid in (entity.unique_id for entity in entities) if uid is not None
+    }
+    await cleanup_orphaned_entities_and_devices(
+        hass, config_entry, current_entity_ids, current_unique_ids, "lock"
     )
 
 
-class Lock(HardwareBaseDevice, LockEntity):  # type: ignore
-    """Integration Lock Entity."""
+@callback
+def is_locked_fn(hub: AlarmHub, lock_id: str) -> bool:
+    """Return whether the lock is locked."""
 
-    _device_type_name: str = "Lock"
-    _device: libLock
+    resource = hub.api.locks[lock_id]
+    return resource.attributes.state == pyadc.lock.LockState.LOCKED
+
+
+@callback
+def is_locking_fn(hub: AlarmHub, lock_id: str) -> bool:
+    """Return whether the lock is in the process of locking."""
+
+    resource = hub.api.locks[lock_id]
+    return (
+        resource.attributes.state != pyadc.lock.LockState.LOCKED
+        and resource.attributes.desired_state == pyadc.lock.LockState.LOCKED
+    )
+
+
+@callback
+def is_unlocking_fn(hub: AlarmHub, lock_id: str) -> bool:
+    """Return whether the lock is in the process of unlocking."""
+
+    resource = hub.api.locks[lock_id]
+    return (
+        resource.attributes.state != pyadc.lock.LockState.UNLOCKED
+        and resource.attributes.desired_state == pyadc.lock.LockState.UNLOCKED
+    )
+
+
+@callback
+def supported_features_fn(
+    controller: pyadc.LockController, lock_id: str
+) -> LockEntityFeature:
+    """Return the supported features for the lock."""
+
+    # We don't support the OPEN state, just LOCKED and UNLOCKED.
+    return LockEntityFeature(0)
+
+
+@callback
+async def control_fn(
+    controller: pyadc.LockController,
+    lock_id: str,
+    command: str,
+) -> None:
+    """Lock or unlock the device."""
+
+    if (lock := controller.get(lock_id)) and not lock.attributes.supports_latch_control:
+        log.error("Lock %s does not support latch control", lock_id)
+        return
+
+    try:
+        if command == "lock":
+            await controller.lock(lock_id)
+        elif command == "unlock":
+            await controller.unlock(lock_id)
+        else:
+            raise ValueError(f"Unsupported command: {command}")
+    except (pyadc.ServiceUnavailable, pyadc.UnexpectedResponse) as err:
+        log.error("Failed to execute lock command: %s", err)
+        raise
+
+
+@dataclass(frozen=True, kw_only=True)
+class AdcLockEntityDescription(
+    Generic[AdcManagedDeviceT, AdcControllerT],
+    AdcEntityDescription[AdcManagedDeviceT, AdcControllerT],
+    LockEntityDescription,
+):
+    """Base Alarm.com lock entity description."""
+
+    is_locked_fn: Callable[[AlarmHub, str], bool]
+    """Return whether the lock is locked."""
+    is_locking_fn: Callable[[AlarmHub, str], bool]
+    """Return whether the lock is locking."""
+    is_unlocking_fn: Callable[[AlarmHub, str], bool]
+    """Return whether the lock is unlocking."""
+    supported_features_fn: Callable[[AdcControllerT, str], LockEntityFeature]
+    """Return the supported features for the lock."""
+    control_fn: Callable[[AdcControllerT, str, str], Coroutine[Any, Any, None]]
+    """Lock or unlock the device."""
+
+
+ENTITY_DESCRIPTIONS: list[
+    AdcLockEntityDescription[pyadc.lock.Lock, pyadc.LockController]
+] = [
+    AdcLockEntityDescription(
+        key="locks",
+        controller_fn=lambda hub, _: hub.api.locks,
+        is_locked_fn=is_locked_fn,
+        is_locking_fn=is_locking_fn,
+        is_unlocking_fn=is_unlocking_fn,
+        supported_features_fn=supported_features_fn,
+        control_fn=control_fn,
+    )
+]
+
+
+class AdcLockEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LockEntity):
+    """Base Alarm.com lock entity."""
+
+    entity_description: AdcLockEntityDescription
 
     @property
     def code_format(self) -> str | None:
-        """Return the format of the code."""
+        """Return the format of the code, if any."""
+        arm_code = (
+            self.hub.config_entry.options.get("arm_code")
+            if hasattr(self.hub, "config_entry")
+            else None
+        )
+        if arm_code:
+            import re
 
-        if code := self._controller.options.get(CONF_ARM_CODE):
             code_patterns = [
                 r"^\d+$",  # Only digits
                 r"^\w\D+$",  # Only alpha
                 r"^\w+$",  # Alphanumeric
             ]
-
             for pattern in code_patterns:
-                if re.findall(pattern, code):
+                if re.fullmatch(pattern, arm_code):
                     return pattern
-
             return "."  # All characters
-
         return None
 
-    @property
-    def is_locking(self) -> bool | None:
-        """Return true if lock is locking."""
+    def _validate_code(self, code: str | None) -> bool:
+        arm_code = (
+            self.hub.config_entry.options.get("arm_code")
+            if hasattr(self.hub, "config_entry")
+            else None
+        )
+        if arm_code in [None, ""] or code == arm_code:
+            return True
+        log.warning("Wrong code entered for lock %s.", self.resource_id)
+        return False
 
-        return (
-            not self._device.malfunction
-            and self._device.state == libLock.DeviceState.UNLOCKED
-            and self._device.desired_state == libLock.DeviceState.LOCKED
+    @callback
+    def initiate_state(self) -> None:
+        """Initiate entity state."""
+
+        self._attr_is_locked = self.entity_description.is_locked_fn(
+            self.hub, self.resource_id
+        )
+        self._attr_is_locking = self.entity_description.is_locking_fn(
+            self.hub, self.resource_id
+        )
+        self._attr_is_unlocking = self.entity_description.is_unlocking_fn(
+            self.hub, self.resource_id
+        )
+        self._attr_supported_features = self.entity_description.supported_features_fn(
+            self.controller, self.resource_id
         )
 
-    @property
-    def is_unlocking(self) -> bool | None:
-        """Return true if lock is unlocking."""
+        super().initiate_state()
 
-        return (
-            not self._device.malfunction
-            and self._device.desired_state == libLock.DeviceState.UNLOCKED
-            and self._device.state == libLock.DeviceState.LOCKED
-        )
+    @callback
+    def update_state(self, message: pyadc.EventBrokerMessage | None = None) -> None:
+        """Update entity state."""
 
-    @property
-    def is_locked(self) -> bool | None:
-        """Return true if lock is locked."""
-
-        # LOGGER.info("Processing is_locked %s for %s", self._device.state, self.name or self._device.name)
-
-        if not self._device.malfunction:
-            match self._device.state:
-                case libLock.DeviceState.LOCKED:
-                    return True
-                case libLock.DeviceState.UNLOCKED:
-                    return False
-                case _:
-                    LOGGER.error(
-                        f"Cannot determine whether {self.name} is locked. Found raw state of {self._device.state}."
-                    )
-
-        return None
+        if isinstance(message, pyadc.ResourceEventMessage):
+            self._attr_is_locked = self.entity_description.is_locked_fn(
+                self.hub, self.resource_id
+            )
+            self._attr_is_locking = self.entity_description.is_locking_fn(
+                self.hub, self.resource_id
+            )
+            self._attr_is_unlocking = self.entity_description.is_unlocking_fn(
+                self.hub, self.resource_id
+            )
 
     async def async_lock(self, **kwargs: Any) -> None:
-        """Lock the lock."""
-        if self._validate_code(kwargs.get("code")):
-            try:
-                await self._device.async_lock()
-            except NotAuthorized:
-                self._show_permission_error("lock")
+        """Send lock command."""
+        code = kwargs.get("code")
+        if self._validate_code(code):
+            await self.entity_description.control_fn(
+                self.controller, self.resource_id, "lock"
+            )
 
     async def async_unlock(self, **kwargs: Any) -> None:
-        """Unlock the lock."""
-        if self._validate_code(kwargs.get("code")):
-            try:
-                await self._device.async_unlock()
-            except NotAuthorized:
-                self._show_permission_error("unlock")
-
-    #
-    # Helpers
-    #
-
-    def _validate_code(self, code: str | None) -> bool | str:
-        """Validate given code."""
-        check: bool | str = (arm_code := self._controller.options.get(CONF_ARM_CODE)) in [
-            None,
-            "",
-        ] or code == arm_code
-        if not check:
-            LOGGER.warning("Wrong code entered.")
-        return check
+        """Send unlock command."""
+        code = kwargs.get("code")
+        if self._validate_code(code):
+            await self.entity_description.control_fn(
+                self.controller, self.resource_id, "unlock"
+            )

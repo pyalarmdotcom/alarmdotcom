@@ -1,85 +1,93 @@
 [tool.codespell]
-skip = "./.*,*.csv,*.json,*.html,*.aspx,tests/test_device_extensions.py,pyalarmdotcomajax/models/jsonapi/*"
 count = ""
-quiet-level = 2
 ignore-words-list = "hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo"
+quiet-level = 2
+skip = "./.*,*.csv,*.json,*.html,*.aspx,tests/test_device_extensions.py,pyalarmdotcomajax/models/jsonapi/*"
 
 [tool.mypy]
-exclude = [
-    "tests/",
-    "build/",
-    ".ruff_cache/",
-    ".mypy_cache/",
-    "references/",
-    ".pytest_cache",
-    "old",
-]
-python_version = "3.13"
-show_error_codes = true
-ignore_missing_imports = true
-strict_equality = true
-warn_incomplete_stub = true
-warn_redundant_casts = true
-warn_unused_configs = true
-warn_unused_ignores = true
 check_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_subclassing_any = false
+disallow_untyped_calls = false
 disallow_untyped_defs = true
+exclude = [
+    ".mypy_cache/",
+    ".pytest_cache",
+    ".ruff_cache/",
+    "build/",
+    "old",
+    "references/",
+    "scripts/upgrade_dependencies.py",
+    "tests/"
+]
+ignore_missing_imports = true
 no_implicit_optional = true
+pretty = true
+python_version = "3.13"
+show_absolute_path = true
+show_error_codes = true
+show_error_context = true
+strict_equality = true
+warn_incomplete_stub = true
+warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
-pretty = true
-show_absolute_path = true
-show_error_context = true
-disallow_untyped_calls = false
-# explicit_package_bases = true
+warn_unused_configs = true
+warn_unused_ignores = true
 
 [tool.ruff]
-target-version = "py313"
-line-length = 115
 respect-gitignore = true
-lint.ignore = [
+target-version = "py313"
+
+[tool.ruff.format]
+docstring-code-format = true
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+extend-safe-fixes = ["UP006"]
+ignore = [
+    "COM812",
+    "COM819",
+    "D107",
     "D202",
     "D203",
-    "D404",
+    "D206",
     "D212",
+    "D404",
     "D406",
     "D407",
-    "E731",
-    "TRY003",
-    "TRY301",
-    "PLR2004",
-    "PLR0913",
-    "PLR0912",
-    "PLR0915",
-    "PLR0911",
-    "S301",
-    "W191",
     "E111",
     "E114",
     "E117",
-    "D206",
+    "E501",
+    "E731",
+    "ISC001",
+    "ISC002",
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLR2004",
     "Q000",
     "Q001",
     "Q002",
     "Q003",
-    "COM812",
-    "COM819",
-    "ISC001",
-    "ISC002",
-    "E501",
-    "TRY400",
-    "D107",
+    "S301",
+    "T201",
+    "TC002",
+    "TC003",
     "TD002",
     "TD003",
-    "TC003",
-    "TC002",
-    "T201",
     "TID252",
+    "TRY003",
+    "TRY301",
+    "TRY400",
+    "W191"
 ]
-lint.unfixable = ["F841"]
-lint.select = [
+select = [
     "A",
     "ASYNC",
     "B",
@@ -87,42 +95,35 @@ lint.select = [
     "D",
     "E",
     "F",
-    "I",
-    "G",
-    "PL",
-    "RUF",
     "FA",
     "FBT",
-    "TID",
-    "SLF",
-    "SIM",
+    "G",
+    "I",
+    "ICN",
     "ICN001",
-    "PGH004",
-    "PLC0414",
-    "RET",
-    "S",
     "LOG",
     "PERF",
+    "PGH004",
     "PIE",
-    "ICN",
-    "TC",
-    "TD",
-    "T20",
+    "PL",
+    "PLC0414",
     "PT",
     "Q",
-    "YTT",
+    "RET",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "T20",
+    "TC",
+    "TD",
+    "TID",
     "TRY",
     "UP",
     "W",
+    "YTT"
 ]
-lint.extend-safe-fixes = ["UP006"]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-docstring-code-format = true
+unfixable = ["F841"]
 
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["id", "type"]

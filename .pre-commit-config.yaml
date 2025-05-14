@@ -11,19 +11,19 @@ repos:
             language: python
             types: [python]
 
-          - id: mypy
-            name: MyPy
-            description: Run static type checking
-            entry: mypy
-            language: python
-            types: [python]
-
           - id: codespell
             name: Codespell
             description: Spell check source files
             entry: codespell
             language: python
             types: [text]
+
+          - id: mypy
+            name: MyPy
+            description: Run static type checking
+            entry: mypy
+            language: python
+            types: [python]
 
           - id: yamllint
             name: YAMLLint
@@ -32,3 +32,9 @@ repos:
             language: python
             types: [yaml]
             exclude: (.vscode|.devcontainer|.github)
+    - repo: https://github.com/pappasam/toml-sort
+      rev: v0.23.1
+      hooks:
+          - id: toml-sort
+            args: ["--in-place", "--all", "--ignore-case"]
+            types: [toml]

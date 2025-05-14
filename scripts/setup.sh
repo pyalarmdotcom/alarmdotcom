@@ -46,6 +46,11 @@ echo -e "\n\033[1;34m==> Installing Python dev requirements...\033[0m"
 check_command pip install --upgrade pip
 check_command pip install -r "$workspace_dir/requirements-dev.txt"
 
+# # ─── Pyright ────────────────────────────────────────────────────────
+# echo -e "\n\033[1;34m==> Installing NodeJS...\033[0m"
+
+# check_command npm install -g pyright
+
 # ─── Home Assistant Script ─────────────────────────────────────────────────────
 echo -e "\n\033[1;34m==> Making Home Assistant script executable...\033[0m"
 
@@ -68,9 +73,10 @@ check_command pip install -r "$lib_dir/requirements-dev.txt"
 echo -e "\n\033[1;34m==> Installing pre-commit hooks...\033[0m"
 
 check_command pre-commit install
-check_command (cd "$lib_dir" && pre-commit install)
+cd "$lib_dir"
+check_command pre-commit install
 
 # ─── Done ──────────────────────────────────────────────────────────────────────
-echo -e "\n\033[1;32m✅ Setup complete. You’re ready to go!\033[0m"
+echo -e "\n\033[1;32m✅ Setup complete.\033[0m"
 
 exit 0
