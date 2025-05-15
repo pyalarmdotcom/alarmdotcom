@@ -85,6 +85,32 @@ def supported_features_fn(
 
 
 @callback
+def color_mode_fn(hub: AlarmHub, light_id: str) -> ColorMode:
+    """Return the color mode of the light."""
+
+    resource = hub.api.lights.get(light_id)
+    if resource is None:
+        return ColorMode.UNKNOWN
+
+    return ColorMode.BRIGHTNESS if resource.attributes.is_dimmer else ColorMode.ONOFF
+
+
+@callback
+def supported_color_modes_fn(
+    controller: pyadc.LightController, light_id: str
+) -> set[ColorMode]:
+    """Return the supported color modes for the light."""
+
+    resource = controller.get(light_id)
+    if resource is None:
+        return {ColorMode.UNKNOWN}
+
+    return (
+        {ColorMode.BRIGHTNESS} if resource.attributes.is_dimmer else {ColorMode.ONOFF}
+    )
+
+
+@callback
 async def control_fn(
     controller: pyadc.LightController,
     light_id: str,
@@ -119,6 +145,8 @@ class AdcLightEntityDescription(
     """Return whether the light is on."""
     brightness_fn: Callable[[AlarmHub, str], int | None]
     """Return the brightness of the light."""
+    color_mode_fn: Callable[[AlarmHub, str], ColorMode]
+    """Return the color mode of the light."""
     supported_features_fn: Callable[[AdcControllerT, str], LightEntityFeature]
     """Return the supported features for the light."""
     control_fn: Callable[
@@ -139,7 +167,8 @@ ENTITY_DESCRIPTIONS: list[
         brightness_fn=brightness_fn,
         supported_features_fn=supported_features_fn,
         control_fn=control_fn,
-        supported_color_modes_fn=lambda hub, _: {ColorMode.BRIGHTNESS},
+        supported_color_modes_fn=supported_color_modes_fn,
+        color_mode_fn=color_mode_fn,
     )
 ]
 
