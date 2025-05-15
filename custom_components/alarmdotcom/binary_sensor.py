@@ -128,7 +128,10 @@ def is_on_fn(hub: AlarmHub, sensor_id: str) -> bool:
 
     resource = hub.api.sensors.get(sensor_id) or hub.api.water_sensors.get(sensor_id)
 
-    if resource is None:
+    if (
+        resource is None
+        or resource.attributes.state == pyadc.sensor.SensorState.UNKNOWN
+    ):
         return False
 
     return (resource.attributes.state.value % 2) == 0
