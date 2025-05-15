@@ -88,6 +88,7 @@ ENTITY_DESCRIPTIONS: list[AdcEntityDescription] = [
         name="Debug",
         has_entity_name=False,
         controller_fn=lambda hub, resource_id: hub.api.get_controller(resource_id),
+        available_fn=lambda hub, resource_id: True,
         entity_category=EntityCategory.DIAGNOSTIC,
         press_fn=lambda hass, resource_id: hass.bus.async_fire(
             DEBUG_REQ_EVENT, {"resource_id": resource_id}
