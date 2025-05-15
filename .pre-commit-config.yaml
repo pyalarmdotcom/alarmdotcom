@@ -11,30 +11,41 @@ repos:
             language: python
             types: [python]
 
-          - id: codespell
-            name: Codespell
-            description: Spell check source files
-            entry: codespell
-            language: python
-            types: [text]
-
+    - repo: local
+      hooks:
           - id: mypy
             name: MyPy
             description: Run static type checking
             entry: mypy
             language: python
             types: [python]
+            args: [--config-file, pyproject.toml]
 
+    - repo: local
+      hooks:
+          - id: codespell
+            name: Codespell
+            description: Spell check source files
+            entry: codespell
+            language: python
+            types: [text]
+            additional_dependencies: [tomli]
+
+    - repo: local
+      hooks:
           - id: yamllint
             name: YAMLLint
             description: Lint YAML files using relaxed config
             entry: yamllint -d relaxed
             language: python
             types: [yaml]
-            exclude: (.vscode|.devcontainer|.github)
-    - repo: https://github.com/pappasam/toml-sort
-      rev: v0.23.1
+            exclude: (\.vscode|\.devcontainer|\.github)
+
+    - repo: local
       hooks:
           - id: toml-sort
-            args: ["--in-place", "--all", "--ignore-case"]
+            name: toml-sort
+            description: Sort TOML files in place
+            entry: toml-sort --in-place --all --ignore-case
+            language: python
             types: [toml]
