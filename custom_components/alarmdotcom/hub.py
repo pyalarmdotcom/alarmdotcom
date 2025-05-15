@@ -192,7 +192,7 @@ async def _ws_state_handler(message: pyadc.EventBrokerMessage) -> None:
         pyadc.WebSocketState.CONNECTED,
         pyadc.WebSocketState.CONNECTING,
     ]:
-        log.warning("Alarm.com websocket state message: %s", message)
+        log.info("Alarm.com websocket state message: %s", message)
         return
 
     # Should only print CONNECTED events.
