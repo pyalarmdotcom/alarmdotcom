@@ -194,6 +194,9 @@ class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
                 self.controller, self.resource_id
             )
         )
+        self._attr_color_mode = self.entity_description.color_mode_fn(
+            self.hub, self.resource_id
+        )
 
         super().initiate_state()
 
@@ -206,6 +209,9 @@ class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
                 self.hub, self.resource_id
             )
             self._attr_brightness = self.entity_description.brightness_fn(
+                self.hub, self.resource_id
+            )
+            self._attr_color_mode = self.entity_description.color_mode_fn(
                 self.hub, self.resource_id
             )
 
