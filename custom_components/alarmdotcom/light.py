@@ -123,7 +123,10 @@ async def control_fn(
 
     try:
         if command == "turn_on":
-            await controller.turn_on(light_id, brightness=brightness)
+            if brightness is not None:
+                await controller.set_brightness(light_id, brightness)
+            else:
+                await controller.turn_on(light_id, brightness=brightness)
         elif command == "turn_off":
             await controller.turn_off(light_id)
         else:
