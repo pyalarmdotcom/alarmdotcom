@@ -85,12 +85,10 @@ async def async_setup_entry(
 def code_format_fn(hub: AlarmHub) -> CodeFormat | None:
     """Return the code format for the device."""
 
-    if arm_code := hub.config_entry.options.get(CONF_ARM_CODE):
-        return (
-            CodeFormat.NUMBER if re.search("^\\d+$", str(arm_code)) else CodeFormat.TEXT
-        )
-
-    return None
+    arm_code = hub.config_entry.options.get(CONF_ARM_CODE)
+    if arm_code in [None, ""]:
+        return None
+    return CodeFormat.NUMBER if re.fullmatch(r"\d+", str(arm_code)) else CodeFormat.TEXT
 
 
 @callback
@@ -256,11 +254,6 @@ class AdcAlarmControlPanelEntity(
 
     entity_description: AdcAlarmControlPanelEntityDescription
 
-    @property
-    def code_format(self) -> CodeFormat | None:
-        """Return the format of the code, if any."""
-        return self.entity_description.code_format_fn(self.hub)
-
     def _validate_code(self, code: str | None) -> bool:
         arm_code = (
             self.hub.config_entry.options.get("arm_code")
@@ -280,6 +273,7 @@ class AdcAlarmControlPanelEntity(
         self._attr_supported_features = self.entity_description.supported_features_fn(
             self.controller, self.resource_id
         )
+        self._attr_code_format = self.entity_description.code_format_fn(self.hub)
 
         super().initiate_state()
 

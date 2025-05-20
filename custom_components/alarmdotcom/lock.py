@@ -103,10 +103,6 @@ async def control_fn(
 ) -> None:
     """Lock or unlock the device."""
 
-    if (lock := controller.get(lock_id)) and not lock.attributes.supports_latch_control:
-        log.error("Lock %s does not support latch control", lock_id)
-        return
-
     try:
         if command == "lock":
             await controller.lock(lock_id)
@@ -117,6 +113,25 @@ async def control_fn(
     except (pyadc.ServiceUnavailable, pyadc.UnexpectedResponse) as err:
         log.error("Failed to execute lock command: %s", err)
         raise
+
+
+@callback
+def code_format_fn(hub: AlarmHub) -> str | None:
+    """Return the format of the code, if any."""
+
+    if arm_code := hub.config_entry.options.get("arm_code"):
+        import re
+
+        code_patterns = [
+            r"^\d+$",  # Only digits
+            r"^\w\D+$",  # Only alpha
+            r"^\w+$",  # Alphanumeric
+        ]
+        for pattern in code_patterns:
+            if re.fullmatch(pattern, arm_code):
+                return pattern
+        return "."  # All characters
+    return None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -133,6 +148,8 @@ class AdcLockEntityDescription(
     """Return whether the lock is locking."""
     is_unlocking_fn: Callable[[AlarmHub, str], bool]
     """Return whether the lock is unlocking."""
+    code_format_fn: Callable[[AlarmHub], str | None]
+    """Return the format of the code, if any."""
     supported_features_fn: Callable[[AdcControllerT, str], LockEntityFeature]
     """Return the supported features for the lock."""
     control_fn: Callable[[AdcControllerT, str, str], Coroutine[Any, Any, None]]
@@ -149,6 +166,7 @@ ENTITY_DESCRIPTIONS: list[
         is_locking_fn=is_locking_fn,
         is_unlocking_fn=is_unlocking_fn,
         supported_features_fn=supported_features_fn,
+        code_format_fn=code_format_fn,
         control_fn=control_fn,
     )
 ]
@@ -158,28 +176,6 @@ class AdcLockEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LockEntity):
     """Base Alarm.com lock entity."""
 
     entity_description: AdcLockEntityDescription
-
-    @property
-    def code_format(self) -> str | None:
-        """Return the format of the code, if any."""
-        arm_code = (
-            self.hub.config_entry.options.get("arm_code")
-            if hasattr(self.hub, "config_entry")
-            else None
-        )
-        if arm_code:
-            import re
-
-            code_patterns = [
-                r"^\d+$",  # Only digits
-                r"^\w\D+$",  # Only alpha
-                r"^\w+$",  # Alphanumeric
-            ]
-            for pattern in code_patterns:
-                if re.fullmatch(pattern, arm_code):
-                    return pattern
-            return "."  # All characters
-        return None
 
     def _validate_code(self, code: str | None) -> bool:
         arm_code = (
@@ -208,6 +204,7 @@ class AdcLockEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LockEntity):
         self._attr_supported_features = self.entity_description.supported_features_fn(
             self.controller, self.resource_id
         )
+        self._attr_code_format = self.entity_description.code_format_fn(self.hub)
 
         super().initiate_state()
 
