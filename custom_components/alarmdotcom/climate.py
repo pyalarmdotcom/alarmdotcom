@@ -147,8 +147,8 @@ def supported_features_fn(
     if resource.attributes.supports_auto_mode:
         features |= ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
 
-    if resource.attributes.supports_humidity:
-        features |= ClimateEntityFeature.TARGET_HUMIDITY
+    # if resource.attributes.supports_humidity:
+    #     features |= ClimateEntityFeature.TARGET_HUMIDITY
 
     if resource.attributes.supports_fan_mode:
         features |= ClimateEntityFeature.FAN_MODE
@@ -341,14 +341,14 @@ async def set_fan_mode_fn(
         )
 
 
-@callback
-async def set_humidity_fn(
-    controller: pyadc.ThermostatController,
-    thermostat_id: str,
-    humidity: int,
-) -> None:
-    """Set the humidity."""
-    await controller.set_state(thermostat_id, humidity=humidity)
+# @callback
+# async def set_humidity_fn(
+#     controller: pyadc.ThermostatController,
+#     thermostat_id: str,
+#     humidity: int,
+# ) -> None:
+#     """Set the humidity."""
+#     await controller.set_state(thermostat_id, humidity=humidity)
 
 
 @callback
@@ -412,8 +412,8 @@ class AdcClimateEntityDescription(
     """Set the HVAC mode."""
     set_fan_mode_fn: Callable[[AdcControllerT, str, str], Coroutine[Any, Any, None]]
     """Set the fan mode."""
-    set_humidity_fn: Callable[[AdcControllerT, str, int], Coroutine[Any, Any, None]]
-    """Set the humidity."""
+    # set_humidity_fn: Callable[[AdcControllerT, str, int], Coroutine[Any, Any, None]]
+    # """Set the humidity."""
     set_temperature_fn: Callable[
         [
             AdcControllerT,
@@ -449,7 +449,7 @@ ENTITY_DESCRIPTIONS: list[
         turn_off_fn=turn_off_fn,
         set_hvac_mode_fn=set_hvac_mode_fn,
         set_fan_mode_fn=set_fan_mode_fn,
-        set_humidity_fn=set_humidity_fn,
+        # set_humidity_fn=set_humidity_fn,
         set_temperature_fn=set_temperature_fn,
     )
 ]
@@ -509,11 +509,11 @@ class AdcClimateEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], ClimateEnti
             self.controller, self.resource_id, fan_mode
         )
 
-    async def async_set_humidity(self, humidity: int) -> None:
-        """Set the humidity."""
-        await self.entity_description.set_humidity_fn(
-            self.controller, self.resource_id, humidity
-        )
+    # async def async_set_humidity(self, humidity: int) -> None:
+    #     """Set the humidity."""
+    #     await self.entity_description.set_humidity_fn(
+    #         self.controller, self.resource_id, humidity
+    #     )
 
     async def async_turn_off(self) -> None:
         """Turn off the thermostat."""
