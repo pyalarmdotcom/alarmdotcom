@@ -70,13 +70,6 @@ def available_fn(hub: AlarmHub, resource_id: str) -> bool:
 
 
 @callback
-def supported_fn(hub: AlarmHub, resource_id: str, key: str) -> bool:
-    """Determine if device provides relevant data for this entity."""
-
-    return not getattr(hub.api, key)[resource_id]
-
-
-@callback
 def device_info_fn(
     hub: AlarmHub, resource_id: str, entity_name: str | None
 ) -> DeviceInfo:

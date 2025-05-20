@@ -281,10 +281,10 @@ class AdcAlarmControlPanelEntity(
     def update_state(self, message: pyadc.EventBrokerMessage | None = None) -> None:
         """Update entity state."""
 
-        description = self.entity_description
-
         if isinstance(message, pyadc.ResourceEventMessage):
-            self.alarm_state = description.state_fn(self.hub, self.resource_id)
+            self.alarm_state = self.entity_description.state_fn(
+                self.hub, self.resource_id
+            )
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""
