@@ -45,7 +45,7 @@
                 },
                 "data_description": {
                     "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the code, check the box below.",
-                    "remove_arm_code": "When checked, the code will be removed from the locks and alarm."
+                    "remove_arm_code": "When set, the code will be removed from the locks and alarm."
                 }
             },
             "modes": {

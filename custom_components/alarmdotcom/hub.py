@@ -42,15 +42,6 @@ class AlarmHub:
 
         self._available: bool = False
 
-    # @callback
-    # @staticmethod
-    # def get_hub(hass: HomeAssistant, config_entry: ConfigEntry) -> "AlarmHub":
-    #     """Get Alarm.com hub from config entry."""
-
-    #     hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
-
-    #     return hub
-
     @property
     def available(self) -> bool:
         """
@@ -74,17 +65,6 @@ class AlarmHub:
 
         # If disconnected for less than 60 seconds, still available
         return bool(asyncio.get_event_loop().time() - last_connected < 60)
-
-    # async def _set_availability(self, message: pyadc.EventBrokerMessage) -> None:
-    #     """Set availability based on the message received."""
-
-    #     if not isinstance(message, pyadc.ConnectionEvent):
-    #         return
-
-    #     self._available = message.current_state in [
-    #         pyadc.WebSocketState.CONNECTED,
-    #         pyadc.WebSocketState.RECONNECTED,
-    #     ]
 
     async def login(self) -> bool:
         """Log in to alarm.com."""
@@ -133,11 +113,6 @@ class AlarmHub:
         await self.api.start_event_monitoring(_ws_state_handler)
 
         self.close_jobs.append(self.config_entry.add_update_listener(_update_listener))
-        # self.close_jobs.append(
-        #     self.api.events.subscribe(
-        #         pyadc.EventBrokerTopic.CONNECTION_EVENT, self._set_availability
-        #     )
-        # )
 
         # Create system/hub device.
         device_registry = dr.async_get(self.hass)
@@ -168,9 +143,6 @@ class AlarmHub:
         unload_success: bool = await self.hass.config_entries.async_unload_platforms(
             self.config_entry, PLATFORMS
         )
-
-        # if unload_success:
-        #     self.hass.data[DOMAIN].pop(self.config_entry.entry_id)
 
         return unload_success
 

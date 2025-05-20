@@ -122,10 +122,6 @@ class AdcEntityDescription(
     # Mandatory Constants
     key: str
     """Must match name of device controller in pyalarmdotcomajax's AlarmBridge."""
-    # controller_type: type[AdcControllerT]
-    # """Controller type."""
-    # resource_type: type[AdcManagedDeviceT]
-    # """Resource type."""
 
     # Mandatory Functions
     controller_fn: Callable[[AlarmHub, str], AdcControllerT]
@@ -134,8 +130,6 @@ class AdcEntityDescription(
     """Determine if device provides relevant data for this entity."""
 
     # Optional Constants
-    # entity_suffix: str | None = None
-    # """Suffix for resource unique ID. Used by sub-devices only."""
     has_entity_name: bool = True
     """Has entity name defaults to true."""
     should_poll: bool = False
