@@ -40,31 +40,31 @@ class AlarmHub:
 
         hass.data.setdefault(DOMAIN, {})[self.config_entry.entry_id] = {DATA_HUB: self}
 
-        self._available: bool = False
+        self.available: bool = True
 
-    @property
-    def available(self) -> bool:
-        """
-        Whether the Alarm.com API is available.
+    # @property
+    # def available(self) -> bool:
+    #     """
+    #     Whether the Alarm.com API is available.
 
-        This will only be true if the websocket connection is established and has not been disconnected
-        for more than 60 seconds. This is to prevent the system from being marked as unavailable if the
-        connection is temporarily lost.
-        """
-        # If never connected, treat as unavailable.
-        ws = self.api.ws_controller
-        if ws.connected:
-            # Update last connected time
-            self._last_connected = asyncio.get_event_loop().time()
-            return True
+    #     This will only be true if the websocket connection is established and has not been disconnected
+    #     for more than 60 seconds. This is to prevent the system from being marked as unavailable if the
+    #     connection is temporarily lost.
+    #     """
+    #     # If never connected, treat as unavailable.
+    #     ws = self.api.ws_controller
+    #     if ws.connected:
+    #         # Update last connected time
+    #         self._last_connected = asyncio.get_event_loop().time()
+    #         return True
 
-        # If never set, treat as unavailable
-        last_connected = getattr(self, "_last_connected", None)
-        if last_connected is None:
-            return False
+    #     # If never set, treat as unavailable
+    #     last_connected = getattr(self, "_last_connected", None)
+    #     if last_connected is None:
+    #         return False
 
-        # If disconnected for less than 60 seconds, still available
-        return bool(asyncio.get_event_loop().time() - last_connected < 60)
+    #     # If disconnected for less than 60 seconds, still available
+    #     return bool(asyncio.get_event_loop().time() - last_connected < 60)
 
     async def login(self) -> bool:
         """Log in to alarm.com."""
