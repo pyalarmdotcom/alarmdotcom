@@ -1,8 +1,10 @@
+#:schema https://json.schemastore.org/pyproject.json
+
 [tool.codespell]
-count = ""
+count             = ""
 ignore-words-list = "hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo"
-quiet-level = 2
-skip = "./.*,*.csv,*.json,*.html,*.aspx,tests/test_device_extensions.py,pyalarmdotcomajax/models/jsonapi/*"
+quiet-level       = 2
+skip              = "./.*,*.csv,*.json,*.html,*.aspx,tests/test_device_extensions.py,pyalarmdotcomajax/models/jsonapi/*"
 
 [tool.mypy]
 check_untyped_defs = true
@@ -11,14 +13,14 @@ disallow_subclassing_any = false
 disallow_untyped_calls = false
 disallow_untyped_defs = true
 exclude = [
-    ".mypy_cache/",
-    ".pytest_cache",
-    ".ruff_cache/",
-    "build/",
-    "old",
-    "references/",
-    "scripts/upgrade_dependencies.py",
-    "tests/"
+  ".mypy_cache/",
+  ".pytest_cache",
+  ".ruff_cache/",
+  "build/",
+  "old",
+  "references/",
+  "scripts/upgrade_dependencies.py",
+  "tests/",
 ]
 ignore_missing_imports = true
 no_implicit_optional = true
@@ -36,20 +38,20 @@ warn_unused_configs = true
 warn_unused_ignores = true
 
 [tool.ruff]
-line-length = 120
+line-length       = 120
 respect-gitignore = true
-target-version = "py313"
+target-version    = "py313"
 
-[tool.ruff.format]
-docstring-code-format = true
-indent-style = "space"
-line-ending = "auto"
-quote-style = "double"
-skip-magic-trailing-comma = false
+  [tool.ruff.format]
+  docstring-code-format     = true
+  indent-style              = "space"
+  line-ending               = "auto"
+  quote-style               = "double"
+  skip-magic-trailing-comma = false
 
-[tool.ruff.lint]
-extend-safe-fixes = ["UP006"]
-ignore = [
+  [tool.ruff.lint]
+  extend-safe-fixes = ["UP006"]
+  ignore = [
     "COM812",
     "COM819",
     "D107",
@@ -86,9 +88,9 @@ ignore = [
     "TRY003",
     "TRY301",
     "TRY400",
-    "W191"
-]
-select = [
+    "W191",
+  ]
+  select = [
     "A",
     "ASYNC",
     "B",
@@ -122,24 +124,18 @@ select = [
     "TRY",
     "UP",
     "W",
-    "YTT"
-]
-unfixable = ["F841"]
+    "YTT",
+  ]
+  unfixable = ["F841"]
 
-[tool.ruff.lint.flake8-builtins]
-builtins-ignorelist = ["id", "type"]
+    [tool.ruff.lint.flake8-builtins]
+    builtins-ignorelist = ["id", "type"]
 
-[tool.ruff.lint.flake8-type-checking]
-quote-annotations = true
+    [tool.ruff.lint.flake8-type-checking]
+    quote-annotations = true
 
-[tool.ruff.lint.flake8-unused-arguments]
-ignore-variadic-names = true
+    [tool.ruff.lint.flake8-unused-arguments]
+    ignore-variadic-names = true
 
-[tool.ruff.lint.mccabe]
-max-complexity = 25
-
-[tool.tomlsort]
-in_place = true
-spaces_before_inline_comment = 4
-spaces_indent_inline_array = 4
-trailing_comma_inline_array = false
+    [tool.ruff.lint.mccabe]
+    max-complexity = 25

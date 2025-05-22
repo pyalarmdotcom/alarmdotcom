@@ -39,9 +39,7 @@ def unique_id_fn(device_id: str, entity_name: str | None) -> str:
 
 
 @callback
-def entity_name_fn(
-    hub: AlarmHub, resource_id: str, entity_suffix: str | None
-) -> str | None:
+def entity_name_fn(hub: AlarmHub, resource_id: str, entity_suffix: str | None) -> str | None:
     """Return device name."""
 
     resource = hub.api.managed_devices[resource_id]
@@ -70,9 +68,7 @@ def available_fn(hub: AlarmHub, resource_id: str) -> bool:
 
 
 @callback
-def device_info_fn(
-    hub: AlarmHub, resource_id: str, entity_name: str | None
-) -> DeviceInfo:
+def device_info_fn(hub: AlarmHub, resource_id: str, entity_name: str | None) -> DeviceInfo:
     """Return device information."""
 
     resource = hub.api.managed_devices[resource_id]
@@ -89,10 +85,8 @@ def device_info_fn(
 
     device_info = DeviceInfo(identifiers={(DOMAIN, resource_id)}, name=resource.name)
 
-    if resource.attributes.mac_address not in (None, ""):
-        device_info["connections"] = {
-            (CONNECTION_NETWORK_MAC, resource.attributes.mac_address)
-        }
+    if resource.attributes.mac_address is not None and resource.attributes.mac_address != "":
+        device_info["connections"] = {(CONNECTION_NETWORK_MAC, resource.attributes.mac_address)}
     else:
         device_info["connections"] = set()
     if resource.attributes.manufacturer is not None:
@@ -131,15 +125,11 @@ class AdcEntityDescription(
     # Optional Functions
     available_fn: Callable[[AlarmHub, str], bool] = available_fn
     """Determine if entity is available, default is if Alarm.com connection is working. Takes hub and resource ID as arguments."""
-    extra_attrib_fn: Callable[[pyadc.AdcDeviceResource], dict[str, Any]] = (
-        lambda device: {}
-    )
+    extra_attrib_fn: Callable[[pyadc.AdcDeviceResource], dict[str, Any]] = lambda device: {}
     """Provide extra attributes for entity. Takes device as argument."""
     unique_id_fn: Callable[[str, str | None], str] = unique_id_fn
     """Provide a unique ID based on hub and obj_id. Takes resource ID and entity suffix as arguments."""
-    device_info_fn: Callable[[AlarmHub, str, str | None], DeviceInfo] = (
-        device_info_fn  # Hub, Resource ID, Device Key
-    )
+    device_info_fn: Callable[[AlarmHub, str, str | None], DeviceInfo] = device_info_fn  # Hub, Resource ID, Device Key
     """Provide device info object based on hub and obj_id."""
     entity_name_fn: Callable[[AlarmHub, str, str | None], str | None] = entity_name_fn
     """Provide a name for the entity."""
@@ -167,15 +157,11 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
 
         self._attr_should_poll = description.should_poll
         self._attr_available = description.available_fn(hub, resource_id)
-        self._attr_extra_state_attributes = description.extra_attrib_fn(
-            hub.api.managed_devices[resource_id]
-        )
+        self._attr_extra_state_attributes = description.extra_attrib_fn(hub.api.managed_devices[resource_id])
 
         entity_name = description.name if isinstance(description.name, str) else None
 
-        self._attr_device_info = description.device_info_fn(
-            hub, resource_id, entity_name
-        )
+        self._attr_device_info = description.device_info_fn(hub, resource_id, entity_name)
         self._attr_unique_id = description.unique_id_fn(resource_id, entity_name)
         self._attr_name = description.entity_name_fn(hub, resource_id, entity_name)
 
@@ -205,19 +191,13 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
             else self.hub.api.managed_devices[self.resource_id].name,
         )
 
-        self.update_state(
-            pyadc.ResourceEventMessage(
-                topic=pyadc.EventBrokerTopic.RESOURCE_ADDED, id=self.resource_id
-            )
-        )
+        self.update_state(pyadc.ResourceEventMessage(topic=pyadc.EventBrokerTopic.RESOURCE_ADDED, id=self.resource_id))
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 
         # Subscribe to updates for the device.
-        self.async_on_remove(
-            self.hub.api.subscribe(self.event_handler, self.resource_id)
-        )
+        self.async_on_remove(self.hub.api.subscribe(self.event_handler, self.resource_id))
 
     async def remove(self) -> None:
         """Remove entity from Home Assistant."""
@@ -236,9 +216,7 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
             pyadc.EventBrokerTopic.RESOURCE_UPDATED,
             pyadc.EventBrokerTopic.CONNECTION_EVENT,
         ]:
-            self._attr_available = self.entity_description.available_fn(
-                self.hub, self.resource_id
-            )
+            self._attr_available = self.entity_description.available_fn(self.hub, self.resource_id)
 
             if message.topic != pyadc.EventBrokerTopic.CONNECTION_EVENT:
                 self.update_state(message)

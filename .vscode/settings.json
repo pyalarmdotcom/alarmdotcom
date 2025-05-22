@@ -2,7 +2,7 @@
     "[markdown]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true,
-        "editor.wordWrap": "off",
+        "editor.wordWrap": "off"
     },
     "[python]": {
         "editor.codeActionsOnSave": {

@@ -2,50 +2,58 @@ default_language_version:
     python: python3.13
 
 repos:
-    - repo: local
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.11.10
       hooks:
           - id: ruff
             name: Ruff
             description: Run Ruff linter and autofixer
-            entry: ruff check --fix
-            language: python
-            types: [python]
+            args: [--fix]
 
-    - repo: local
+    # MyPy static type checking
+    - repo: https://github.com/pre-commit/mirrors-mypy
+      rev: v1.15.0
       hooks:
           - id: mypy
             name: MyPy
             description: Run static type checking
-            entry: mypy
-            language: python
-            types: [python]
             args: [--config-file, pyproject.toml]
+            additional_dependencies:
+                - beautifulsoup4>=4.10.0
+                - pyalarmdotcomajax>=0.6.0-beta.7
+                - homeassistant==2025.5.0
+                - types-beautifulsoup4
+                - types-requests
 
-    - repo: local
+    # Codespell for spell checking
+    - repo: https://github.com/codespell-project/codespell
+      rev: v2.2.6
       hooks:
           - id: codespell
-            name: Codespell
-            description: Spell check source files
-            entry: codespell
-            language: python
-            types: [text]
             additional_dependencies: [tomli]
+            args: [--toml, pyproject.toml]
 
-    - repo: local
+    # YAMLLint for YAML files
+    - repo: https://github.com/adrienverge/yamllint
+      rev: v1.32.0
       hooks:
           - id: yamllint
-            name: YAMLLint
-            description: Lint YAML files using relaxed config
-            entry: yamllint -d relaxed
-            language: python
-            types: [yaml]
+            args: [-d, relaxed]
             exclude: (\.vscode|\.devcontainer|\.github)
 
-    - repo: local
+    # TOML file formatting and linting
+    - repo: https://github.com/ComPWA/taplo-pre-commit
+      rev: v0.9.3
       hooks:
-          - id: toml-sort
-            name: toml-sort
-            description: Sort TOML files in place
-            entry: toml-sort --in-place --all --ignore-case
-            language: python
-            types: [toml]
+          - id: taplo-format
+          - id: taplo-lint
+
+    # Check manifest files
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.4.0
+      hooks:
+          - id: check-json
+          - id: check-yaml
+          - id: end-of-file-fixer
+          - id: trailing-whitespace
+          - id: check-merge-conflict

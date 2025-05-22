@@ -1,8 +1,6 @@
 {
     "configurations": [
         {
-            // "host": "localhost",
-            // Example of attaching to local debug server
             "name": "Python: Attach Local",
             "pathMappings": [
                 {
@@ -10,13 +8,10 @@
                     "remoteRoot": "."
                 }
             ],
-            // "port": 5678,
             "request": "attach",
             "type": "debugpy"
         },
         {
-            // "host": "homeassistant.local",
-            // Example of attaching to my production server
             "name": "Python: Attach Remote Home Assistant",
             "pathMappings": [
                 {
@@ -24,13 +19,10 @@
                     "remoteRoot": "/usr/src/homeassistant"
                 }
             ],
-            // "port": 5678,
             "request": "attach",
             "type": "debugpy"
         },
         {
-            // "host": "127.0.0.1",
-            // Example of attaching to my production server
             "name": "Python: Attach Remote",
             "pathMappings": [
                 {
@@ -38,11 +30,9 @@
                     "remoteRoot": "."
                 }
             ],
-            // "port": 5678,
             "request": "attach",
             "type": "debugpy"
         }
     ],
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0"
 }
