@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, Literal
@@ -19,6 +20,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
+from homeassistant.util.color import brightness_to_value, value_to_brightness
 
 from .const import DATA_HUB, DOMAIN
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
@@ -26,6 +28,8 @@ from .util import cleanup_orphaned_entities_and_devices
 
 if TYPE_CHECKING:
     from .hub import AlarmHub
+
+BRIGHTNESS_SCALE = (1, 99)
 
 log = logging.getLogger(__name__)
 
@@ -49,12 +53,8 @@ async def async_setup_entry(
     async_add_entities(entities)
 
     current_entity_ids = {entity.entity_id for entity in entities}
-    current_unique_ids = {
-        uid for uid in (entity.unique_id for entity in entities) if uid is not None
-    }
-    await cleanup_orphaned_entities_and_devices(
-        hass, config_entry, current_entity_ids, current_unique_ids, "light"
-    )
+    current_unique_ids = {uid for uid in (entity.unique_id for entity in entities) if uid is not None}
+    await cleanup_orphaned_entities_and_devices(hass, config_entry, current_entity_ids, current_unique_ids, "light")
 
 
 @callback
@@ -70,13 +70,11 @@ def brightness_fn(hub: AlarmHub, light_id: str) -> int | None:
     """Return the brightness of the light."""
 
     resource = hub.api.lights[light_id]
-    return resource.attributes.light_level
+    return value_to_brightness(BRIGHTNESS_SCALE, resource.attributes.light_level)
 
 
 @callback
-def supported_features_fn(
-    controller: pyadc.LightController, light_id: str
-) -> LightEntityFeature:
+def supported_features_fn(controller: pyadc.LightController, light_id: str) -> LightEntityFeature:
     """Return the supported features for the light."""
 
     # We don't support light entity features yet.
@@ -96,18 +94,14 @@ def color_mode_fn(hub: AlarmHub, light_id: str) -> ColorMode:
 
 
 @callback
-def supported_color_modes_fn(
-    controller: pyadc.LightController, light_id: str
-) -> set[ColorMode]:
+def supported_color_modes_fn(controller: pyadc.LightController, light_id: str) -> set[ColorMode]:
     """Return the supported color modes for the light."""
 
     resource = controller.get(light_id)
     if resource is None:
         return {ColorMode.UNKNOWN}
 
-    return (
-        {ColorMode.BRIGHTNESS} if resource.attributes.is_dimmer else {ColorMode.ONOFF}
-    )
+    return {ColorMode.BRIGHTNESS} if resource.attributes.is_dimmer else {ColorMode.ONOFF}
 
 
 @callback
@@ -124,7 +118,7 @@ async def control_fn(
     try:
         if command == "turn_on":
             if brightness is not None:
-                await controller.set_brightness(light_id, brightness)
+                await controller.set_brightness(light_id, math.ceil(brightness_to_value(BRIGHTNESS_SCALE, brightness)))
             else:
                 await controller.turn_on(light_id)
         elif command == "turn_off":
@@ -160,9 +154,7 @@ class AdcLightEntityDescription(
     """Turn the light on or off."""
 
 
-ENTITY_DESCRIPTIONS: list[
-    AdcLightEntityDescription[pyadc.light.Light, pyadc.LightController]
-] = [
+ENTITY_DESCRIPTIONS: list[AdcLightEntityDescription[pyadc.light.Light, pyadc.LightController]] = [
     AdcLightEntityDescription(
         key="lights",
         controller_fn=lambda hub, _: hub.api.lights,
@@ -186,20 +178,12 @@ class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
         """Initiate entity state."""
 
         self._attr_is_on = self.entity_description.is_on_fn(self.hub, self.resource_id)
-        self._attr_brightness = self.entity_description.brightness_fn(
-            self.hub, self.resource_id
-        )
-        self._attr_supported_features = self.entity_description.supported_features_fn(
+        self._attr_brightness = self.entity_description.brightness_fn(self.hub, self.resource_id)
+        self._attr_supported_features = self.entity_description.supported_features_fn(self.controller, self.resource_id)
+        self._attr_supported_color_modes = self.entity_description.supported_color_modes_fn(
             self.controller, self.resource_id
         )
-        self._attr_supported_color_modes = (
-            self.entity_description.supported_color_modes_fn(
-                self.controller, self.resource_id
-            )
-        )
-        self._attr_color_mode = self.entity_description.color_mode_fn(
-            self.hub, self.resource_id
-        )
+        self._attr_color_mode = self.entity_description.color_mode_fn(self.hub, self.resource_id)
 
         super().initiate_state()
 
@@ -208,26 +192,16 @@ class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
         """Update entity state."""
 
         if isinstance(message, pyadc.ResourceEventMessage):
-            self._attr_is_on = self.entity_description.is_on_fn(
-                self.hub, self.resource_id
-            )
-            self._attr_brightness = self.entity_description.brightness_fn(
-                self.hub, self.resource_id
-            )
-            self._attr_color_mode = self.entity_description.color_mode_fn(
-                self.hub, self.resource_id
-            )
+            self._attr_is_on = self.entity_description.is_on_fn(self.hub, self.resource_id)
+            self._attr_brightness = self.entity_description.brightness_fn(self.hub, self.resource_id)
+            self._attr_color_mode = self.entity_description.color_mode_fn(self.hub, self.resource_id)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
 
-        await self.entity_description.control_fn(
-            self.controller, self.resource_id, "turn_on", kwargs
-        )
+        await self.entity_description.control_fn(self.controller, self.resource_id, "turn_on", kwargs)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
 
-        await self.entity_description.control_fn(
-            self.controller, self.resource_id, "turn_off", kwargs
-        )
+        await self.entity_description.control_fn(self.controller, self.resource_id, "turn_off", kwargs)
