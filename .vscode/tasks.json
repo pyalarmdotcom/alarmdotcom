@@ -18,6 +18,17 @@
             "type": "shell",
             "command": "pip install --editable ../pyalarmdotcomajax --config-settings editable_mode=strict",
             "group": "build"
+        },
+        {
+            "label": "Sync dependency versions",
+            "type": "shell",
+            "command": "${workspaceFolder}/scripts/sync_versions.py",
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
         }
     ]
 }

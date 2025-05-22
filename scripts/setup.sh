@@ -10,6 +10,33 @@ check_command() {
     "$@"
 }
 
+check_ha_version() {
+    local req_file="$1"
+    echo -e "\n\033[1;34m==> Checking Home Assistant version...\033[0m"
+
+    # Get latest stable version from PyPI
+    latest_version=$(pip index versions homeassistant | grep -m 1 'Available versions:' | grep -oE '[0-9]{4}\.[0-9]+\.[0-9]+' | head -n 1)
+
+    if [ -z "$latest_version" ]; then
+        echo "❌ Failed to fetch latest Home Assistant version"
+        return 1
+    fi
+
+    # Update version in requirements file if needed
+    if grep -q "homeassistant==" "$req_file"; then
+        current_version=$(grep "homeassistant==" "$req_file" | cut -d'=' -f3)
+        if [ "$current_version" != "$latest_version" ]; then
+            echo "📝 Updating Home Assistant from $current_version to $latest_version"
+            sed -i "s/homeassistant==.*/homeassistant==$latest_version/" "$req_file"
+        else
+            echo "✓ Home Assistant version $current_version is up to date"
+        fi
+    else
+        echo "❌ Could not find Home Assistant in requirements file"
+        return 1
+    fi
+}
+
 # ─── Input Validation ──────────────────────────────────────────────────────────
 if [[ -z "${LIBRARY_NAME}" || -z "${LIBRARY_GIT_URL}" || -z "${WORKSPACE_DIRECTORY}" ]]; then
     echo "❌ One or more required environment variables are missing: LIBRARY_NAME, LIBRARY_GIT_URL, WORKSPACE_DIRECTORY"
@@ -44,7 +71,15 @@ check_command go2rtc --version
 echo -e "\n\033[1;34m==> Installing Python dev requirements...\033[0m"
 
 check_command pip install --upgrade pip
+
+# Check and update Home Assistant version before installing requirements
+check_ha_version "$workspace_dir/requirements-dev.txt"
+
 check_command pip install -r "$workspace_dir/requirements-dev.txt"
+
+# Make sync versions script executable and run it
+check_command chmod +x "$workspace_dir/scripts/sync_versions.py"
+check_command "$workspace_dir/scripts/sync_versions.py"
 
 # # ─── Pyright ────────────────────────────────────────────────────────
 # echo -e "\n\033[1;34m==> Installing NodeJS...\033[0m"
@@ -68,6 +103,9 @@ fi
 
 check_command pip install --editable "$lib_dir" --config-settings editable_mode=strict
 check_command pip install -r "$lib_dir/requirements-dev.txt"
+
+# ─── Check and Update Home Assistant Version ───────────────────────────────────
+check_ha_version "$workspace_dir/requirements-dev.txt"
 
 # ─── Pre-commit Hooks ──────────────────────────────────────────────────────────
 echo -e "\n\033[1;34m==> Installing pre-commit hooks...\033[0m"
