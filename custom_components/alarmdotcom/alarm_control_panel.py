@@ -82,8 +82,10 @@ def code_format_fn(hub: AlarmHub) -> CodeFormat | None:
     """Return the code format for the device."""
 
     arm_code = hub.config_entry.options.get(CONF_ARM_CODE)
+
     if arm_code in [None, ""]:
         return None
+
     return CodeFormat.NUMBER if re.fullmatch(r"\d+", str(arm_code)) else CodeFormat.TEXT
 
 
@@ -251,7 +253,7 @@ class AdcAlarmControlPanelEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], A
 
         self._attr_code_format = self.entity_description.code_format_fn(self.hub)
         self._attr_supported_features = self.entity_description.supported_features_fn(self.controller, self.resource_id)
-        self._attr_code_format = self.entity_description.code_format_fn(self.hub)
+        self._attr_code_arm_required = self._attr_code_format is not None
 
         super().initiate_state()
 
