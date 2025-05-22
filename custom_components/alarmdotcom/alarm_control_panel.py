@@ -59,9 +59,7 @@ async def async_setup_entry(
     hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
 
     entities = [
-        AdcAlarmControlPanelEntity(
-            hub=hub, resource_id=device.id, description=entity_description
-        )
+        AdcAlarmControlPanelEntity(hub=hub, resource_id=device.id, description=entity_description)
         for entity_description in ENTITY_DESCRIPTIONS
         for device in hub.api.partitions
         if entity_description.supported_fn(hub, device.id)
@@ -69,9 +67,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
     current_entity_ids = {entity.entity_id for entity in entities}
-    current_unique_ids = {
-        uid for uid in (entity.unique_id for entity in entities) if uid is not None
-    }
+    current_unique_ids = {uid for uid in (entity.unique_id for entity in entities) if uid is not None}
     await cleanup_orphaned_entities_and_devices(
         hass,
         config_entry,
@@ -129,17 +125,11 @@ def state_fn(hub: AlarmHub, partition_id: str) -> AlarmControlPanelState | None:
         pyadc.partition.PartitionState.ARMED_NIGHT: AlarmControlPanelState.ARMING,
     }
 
-    return (
-        desired_state_mapping.get(resource.attributes.desired_state)
-        if resource.attributes.desired_state
-        else None
-    )
+    return desired_state_mapping.get(resource.attributes.desired_state) if resource.attributes.desired_state else None
 
 
 @callback
-def supported_features_fn(
-    controller: PartitionController, partition_id: str
-) -> AlarmControlPanelEntityFeature:
+def supported_features_fn(controller: PartitionController, partition_id: str) -> AlarmControlPanelEntityFeature:
     """Return the supported features for the device."""
 
     resource = controller.get(partition_id)
@@ -150,11 +140,7 @@ def supported_features_fn(
     return (
         AlarmControlPanelEntityFeature.ARM_HOME
         | AlarmControlPanelEntityFeature.ARM_AWAY
-        | (
-            AlarmControlPanelEntityFeature.ARM_NIGHT
-            if resource.attributes.supports_night_arming
-            else 0
-        )
+        | (AlarmControlPanelEntityFeature.ARM_NIGHT if resource.attributes.supports_night_arming else 0)
     )
 
 
@@ -186,6 +172,7 @@ async def control_fn(
                 partition_id,
                 force_bypass=CONF_FORCE_BYPASS in cmd_options,
                 no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
+                silent_arming=CONF_SILENT_ARM in cmd_options,
             )
 
         elif command == ARM_STAY:
@@ -203,6 +190,7 @@ async def control_fn(
                 partition_id,
                 force_bypass=CONF_FORCE_BYPASS in cmd_options,
                 no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
+                silent_arming=CONF_SILENT_ARM in cmd_options,
             )
 
         else:
@@ -234,9 +222,7 @@ class AdcAlarmControlPanelEntityDescription(
 
 
 ENTITY_DESCRIPTIONS: list[AdcAlarmControlPanelEntityDescription] = [
-    AdcAlarmControlPanelEntityDescription[
-        pyadc.partition.Partition, pyadc.PartitionController
-    ](
+    AdcAlarmControlPanelEntityDescription[pyadc.partition.Partition, pyadc.PartitionController](
         key="partitions",
         controller_fn=lambda hub, _: hub.api.partitions,
         state_fn=state_fn,
@@ -247,19 +233,13 @@ ENTITY_DESCRIPTIONS: list[AdcAlarmControlPanelEntityDescription] = [
 ]
 
 
-class AdcAlarmControlPanelEntity(
-    AdcEntity[AdcManagedDeviceT, AdcControllerT], AlarmControlPanelEntity
-):
+class AdcAlarmControlPanelEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], AlarmControlPanelEntity):
     """Base Alarm.com alarm control panel entity."""
 
     entity_description: AdcAlarmControlPanelEntityDescription
 
     def _validate_code(self, code: str | None) -> bool:
-        arm_code = (
-            self.hub.config_entry.options.get("arm_code")
-            if hasattr(self.hub, "config_entry")
-            else None
-        )
+        arm_code = self.hub.config_entry.options.get("arm_code") if hasattr(self.hub, "config_entry") else None
         if arm_code in [None, ""] or code == arm_code:
             return True
         log.warning("Wrong code entered for alarm control panel %s.", self.resource_id)
@@ -270,9 +250,7 @@ class AdcAlarmControlPanelEntity(
         """Initiate entity state."""
 
         self._attr_code_format = self.entity_description.code_format_fn(self.hub)
-        self._attr_supported_features = self.entity_description.supported_features_fn(
-            self.controller, self.resource_id
-        )
+        self._attr_supported_features = self.entity_description.supported_features_fn(self.controller, self.resource_id)
         self._attr_code_format = self.entity_description.code_format_fn(self.hub)
 
         super().initiate_state()
@@ -282,9 +260,7 @@ class AdcAlarmControlPanelEntity(
         """Update entity state."""
 
         if isinstance(message, pyadc.ResourceEventMessage):
-            self.alarm_state = self.entity_description.state_fn(
-                self.hub, self.resource_id
-            )
+            self.alarm_state = self.entity_description.state_fn(self.hub, self.resource_id)
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""

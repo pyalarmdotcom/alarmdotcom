@@ -36,6 +36,7 @@ warn_unused_configs = true
 warn_unused_ignores = true
 
 [tool.ruff]
+line-length = 120
 respect-gitignore = true
 target-version = "py313"
 
