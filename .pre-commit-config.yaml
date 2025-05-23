@@ -24,7 +24,7 @@ repos:
                 - pyproject.toml
             additional_dependencies:
                 - beautifulsoup4>=4.10.0
-                - homeassistant-stubs==2025.5.2
+                - homeassistant==2025.5.2
                 - pyalarmdotcomajax>=0.6.0-beta.8
                 - types-beautifulsoup4
                 - types-requests
