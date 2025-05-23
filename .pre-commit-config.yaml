@@ -1,5 +1,9 @@
 default_language_version:
     python: python3.13
+
+ci:
+    skip: [taplo-lint] # Tries to make outgoing web requests to schema store, breaking pre-commit.ci.
+
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.11.10
@@ -21,7 +25,7 @@ repos:
             additional_dependencies:
                 - beautifulsoup4>=4.10.0
                 - homeassistant-stubs==2025.5.2
-                - pyalarmdotcomajax>=0.6.0-beta.7
+                - pyalarmdotcomajax>=0.6.0-beta.8
                 - types-beautifulsoup4
                 - types-requests
                 - mypy_extensions

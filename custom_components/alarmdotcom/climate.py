@@ -58,18 +58,12 @@ async def async_setup_entry(
     async_add_entities(entities)
 
     current_entity_ids = {entity.entity_id for entity in entities}
-    current_unique_ids = {
-        uid for uid in (entity.unique_id for entity in entities) if uid is not None
-    }
-    await cleanup_orphaned_entities_and_devices(
-        hass, config_entry, current_entity_ids, current_unique_ids, "climate"
-    )
+    current_unique_ids = {uid for uid in (entity.unique_id for entity in entities) if uid is not None}
+    await cleanup_orphaned_entities_and_devices(hass, config_entry, current_entity_ids, current_unique_ids, "climate")
 
 
 @callback
-def current_humidity_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> int | None:
+def current_humidity_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> int | None:
     """Return the current humidity."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -78,9 +72,7 @@ def current_humidity_fn(
 
 
 @callback
-def current_temperature_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> float | None:
+def current_temperature_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
     """Return the current temperature."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -89,9 +81,7 @@ def current_temperature_fn(
 
 
 @callback
-def fan_mode_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> str | None:
+def fan_mode_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> str | None:
     """Return the fan's currently SET mode."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -107,9 +97,7 @@ def fan_mode_fn(
 
 
 @callback
-def fan_modes_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> list[str]:
+def fan_modes_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> list[str]:
     """Return the SUPPORTED fan modes."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -130,9 +118,7 @@ def fan_modes_fn(
 
 
 @callback
-def supported_features_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> ClimateEntityFeature:
+def supported_features_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> ClimateEntityFeature:
     """Return the supported features for the thermostat."""
     resource = controller.get(thermostat_id)
 
@@ -157,9 +143,7 @@ def supported_features_fn(
 
 
 @callback
-def hvac_mode_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> HVACMode | None:
+def hvac_mode_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> HVACMode | None:
     """Return the current HVAC mode."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -174,18 +158,13 @@ def hvac_mode_fn(
         return HVACMode.COOL
     if state == pyadc.thermostat.ThermostatState.AUTO:
         return HVACMode.HEAT_COOL
-    if (
-        resource.attributes.schedule_mode
-        != pyadc.thermostat.ThermostatScheduleMode.MANUAL_MODE
-    ):
+    if resource.attributes.schedule_mode != pyadc.thermostat.ThermostatScheduleMode.MANUAL_MODE:
         return HVACMode.AUTO
     return None
 
 
 @callback
-def hvac_modes_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> list[HVACMode]:
+def hvac_modes_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> list[HVACMode]:
     """Return supported HVAC modes."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -209,15 +188,10 @@ def hvac_modes_fn(
 
 
 @callback
-def target_temperature_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> float | None:
+def target_temperature_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
     """Return the target heat and cool temperatures."""
     resource = controller.get(thermostat_id)
-    if (
-        resource is None
-        or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF
-    ):
+    if resource is None or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF:
         return None
 
     # If the temperature is in HEAT mode, return the heat setpoint.
@@ -241,30 +215,20 @@ def target_temperature_fn(
 
 
 @callback
-def target_temperature_high_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> float | None:
+def target_temperature_high_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
     """Return the target high temperature."""
     resource = controller.get(thermostat_id)
-    if (
-        resource is None
-        or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF
-    ):
+    if resource is None or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF:
         return None
 
     return resource.attributes.cool_setpoint
 
 
 @callback
-def target_temperature_low_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> float | None:
+def target_temperature_low_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
     """Return the target low temperature."""
     resource = controller.get(thermostat_id)
-    if (
-        resource is None
-        or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF
-    ):
+    if resource is None or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF:
         return None
 
     return resource.attributes.heat_setpoint
@@ -281,9 +245,7 @@ def uses_celsius_fn(controller: pyadc.ThermostatController, thermostat_id: str) 
 
 
 @callback
-def target_temperature_step_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> float | None:
+def target_temperature_step_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
     """Return the target temperature step size."""
     resource = controller.get(thermostat_id)
     if resource is None:
@@ -294,13 +256,9 @@ def target_temperature_step_fn(
 
 # Functions for turning off, setting hvac mode, preset mode, fan mode, humidity, and temperature.
 @callback
-async def turn_off_fn(
-    controller: pyadc.ThermostatController, thermostat_id: str
-) -> None:
+async def turn_off_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> None:
     """Turn off the thermostat."""
-    await controller.set_state(
-        thermostat_id, state=pyadc.thermostat.ThermostatState.OFF
-    )
+    await controller.set_state(thermostat_id, state=pyadc.thermostat.ThermostatState.OFF)
 
 
 @callback
@@ -336,9 +294,7 @@ async def set_fan_mode_fn(
     }
 
     if requested_fan_mode := fan_mode_map.get(fan_mode):
-        await controller.set_state(
-            thermostat_id, fan_mode=requested_fan_mode, fan_mode_duration=0
-        )
+        await controller.set_state(thermostat_id, fan_mode=requested_fan_mode, fan_mode_duration=0)
 
 
 # @callback
@@ -406,9 +362,7 @@ class AdcClimateEntityDescription(
     """Return the target temperature step size."""
     turn_off_fn: Callable[[AdcControllerT, str], Coroutine[Any, Any, None]]
     """Turn off the thermostat."""
-    set_hvac_mode_fn: Callable[
-        [AdcControllerT, str, HVACMode], Coroutine[Any, Any, None]
-    ]
+    set_hvac_mode_fn: Callable[[AdcControllerT, str, HVACMode], Coroutine[Any, Any, None]]
     """Set the HVAC mode."""
     set_fan_mode_fn: Callable[[AdcControllerT, str, str], Coroutine[Any, Any, None]]
     """Set the fan mode."""
@@ -428,9 +382,7 @@ class AdcClimateEntityDescription(
     """Set the target temperature."""
 
 
-ENTITY_DESCRIPTIONS: list[
-    AdcClimateEntityDescription[pyadc.thermostat.Thermostat, pyadc.ThermostatController]
-] = [
+ENTITY_DESCRIPTIONS: list[AdcClimateEntityDescription[pyadc.thermostat.Thermostat, pyadc.ThermostatController]] = [
     AdcClimateEntityDescription(
         key="thermostats",
         controller_fn=lambda hub, _: hub.api.thermostats,
@@ -499,15 +451,11 @@ class AdcClimateEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], ClimateEnti
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the HVAC mode."""
-        await self.entity_description.set_hvac_mode_fn(
-            self.controller, self.resource_id, hvac_mode
-        )
+        await self.entity_description.set_hvac_mode_fn(self.controller, self.resource_id, hvac_mode)
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         """Set the fan mode."""
-        await self.entity_description.set_fan_mode_fn(
-            self.controller, self.resource_id, fan_mode
-        )
+        await self.entity_description.set_fan_mode_fn(self.controller, self.resource_id, fan_mode)
 
     # async def async_set_humidity(self, humidity: int) -> None:
     #     """Set the humidity."""

@@ -19,11 +19,12 @@ exclude = [
   "build/",
   "old",
   "references/",
-  "scripts/upgrade_dependencies.py",
+  "scripts/*",
   "tests/",
 ]
 ignore_missing_imports = true
 no_implicit_optional = true
+no_site_packages = false
 pretty = true
 python_version = "3.13"
 show_absolute_path = true
