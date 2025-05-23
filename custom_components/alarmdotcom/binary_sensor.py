@@ -56,9 +56,7 @@ async def async_setup_entry(
     entities: list[AdcBinarySensorEntity] = []
     for entity_description in ENTITY_DESCRIPTIONS:
         entities.extend(
-            AdcBinarySensorEntity(
-                hub=hub, resource_id=device.id, description=entity_description
-            )
+            AdcBinarySensorEntity(hub=hub, resource_id=device.id, description=entity_description)
             for device in hub.api.managed_devices.values()
             if entity_description.supported_fn(hub, device.id)
         )
@@ -66,9 +64,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
     current_entity_ids = {entity.entity_id for entity in entities}
-    current_unique_ids = {
-        uid for uid in (entity.unique_id for entity in entities) if uid is not None
-    }
+    current_unique_ids = {uid for uid in (entity.unique_id for entity in entities) if uid is not None}
     await cleanup_orphaned_entities_and_devices(
         hass, config_entry, current_entity_ids, current_unique_ids, "binary_sensor"
     )
@@ -100,8 +96,7 @@ def malfunction_supported_fn(hub: AlarmHub, resource_id: str) -> bool:
 
     return (
         hasattr(resource.attributes, "is_malfunctioning")
-        and getattr(resource.attributes, "device_type", None)
-        not in SENSOR_SUBTYPE_BLACKLIST
+        and getattr(resource.attributes, "device_type", None) not in SENSOR_SUBTYPE_BLACKLIST
     )
 
 
@@ -112,9 +107,7 @@ def malfunction_supported_fn(hub: AlarmHub, resource_id: str) -> bool:
 def supported_fn(hub: AlarmHub, resource_id: str) -> bool:
     """Check if the binary sensor is supported."""
 
-    resource = hub.api.sensors.get(resource_id) or hub.api.water_sensors.get(
-        resource_id
-    )
+    resource = hub.api.sensors.get(resource_id) or hub.api.water_sensors.get(resource_id)
 
     if resource is None:
         return False
@@ -128,10 +121,7 @@ def is_on_fn(hub: AlarmHub, sensor_id: str) -> bool:
 
     resource = hub.api.sensors.get(sensor_id) or hub.api.water_sensors.get(sensor_id)
 
-    if (
-        resource is None
-        or resource.attributes.state == pyadc.sensor.SensorState.UNKNOWN
-    ):
+    if resource is None or resource.attributes.state == pyadc.sensor.SensorState.UNKNOWN:
         return False
 
     return (resource.attributes.state.value % 2) == 0
@@ -217,9 +207,7 @@ ENTITY_DESCRIPTIONS: list[AdcEntityDescription] = [
         device_class_fn=device_class_fn,
         supported_fn=supported_fn,
     ),
-    AdcBinarySensorEntityDescription[
-        pyadc.base.AdcDeviceResource, pyadc.BaseController
-    ](
+    AdcBinarySensorEntityDescription[pyadc.base.AdcDeviceResource, pyadc.BaseController](
         key="malfunction",
         controller_fn=lambda hub, resource_id: hub.api.get_controller(resource_id),
         name="Malfunction",
@@ -232,9 +220,7 @@ ENTITY_DESCRIPTIONS: list[AdcEntityDescription] = [
 ]
 
 
-class AdcBinarySensorEntity(
-    AdcEntity[AdcManagedDeviceT, AdcControllerT], BinarySensorEntity
-):
+class AdcBinarySensorEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], BinarySensorEntity):
     """Base Alarm.com binary sensor entity."""
 
     entity_description: AdcBinarySensorEntityDescription
@@ -244,9 +230,7 @@ class AdcBinarySensorEntity(
         """Initiate entity state."""
 
         self._attr_is_on = self.entity_description.is_on_fn(self.hub, self.resource_id)
-        self._attr_device_class = self.entity_description.device_class_fn(
-            self.hub, self.resource_id
-        )
+        self._attr_device_class = self.entity_description.device_class_fn(self.hub, self.resource_id)
 
         super().initiate_state()
 
@@ -255,6 +239,4 @@ class AdcBinarySensorEntity(
         """Update entity state."""
 
         if isinstance(message, pyadc.ResourceEventMessage):
-            self._attr_is_on = self.entity_description.is_on_fn(
-                self.hub, self.resource_id
-            )
+            self._attr_is_on = self.entity_description.is_on_fn(self.hub, self.resource_id)

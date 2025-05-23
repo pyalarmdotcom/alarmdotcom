@@ -33,7 +33,8 @@
         "**/.ruff_cache",
         "**/.coverage",
         "custom_components/alarmdotcom/old",
-        "/usr/local/python"
+        "/usr/local/python",
+        "homeassistant-stubs/"
     ],
     "python.analysis.generateWithTypeAnnotation": true,
     "python.analysis.indexing": true,
