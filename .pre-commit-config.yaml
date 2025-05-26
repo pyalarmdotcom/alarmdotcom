@@ -6,7 +6,7 @@ ci:
 
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.11.10
+      rev: v0.11.11
       hooks:
           - id: ruff
             name: Ruff
@@ -32,7 +32,7 @@ repos:
                 - typing_extensions
                 - types-PyYAML
     - repo: https://github.com/codespell-project/codespell
-      rev: v2.2.6
+      rev: v2.4.1
       hooks:
           - id: codespell
             additional_dependencies:
@@ -41,7 +41,7 @@ repos:
                 - --toml
                 - pyproject.toml
     - repo: https://github.com/adrienverge/yamllint
-      rev: v1.32.0
+      rev: v1.37.1
       hooks:
           - id: yamllint
             args:
@@ -54,7 +54,7 @@ repos:
           - id: taplo-format
           - id: taplo-lint
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.4.0
+      rev: v5.0.0
       hooks:
           - id: check-json
           - id: check-yaml
