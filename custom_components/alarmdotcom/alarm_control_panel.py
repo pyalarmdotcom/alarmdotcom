@@ -169,7 +169,7 @@ async def control_fn(
             await controller.disarm(partition_id)
 
         elif command == ARM_AWAY:
-            cmd_options = options.get(CONF_ARM_AWAY, {})
+            cmd_options = config_options.get(CONF_ARM_AWAY, {})
             await controller.arm_away(
                 partition_id,
                 force_bypass=CONF_FORCE_BYPASS in cmd_options,
@@ -178,7 +178,7 @@ async def control_fn(
             )
 
         elif command == ARM_STAY:
-            cmd_options = options.get(CONF_ARM_HOME, {})
+            cmd_options = config_options.get(CONF_ARM_HOME, {})
             await controller.arm_stay(
                 partition_id,
                 force_bypass=CONF_FORCE_BYPASS in cmd_options,
@@ -187,7 +187,7 @@ async def control_fn(
             )
 
         elif command == ARM_NIGHT:
-            cmd_options = options.get(CONF_ARM_NIGHT, {})
+            cmd_options = config_options.get(CONF_ARM_NIGHT, {})
             await controller.arm_night(
                 partition_id,
                 force_bypass=CONF_FORCE_BYPASS in cmd_options,
