@@ -1,12 +1,11 @@
 default_language_version:
     python: python3.13
-
 ci:
-    skip: [taplo-lint] # Tries to make outgoing web requests to schema store, breaking pre-commit.ci.
-
+    skip:
+        - taplo-lint
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.11.10
+      rev: v0.11.11
       hooks:
           - id: ruff
             name: Ruff
@@ -24,15 +23,15 @@ repos:
                 - pyproject.toml
             additional_dependencies:
                 - beautifulsoup4>=4.10.0
-                - homeassistant==2025.5.2
-                - pyalarmdotcomajax>=0.6.0-beta.8
+                - homeassistant >= 2025.5.3
+                - pyalarmdotcomajax>=0.6.0-beta.9
                 - types-beautifulsoup4
                 - types-requests
                 - mypy_extensions
                 - typing_extensions
                 - types-PyYAML
     - repo: https://github.com/codespell-project/codespell
-      rev: v2.2.6
+      rev: v2.4.1
       hooks:
           - id: codespell
             additional_dependencies:
@@ -41,20 +40,27 @@ repos:
                 - --toml
                 - pyproject.toml
     - repo: https://github.com/adrienverge/yamllint
-      rev: v1.32.0
+      rev: v1.37.1
       hooks:
           - id: yamllint
+            name: YAMLLint
+            description: Lint YAML files using relaxed config
             args:
                 - -d
                 - relaxed
+            types:
+                - yaml
             exclude: (\.vscode|\.devcontainer|\.github)
+            additional_dependencies:
+                - pathspec
+                - pyyaml
     - repo: https://github.com/ComPWA/taplo-pre-commit
       rev: v0.9.3
       hooks:
           - id: taplo-format
           - id: taplo-lint
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v4.4.0
+      rev: v5.0.0
       hooks:
           - id: check-json
           - id: check-yaml

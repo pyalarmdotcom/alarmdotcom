@@ -1,5 +1,3 @@
-#:schema https://json.schemastore.org/pyproject.json
-
 [tool.codespell]
 count             = ""
 ignore-words-list = "hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,windo"
@@ -20,6 +18,7 @@ exclude = [
   "old",
   "references/",
   "scripts/*",
+  "scripts/upgrade_dependencies.py",
   "tests/",
 ]
 ignore_missing_imports = true
@@ -39,6 +38,7 @@ warn_unused_configs = true
 warn_unused_ignores = true
 
 [tool.ruff]
+exclude           = ["scripts/upgrade_dependencies.py"]
 line-length       = 120
 respect-gitignore = true
 target-version    = "py313"
