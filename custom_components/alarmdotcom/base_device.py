@@ -102,9 +102,9 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         self.async_write_ha_state()
 
         # LOGGER.debug("************** START DEVICE UPDATE *****************")
-        LOGGER.info(
-            f"Updated {self.device_type_name} {self._friendly_name_internal()} ({self._adc_id}): {self.state}"
-        )
+        # Logging only; avoid relying on HA internal Entity helpers that can change across versions.
+        name = self.name or getattr(self._device, "name", None) or self._adc_id
+        LOGGER.debug("Updated %s %s (%s): %s", self.device_type_name, name, self._adc_id, getattr(self, "state", None))
         # LOGGER.debug(json.dumps(self._device.raw_attributes, indent=4, sort_keys=True))
         # LOGGER.debug("************** END DEVICE UPDATE *****************")
 

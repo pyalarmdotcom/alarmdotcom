@@ -285,7 +285,8 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlow):  # type: ignore
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        # Home Assistant 2025.12+ makes OptionsFlow.config_entry a read-only property.
+        # Assigning to it causes: AttributeError: property 'config_entry' ... has no setter
         self.options = dict(config_entry.options)
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
