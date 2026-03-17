@@ -167,6 +167,21 @@ class AdcEntity(Entity, Generic[AdcManagedDeviceT, AdcControllerT]):
 
         self.initiate_state()
 
+    def _friendly_name_internal(self) -> str:
+        """Return friendly name, required for HA 2026.02+ compatibility."""
+
+        if name := getattr(self, "_attr_name", None):
+            return str(name)
+
+        try:
+            dev_name = self.hub.api.managed_devices[self.resource_id].name
+            if dev_name:
+                return str(dev_name)
+        except (KeyError, AttributeError):
+            pass
+
+        return getattr(self, "entity_id", "unknown")
+
     @callback
     @abstractmethod
     def update_state(self, message: pyadc.EventBrokerMessage | None = None) -> None:
