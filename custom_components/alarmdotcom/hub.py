@@ -11,6 +11,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from pyalarmdotcomajax import AlarmBridge
 
+from .camera_api import AlarmCameraSession
 from .const import (
     CONF_MFA_TOKEN,
     DATA_HUB,
@@ -36,9 +37,18 @@ class AlarmHub:
             mfa_token=config_entry.data.get(CONF_MFA_TOKEN),
         )
 
+        self.camera_session = AlarmCameraSession(
+            username=config_entry.data[CONF_USERNAME],
+            password=config_entry.data[CONF_PASSWORD],
+            mfa_cookie=config_entry.data.get(CONF_MFA_TOKEN),
+        )
+
         self.close_jobs: list[CALLBACK_TYPE] = []
 
-        hass.data.setdefault(DOMAIN, {})[self.config_entry.entry_id] = {DATA_HUB: self}
+        hass.data.setdefault(DOMAIN, {})[self.config_entry.entry_id] = {
+            DATA_HUB: self,
+            "camera_session": self.camera_session,
+        }
 
         self.available: bool = True
 
@@ -138,11 +148,10 @@ class AlarmHub:
         while self.close_jobs:
             self.close_jobs.pop()()
 
+        await self.camera_session.close()
         await self.api.close()
 
-        unload_success: bool = await self.hass.config_entries.async_unload_platforms(
-            self.config_entry, PLATFORMS
-        )
+        unload_success: bool = await self.hass.config_entries.async_unload_platforms(self.config_entry, PLATFORMS)
 
         return unload_success
 

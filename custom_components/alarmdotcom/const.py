@@ -72,6 +72,7 @@ ATTRIB_MANUFACTURER = "Alarm.com"
 PLATFORMS = [
     Platform.ALARM_CONTROL_PANEL,
     Platform.BINARY_SENSOR,
+    Platform.CAMERA,
     Platform.LOCK,
     Platform.COVER,
     Platform.LIGHT,
