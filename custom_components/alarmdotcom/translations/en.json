@@ -2,63 +2,69 @@
     "config": {
         "abort": {
             "must_enable_2fa": "Two-factor authentication must be enabled in order to log in with this provider.",
-            "reauth_successful": "Re-authentication was successful"
+            "reauth_successful": "Re-authentication was successful",
+            "no_otp_options": "No valid multi-factor authentication methods were found for this account.",
+            "otp_method_lost": "The selected verification method is no longer valid. Please try again."
         },
         "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_auth": "Invalid authentication",
-            "invalid_otp": "Invalid one-time password.",
-            "unknown": "Unexpected error"
+            "cannot_connect": "Failed to connect to Alarm.com. Please check your network.",
+            "invalid_auth": "Invalid username or password.",
+            "invalid_otp": "Invalid one-time password. Please check your code and try again.",
+            "invalid_otp_method": "The selected delivery method is not supported.",
+            "unknown": "An unexpected error occurred. Check logs for details."
         },
         "step": {
-            "otp_submit": {
-                "data": {
-                    "otp": "One-Time Password"
-                },
-                "title": "Enter One-Time Password",
-                "description": "If you used the SMS or email authentication methods, an OTP has already been sent to your inbox."
-            },
-            "reauth_confirm": {
-                "description": "Alarm.com needs to re-authenticate your account.",
-                "title": "Reauthenticate Integration"
-            },
             "user": {
+                "title": "Log In to Alarm.com",
                 "data": {
-                    "password": "Password",
-                    "username": "Username"
-                },
-                "title": "Log In to Alarm.com"
+                    "username": "Username",
+                    "password": "Password"
+                }
             },
             "otp_select_method": {
-                "title": "Select Two Factor Authentication Method",
-                "data": { "otp_method": "Method" }
+                "title": "Verification Method",
+                "description": "Alarm.com requires a security code. How should we send it?",
+                "data": {
+                    "otp_method": "Delivery Method"
+                }
+            },
+            "otp_submit": {
+                "title": "Verify Your Identity",
+                "description": "Please enter the one-time code sent to your chosen device.",
+                "data": {
+                    "otp": "Security Code"
+                }
+            },
+            "reauth_confirm": {
+                "title": "Reauthenticate Integration",
+                "description": "Your session with Alarm.com has expired. Please sign in again to restore access."
             }
         }
     },
     "options": {
         "step": {
             "init": {
+                "title": "General Settings",
                 "data": {
                     "arm_code": "Security Code (Locks & Alarm)",
-                    "remove_arm_code": "Remove Security Code"
+                    "remove_arm_code": "Remove Saved Security Code"
                 },
                 "data_description": {
-                    "arm_code": "Sets the code to use when arming the alarm and unlocking locks via Home Assistant. To remove the code, enable the Remove Security Code option below.",
-                    "remove_arm_code": "When set, the security code set above will be cleared and disabled."
-                },
-                "title": "General Settings"
+                    "arm_code": "The code used for arming/disarming and locking/unlocking. Leave blank if not required by your panel.",
+                    "remove_arm_code": "Check this box and save to clear your existing saved security code."
+                }
             },
             "modes": {
+                "title": "Arming Profiles",
+                "description": "Customize how each arming mode behaves in Home Assistant.",
                 "data": {
-                    "arm_away_options": "Arm Away",
-                    "arm_home_options": "Arm Home",
-                    "arm_night_options": "Arm Night"
+                    "arm_home_options": "Arm Home Settings",
+                    "arm_away_options": "Arm Away Settings",
+                    "arm_night_options": "Arm Night Settings"
                 },
                 "data_description": {
-                    "arm_night_options": "Arm Night may not be available on all partitions."
-                },
-                "description": "Set arming behavior for each arming mode.",
-                "title": "Arming Mode Profiles"
+                    "arm_night_options": "Note: Night mode is only compatible with specific Alarm.com partitions."
+                }
             }
         }
     },
@@ -66,8 +72,8 @@
         "otp_methods_list": {
             "options": {
                 "app": "Authenticator App",
-                "sms": "Text Message",
-                "email": "Email"
+                "sms": "Text Message (SMS)",
+                "email": "Email Address"
             }
         }
     }

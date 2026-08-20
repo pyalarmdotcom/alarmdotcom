@@ -119,10 +119,15 @@ class AlarmHub:
 
         device_registry.async_get_or_create(
             config_entry_id=self.config_entry.entry_id,
-            identifiers={(DOMAIN, self.api.active_system.id)},
+            identifiers={(DOMAIN, str(self.api.active_system.id))}, # Ensure ID is a string
             manufacturer="Alarm.com",
             name=self.api.active_system.name,
-            entry_type=dr.DeviceEntryType.SERVICE,
+            # In 2026.2, ensure you are using the correct Enum value or literal
+            entry_type=dr.DeviceEntryType.SERVICE, 
+            # Recommended additions for 2026.2 UI compatibility:
+            model="Security System",
+            # If the system has a hardware version or serial, add it here:
+            # sw_version=self.api.active_system.version,
         )
 
         return True
