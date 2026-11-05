@@ -3,6 +3,19 @@
 import logging
 
 import aiohttp
+
+# Temporary shim for Rich >= versions where SVG_EXPORT_THEME no longer exists.
+try:
+    import importlib
+    tt = importlib.import_module("rich.terminal_theme")
+    if not hasattr(tt, "SVG_EXPORT_THEME"):
+        # Provide a sane fallback so downstream 'from ... import SVG_EXPORT_THEME' works
+        tt.SVG_EXPORT_THEME = tt.DEFAULT_TERMINAL_THEME
+except Exception:
+    # If Rich isn't present or something unexpected happens, just continue;
+    # pyalarmdotcomajax import will fail as before and we’ll see the original error.
+    pass
+
 import pyalarmdotcomajax as pyadc
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Event, HomeAssistant
