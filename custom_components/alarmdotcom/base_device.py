@@ -52,12 +52,10 @@ class BaseDevice(CoordinatorEntity):  # type: ignore
         self._attr_extra_state_attributes: MutableMapping[str, Any] = {}
 
         self._attr_device_info = DeviceInfo(
-            {
-                "manufacturer": "Alarm.com",
-                "name": device.name,
-                "identifiers": {(DOMAIN, self._adc_id)},
-                "via_device": (DOMAIN, self._device.partition_id),
-            }
+            manufacturer="Alarm.com",
+            name=device.name,
+            identifiers={(DOMAIN, self._adc_id)},
+            via_device=(DOMAIN, self._device.partition_id),
         )
 
     @property
