@@ -1,4 +1,16 @@
-<h4>Heads up: Maintenance is paused. I've moved and no longer have access to an Alarm.com system. I plan to install one, but on an indefinite timeline.</h4>
+> [!IMPORTANT]
+> **Maintenance has resumed. Volunteer beta testers wanted!**
+>
+> Thanks to the original maintainers **Elhad Bar-Shai ([@elahd](https://github.com/elahd))** and **Justin Wong ([@uvjustin](https://github.com/uvjustin))**, this project has a strong foundation. [@ibasebcast](https://github.com/ibasebcast) has joined the organization to continue its development, with the original contributors' work and credits preserved.
+>
+> **The new opt-in modernization beta, [v2026.11.16b1](https://github.com/pyalarmdotcom/alarmdotcom/releases/tag/v2026.11.16b1), is available for testing.** It includes the current v4-derived, actively maintained code and has passed automated checks for Home Assistant 2026.11.
+>
+> **We especially need feedback from original v3 users** whose integration stopped loading on recent Home Assistant releases. Please report whether your existing configuration, devices, entity IDs, and automations survive, along with device-specific issues, in **[beta testing and feedback issue #567](https://github.com/pyalarmdotcom/alarmdotcom/issues/567)**. See the [maintenance announcement (#566)](https://github.com/pyalarmdotcom/alarmdotcom/issues/566) for background.
+>
+> **Before testing:** Make a full Home Assistant backup. This is a voluntary **prerelease**, not a proven upgrade path. Do not delete your existing Alarm.com configuration entry or install two repository versions of the integration simultaneously. Continue relying on official Alarm.com services for critical alarm or safety notifications.
+>
+> **Stable installs are unchanged:** `v3.0.15` remains the latest stable release, and the new beta is **not** an automatic stable update. Users already on [the maintained distribution](https://github.com/ibasebcast/ha-alarmdotcom) do not need to migrate back.
+
 <hr>
 <p align="center"><img src="https://user-images.githubusercontent.com/466460/175781161-dd70c5b4-d45a-4cdb-bf57-d4fd7fbedb0b.png" width="125"></a>
 <h1 align="center">Alarm.com for Home Assistant</h1>
@@ -6,10 +18,10 @@
 <br />
 <p align="center">
   <!-- <a href="https://www.codacy.com/gh/pyalarmdotcom/alarmdotcom/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pyalarmdotcom/alarmdotcom&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/6f557fbc58914ef5914a81ed5e1c3391"/></a> -->
-  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hassfest.yaml"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/pyalarmdotcom/alarmdotcom/hassfest.yaml"></a>
-  <a href="https://results.pre-commit.ci/latest/github/pyalarmdotcom/alarmdotcom/main"><img src="https://results.pre-commit.ci/badge/github/pyalarmdotcom/alarmdotcom/master.svg" /></a>
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hassfest.yaml"><img alt="Beta HACS/Hassfest validation" src="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hassfest.yaml/badge.svg?branch=beta%2F2026-modernization"></a>
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/pre-commit.yaml"><img alt="Beta pre-commit checks" src="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/pre-commit.yaml/badge.svg?branch=beta%2F2026-modernization" /></a>
   <a href="https://github.com/pyalarmdotcom/alarmdotcom/commits/master"><img src="https://img.shields.io/github/commit-activity/y/pyalarmdotcom/alarmdotcom.svg" /></a>
-  <a href="https://www.buymeacoffee.com/elahd"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg"></a>
+  <a href="https://buymeacoffee.com/ibasebcast"><img alt="Support ongoing integration maintenance" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20Maintenance-FFDD00?logo=buymeacoffee&amp;logoColor=black"></a>
 </p>
 <p align="center">
   <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Default-41BDF5.svg" /></a>
