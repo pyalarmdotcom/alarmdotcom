@@ -111,7 +111,7 @@ class AlarmIntegrationController:
                 interval=timedelta(seconds=KEEP_ALIVE_INTERVAL_SECONDS),
             )
 
-    async def stop(self) -> None:
+    async def stop(self, *_: Any) -> None:
         """Stop the controller."""
 
         self.stop_keep_alive()
