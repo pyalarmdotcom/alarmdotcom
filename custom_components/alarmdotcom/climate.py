@@ -7,7 +7,7 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic
 
-import pyalarmdotcomajax as pyadc
+import _pyalarmdotcomajax as pyadc
 from homeassistant.components.climate import (
     FAN_AUTO,
     FAN_ON,
@@ -15,14 +15,14 @@ from homeassistant.components.climate import (
     ClimateEntityDescription,
     ClimateEntityFeature,
     HVACMode,
-    UnitOfTemperature,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .const import DATA_HUB, DOMAIN
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
 from .util import cleanup_orphaned_entities_and_devices
 
@@ -36,6 +36,11 @@ PRESET_MANUAL_MODE = "manual_mode"
 PRESET_SCHEDULE_MODE = "schedule_mode"
 PRESET_SMART_MODE = "smart_mode"
 
+# Entities are updated via push (websocket events), not per-entity polling -
+# PARALLEL_UPDATES has no effect on update frequency here, but setting it
+# to 0 is still the correct, explicit signal for a push-based integration.
+PARALLEL_UPDATES = 0
+
 log = logging.getLogger(__name__)
 
 
@@ -47,7 +52,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the climate platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.hub
 
     entities = [
         AdcClimateEntity(hub=hub, resource_id=device.id, description=entity_description)
@@ -77,7 +82,10 @@ def current_temperature_fn(controller: pyadc.ThermostatController, thermostat_id
     resource = controller.get(thermostat_id)
     if resource is None:
         return None
-    return resource.attributes.ambient_temp
+    # The portal displays the effective reading, which may include paired
+    # remote sensors. Zero is valid, so fall back only when it is absent.
+    forwarded = resource.attributes.forwarding_ambient_temp
+    return forwarded if forwarded is not None else resource.attributes.ambient_temp
 
 
 @callback
@@ -189,26 +197,31 @@ def hvac_modes_fn(controller: pyadc.ThermostatController, thermostat_id: str) ->
 
 @callback
 def target_temperature_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
-    """Return the target heat and cool temperatures."""
+    """
+    Return the target heat and cool temperatures.
+
+    Must stay None while in AUTO mode: Home Assistant's climate entity model
+    treats `temperature` and the `target_temperature_high`/`target_temperature_low`
+    pair as mutually exclusive. Populating both at once (as this previously did by
+    inferring a single setpoint from the AUTO state) causes the frontend to fall
+    back to rendering a single setpoint control instead of the dual-setpoint range
+    control. See #22.
+    """
     resource = controller.get(thermostat_id)
-    if resource is None or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF:
+    if resource is None or resource.attributes.state in [
+        pyadc.thermostat.ThermostatState.OFF,
+        pyadc.thermostat.ThermostatState.AUTO,
+    ]:
         return None
 
     # If the temperature is in HEAT mode, return the heat setpoint.
     # If it's in COOL mode, return the cool setpoint.
-    # If it's in AUTO mode, use inferred state to determine which setpoint to return.
     if resource.attributes.state in [
         pyadc.thermostat.ThermostatState.HEAT,
         pyadc.thermostat.ThermostatState.AUXHEAT,
-    ] or (
-        resource.attributes.state == pyadc.thermostat.ThermostatState.AUTO
-        and resource.attributes.inferred_state == pyadc.thermostat.ThermostatState.HEAT
-    ):
+    ]:
         return resource.attributes.heat_setpoint
-    if resource.attributes.state == pyadc.thermostat.ThermostatState.COOL or (
-        resource.attributes.state == pyadc.thermostat.ThermostatState.AUTO
-        and resource.attributes.inferred_state == pyadc.thermostat.ThermostatState.COOL
-    ):
+    if resource.attributes.state == pyadc.thermostat.ThermostatState.COOL:
         return resource.attributes.cool_setpoint
 
     return None
@@ -216,9 +229,9 @@ def target_temperature_fn(controller: pyadc.ThermostatController, thermostat_id:
 
 @callback
 def target_temperature_high_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
-    """Return the target high temperature."""
+    """Return the target high temperature (only in AUTO/HEAT_COOL mode)."""
     resource = controller.get(thermostat_id)
-    if resource is None or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF:
+    if resource is None or resource.attributes.state != pyadc.thermostat.ThermostatState.AUTO:
         return None
 
     return resource.attributes.cool_setpoint
@@ -226,9 +239,9 @@ def target_temperature_high_fn(controller: pyadc.ThermostatController, thermosta
 
 @callback
 def target_temperature_low_fn(controller: pyadc.ThermostatController, thermostat_id: str) -> float | None:
-    """Return the target low temperature."""
+    """Return the target low temperature (only in AUTO/HEAT_COOL mode)."""
     resource = controller.get(thermostat_id)
-    if resource is None or resource.attributes.state == pyadc.thermostat.ThermostatState.OFF:
+    if resource is None or resource.attributes.state != pyadc.thermostat.ThermostatState.AUTO:
         return None
 
     return resource.attributes.heat_setpoint
@@ -276,7 +289,11 @@ async def set_hvac_mode_fn(
         HVACMode.HEAT_COOL: pyadc.thermostat.ThermostatState.AUTO,
     }
 
-    if requested_hvac_mode := state_map.get(hvac_mode):
+    # `is not None`, not truthiness: these are IntEnum members, so a mode whose
+    # value is 0 is falsy. ThermostatState.OFF is 1 today, but the same test one
+    # function below silently dropped every "auto" fan request (see #99).
+    requested_hvac_mode = state_map.get(hvac_mode)
+    if requested_hvac_mode is not None:
         await controller.set_state(thermostat_id, state=requested_hvac_mode)
 
 
@@ -293,8 +310,22 @@ async def set_fan_mode_fn(
         FAN_CIRCULATE: pyadc.thermostat.ThermostatFanMode.CIRCULATE,
     }
 
-    if requested_fan_mode := fan_mode_map.get(fan_mode):
-        await controller.set_state(thermostat_id, fan_mode=requested_fan_mode, fan_mode_duration=0)
+    # ThermostatFanMode is an IntEnum and AUTO is 0, so a truthiness test here
+    # discards exactly the mode most thermostats sit in: climate.set_fan_mode
+    # with "auto" returned without calling the API and without raising, which is
+    # what #99 saw as an automation that fires and never reaches the thermostat.
+    requested_fan_mode = fan_mode_map.get(fan_mode)
+    if requested_fan_mode is not None:
+        resource = controller.get(thermostat_id)
+        duration = 0
+        if requested_fan_mode != pyadc.thermostat.ThermostatFanMode.AUTO:
+            durations = resource.supported_fan_durations
+            if 0 not in durations:
+                positive = [value for value in durations if value > 0]
+                if not positive:
+                    raise ServiceValidationError("Thermostat does not report a supported fan duration.")
+                duration = min(positive)
+        await controller.set_state(thermostat_id, fan_mode=requested_fan_mode, fan_mode_duration=duration)
 
 
 # @callback
@@ -319,9 +350,13 @@ async def set_temperature_fn(
     """Set the target temperature."""
 
     if target_temp_high and target_temp_low:
-        await controller.set_state(thermostat_id, heat_setpoint=target_temp_low)
-        await controller.set_state(thermostat_id, cool_setpoint=target_temp_high)
-    elif target_temp and current_hvac_mode:
+        # Set both setpoints in a single API call to avoid triggering two state changes
+        await controller.set_state(
+            thermostat_id,
+            heat_setpoint=target_temp_low,
+            cool_setpoint=target_temp_high,
+        )
+    elif target_temp is not None and current_hvac_mode is not None:
         if current_hvac_mode == HVACMode.HEAT:
             await controller.set_state(thermostat_id, heat_setpoint=target_temp)
         elif current_hvac_mode == HVACMode.COOL:
@@ -418,19 +453,20 @@ class AdcClimateEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], ClimateEnti
 
         # fmt: off
         self._attr_hvac_mode = self.entity_description.hvac_mode_fn(self.controller, self.resource_id)
-        self._attr_current_temperature = self.entity_description.temperature_fn(self.controller, self.resource_id)
+        self._attr_native_current_temperature = self.entity_description.temperature_fn(self.controller, self.resource_id)
         self._attr_fan_mode = self.entity_description.fan_mode_fn(self.controller, self.resource_id)
         self._attr_fan_modes = self.entity_description.fan_modes_fn(self.controller, self.resource_id)
         self._attr_current_humidity = self.entity_description.current_humidity_fn(self.controller, self.resource_id)
-        self._attr_target_temperature_low = self.entity_description.target_temperature_low_fn(self.controller, self.resource_id)
-        self._attr_target_temperature_high = self.entity_description.target_temperature_high_fn(self.controller, self.resource_id)
-        self._attr_target_temperature = self.entity_description.target_temperature_fn(self.controller, self.resource_id)
+        self._attr_native_target_temperature_low = self.entity_description.target_temperature_low_fn(self.controller, self.resource_id)
+        self._attr_native_target_temperature_high = self.entity_description.target_temperature_high_fn(self.controller, self.resource_id)
+        self._attr_native_target_temperature = self.entity_description.target_temperature_fn(self.controller, self.resource_id)
         self._attr_supported_features = self.entity_description.supported_features_fn(self.controller, self.resource_id)
         self._attr_hvac_modes = self.entity_description.hvac_modes_fn(self.controller, self.resource_id)
-        self._attr_temperature_unit = UnitOfTemperature.FAHRENHEIT if not self.entity_description.uses_celsius_fn(self.controller, self.resource_id) else UnitOfTemperature.CELSIUS
+        self._attr_native_temperature_unit = UnitOfTemperature.FAHRENHEIT if not self.entity_description.uses_celsius_fn(self.controller, self.resource_id) else UnitOfTemperature.CELSIUS
         self._attr_target_temperature_step = self.entity_description.target_temperature_step_fn(self.controller, self.resource_id)
-        # fmt: off
+        # fmt: on
 
+        self._sync_legacy_temperatures()
         super().initiate_state()
 
     @callback
@@ -440,14 +476,33 @@ class AdcClimateEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], ClimateEnti
         if isinstance(message, pyadc.ResourceEventMessage):
             # fmt: off
             self._attr_hvac_mode = self.entity_description.hvac_mode_fn(self.controller, self.resource_id)
-            self._attr_current_temperature = self.entity_description.temperature_fn(self.controller, self.resource_id)
+            self._attr_native_current_temperature = self.entity_description.temperature_fn(self.controller, self.resource_id)
             self._attr_fan_mode = self.entity_description.fan_mode_fn(self.controller, self.resource_id)
             self._attr_fan_modes = self.entity_description.fan_modes_fn(self.controller, self.resource_id)
             self._attr_current_humidity = self.entity_description.current_humidity_fn(self.controller, self.resource_id)
-            self._attr_target_temperature_high = self.entity_description.target_temperature_high_fn(self.controller, self.resource_id)
-            self._attr_target_temperature_low = self.entity_description.target_temperature_low_fn(self.controller, self.resource_id)
-            self._attr_target_temperature = self.entity_description.target_temperature_fn(self.controller, self.resource_id)
+            self._attr_supported_features = self.entity_description.supported_features_fn(self.controller, self.resource_id)
+            self._attr_native_target_temperature_high = self.entity_description.target_temperature_high_fn(self.controller, self.resource_id)
+            self._attr_native_target_temperature_low = self.entity_description.target_temperature_low_fn(self.controller, self.resource_id)
+            self._attr_native_target_temperature = self.entity_description.target_temperature_fn(self.controller, self.resource_id)
             # fmt: on
+
+            self._sync_legacy_temperatures()
+
+    @callback
+    def _sync_legacy_temperatures(self) -> None:
+        """Keep the pre-2026.11 API working without touching deprecated members."""
+        if not hasattr(ClimateEntity, "native_current_temperature"):
+            legacy_values = {
+                "_attr_current_temperature": self._attr_native_current_temperature,
+                "_attr_target_temperature": self._attr_native_target_temperature,
+                "_attr_target_temperature_high": self._attr_native_target_temperature_high,
+                "_attr_target_temperature_low": self._attr_native_target_temperature_low,
+                "_attr_temperature_unit": self._attr_native_temperature_unit,
+            }
+            for name, value in legacy_values.items():
+                # Assignment must go through Entity.__setattr__ to invalidate
+                # the cached properties used by older ClimateEntity releases.
+                setattr(self, name, value)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set the HVAC mode."""
@@ -475,7 +530,7 @@ class AdcClimateEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], ClimateEnti
         await self.entity_description.set_temperature_fn(
             self.controller,
             self.resource_id,
-            kwargs.get("target_temp"),
+            kwargs.get("temperature"),  # HA sends ATTR_TEMPERATURE = "temperature"
             self.hvac_mode,
             kwargs.get("target_temp_high"),
             kwargs.get("target_temp_low"),

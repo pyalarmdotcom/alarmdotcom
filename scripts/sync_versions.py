@@ -63,7 +63,7 @@ def update_precommit_config(config_file: Path, req_versions: dict[str, str], man
                     # Only process deps that already have a version specified
                     match = re.match(r"^([^=<>~!]+)[=<>~!]=(.+)$", dep)
                     if match:
-                        package, current_version = match.groups()
+                        package, _current_version = match.groups()
                         package_lower = package.lower()
                         if package_lower in all_versions:
                             new_version = all_versions[package_lower]

@@ -12,16 +12,26 @@
                 "title": "[%key:common::config_flow::title::reauth%]",
                 "description": "Alarm.com needs to re-authenticate your account."
             },
+            "otp_app_submit": {
+                "title": "Authenticator App Code",
+                "description": "Open the authenticator app linked to your Alarm.com account and enter its current code.",
+                "data": {
+                    "otp": "Authenticator App Code"
+                }
+            },
             "otp_submit": {
                 "title": "Enter One-Time Password",
-                "description": "If you used the SMS or email authentication methods, an OTP has already been sent to your inbox.",
+                "description": "Enter the verification code requested by email or SMS. If it has not arrived, turn on Send another code and select Submit.\n\n{resend_status}",
                 "data": {
-                    "otp": "One-Time Password"
+                    "otp": "One-Time Password",
+                    "resend_code": "Send another code (SMS/email)"
                 }
             },
             "otp_select_method": {
                 "title": "Select Two Factor Authentication Method",
-                "data": { "otp_method": "Method" }
+                "data": {
+                    "otp_method": "Method"
+                }
             }
         },
         "error": {
@@ -59,6 +69,110 @@
                 "data_description": {
                     "arm_night_options": "Arm Night may not be available on all partitions."
                 }
+            },
+            "polling": {
+                "title": "Polling & Refresh Intervals",
+                "description": "How often the integration asks Alarm.com for data it does not receive by push.",
+                "data": {
+                    "activity_poll_interval": "Activity feed poll interval",
+                    "full_state_poll_interval": "Full state refresh interval",
+                    "camera_stream_transport": "Preferred camera transport",
+                    "camera_token_refresh_interval": "Camera token refresh interval"
+                },
+                "data_description": {
+                    "activity_poll_interval": "Seconds between activity feed polls. Uses an undocumented endpoint; raise this if you see rate limiting.",
+                    "full_state_poll_interval": "Minutes between full state refreshes, a safety net for missed push events.",
+                    "camera_stream_transport": "Prefer end-to-end for the pre-2026.11.06 behavior. Select Janus if a camera never starts with end-to-end. Uses the other transport when the preferred one is not offered.",
+                    "camera_token_refresh_interval": "Minutes between WebRTC token refreshes for each camera. Lower it if streams stop working before the next refresh."
+                }
+            }
+        }
+    },
+    "services": {
+        "bypass_sensor": {
+            "name": "Bypass sensor",
+            "description": "Bypass a supported Alarm.com sensor.",
+            "fields": {
+                "resource_id": {
+                    "name": "Resource ID",
+                    "description": "Alarm.com resource ID for the sensor to bypass. Find this in the 'resource_id' attribute on the sensor's entity."
+                },
+                "partition_id": {
+                    "name": "Partition ID",
+                    "description": "Optional Alarm.com partition resource ID. If omitted, the first partition on the same system is used."
+                }
+            }
+        },
+        "unbypass_sensor": {
+            "name": "Unbypass sensor",
+            "description": "Remove bypass from a supported Alarm.com sensor.",
+            "fields": {
+                "resource_id": {
+                    "name": "Resource ID",
+                    "description": "Alarm.com resource ID for the sensor to unbypass."
+                },
+                "partition_id": {
+                    "name": "Partition ID",
+                    "description": "Optional Alarm.com partition resource ID. If omitted, the first partition on the same system is used."
+                }
+            }
+        },
+        "set_auto_off": {
+            "name": "Set auto-off timer",
+            "description": "Schedule one or more Alarm.com lights to turn off after a duration.",
+            "fields": {
+                "duration": {
+                    "name": "Duration",
+                    "description": "How long to wait before turning the light off."
+                }
+            }
+        },
+        "cancel_auto_off": {
+            "name": "Cancel auto-off timer",
+            "description": "Cancel a pending auto-off timer for one or more Alarm.com lights."
+        },
+        "set_temporary_access": {
+            "name": "Set temporary user access",
+            "description": "Set start and end dates for an existing user. Preserves the PIN. Device synchronization may take additional time.",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Alarm.com account",
+                    "description": "Select the loaded Alarm.com configuration entry."
+                },
+                "system_id": {
+                    "name": "System ID",
+                    "description": "System ID belonging to the selected account."
+                },
+                "user_id": {
+                    "name": "User ID",
+                    "description": "Existing user ID from the portal user page URL."
+                },
+                "begin": {
+                    "name": "Access start",
+                    "description": "ISO 8601 date and time including Z or an explicit UTC offset."
+                },
+                "end": {
+                    "name": "Access end",
+                    "description": "ISO 8601 date and time including Z or an explicit UTC offset, after the start."
+                }
+            }
+        },
+        "get_temporary_user_schedule": {
+            "name": "Get temporary user schedule",
+            "description": "Read the saved schedule and Alarm.com's numeric credential status without returning a PIN. This does not confirm synchronization on every device.",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Alarm.com account",
+                    "description": "Select the loaded Alarm.com configuration entry."
+                },
+                "system_id": {
+                    "name": "System ID",
+                    "description": "System ID belonging to the selected account."
+                },
+                "user_id": {
+                    "name": "User ID",
+                    "description": "Existing user ID from the portal user page URL."
+                }
             }
         }
     },
@@ -69,6 +183,18 @@
                 "sms": "Text Message",
                 "email": "Email"
             }
+        }
+    },
+    "device_automation": {
+        "trigger_type": {
+            "scene_action": "Scene action on {subtype}"
+        },
+        "trigger_subtype": {
+            "scene_001": "Scene 001 (on button)",
+            "scene_002": "Scene 002 (off button)"
+        },
+        "extra_fields": {
+            "value": "Value"
         }
     }
 }

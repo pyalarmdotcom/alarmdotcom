@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from collections.abc import Callable, Coroutine, Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic
 
-import pyalarmdotcomajax as pyadc
+import _pyalarmdotcomajax as pyadc
+from _pyalarmdotcomajax.controllers.partitions import PartitionController
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
     AlarmControlPanelEntityDescription,
@@ -21,7 +23,6 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import InvalidStateError, ServiceValidationError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
-from pyalarmdotcomajax.controllers.partitions import PartitionController
 
 from .const import (
     CONF_ARM_AWAY,
@@ -31,14 +32,17 @@ from .const import (
     CONF_FORCE_BYPASS,
     CONF_NO_ENTRY_DELAY,
     CONF_SILENT_ARM,
-    DATA_HUB,
-    DOMAIN,
 )
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
 from .util import cleanup_orphaned_entities_and_devices
 
 if TYPE_CHECKING:
     from .hub import AlarmHub
+
+# Entities are updated via push (websocket events), not per-entity polling -
+# PARALLEL_UPDATES has no effect on update frequency here, but setting it
+# to 0 is still the correct, explicit signal for a push-based integration.
+PARALLEL_UPDATES = 0
 
 log = logging.getLogger(__name__)
 
@@ -56,7 +60,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the light platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.hub
 
     entities = [
         AdcAlarmControlPanelEntity(hub=hub, resource_id=device.id, description=entity_description)
@@ -159,47 +163,58 @@ async def control_fn(
     config_options = hub.config_entry.options
     arm_code = config_options.get(CONF_ARM_CODE)
 
-    user_entered_code = options.get("code")
-
-    if user_entered_code != arm_code and arm_code not in [None, ""]:
-        raise ServiceValidationError("Invalid code.")
+    # HA core's _attr_code_format/_attr_code_arm_required (set in initiate_state()
+    # from code_format_fn()) only validates that an entered code matches the
+    # expected *format* (numeric vs text) before this function is ever called -
+    # it does not check the code against the configured arm_code. Without this
+    # check, any correctly-formatted code would succeed, defeating the point of
+    # configuring an arm code at all.
+    if arm_code not in (None, ""):
+        user_entered_code = options.get("code")
+        if user_entered_code != arm_code:
+            raise ServiceValidationError("Invalid code entered for arm/disarm command.")
 
     try:
-        if command == DISARM:
-            await controller.disarm(partition_id)
+        async with asyncio.timeout(30):
+            if command == DISARM:
+                await controller.disarm(partition_id)
 
-        elif command == ARM_AWAY:
-            cmd_options = config_options.get(CONF_ARM_AWAY, {})
-            await controller.arm_away(
-                partition_id,
-                force_bypass=CONF_FORCE_BYPASS in cmd_options,
-                no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
-                silent_arming=CONF_SILENT_ARM in cmd_options,
-            )
+            elif command == ARM_AWAY:
+                cmd_options = config_options.get(CONF_ARM_AWAY, {})
+                await controller.arm_away(
+                    partition_id,
+                    force_bypass=CONF_FORCE_BYPASS in cmd_options,
+                    no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
+                    silent_arming=CONF_SILENT_ARM in cmd_options,
+                )
 
-        elif command == ARM_STAY:
-            cmd_options = config_options.get(CONF_ARM_HOME, {})
-            await controller.arm_stay(
-                partition_id,
-                force_bypass=CONF_FORCE_BYPASS in cmd_options,
-                no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
-                silent_arming=CONF_SILENT_ARM in cmd_options,
-            )
+            elif command == ARM_STAY:
+                cmd_options = config_options.get(CONF_ARM_HOME, {})
+                await controller.arm_stay(
+                    partition_id,
+                    force_bypass=CONF_FORCE_BYPASS in cmd_options,
+                    no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
+                    silent_arming=CONF_SILENT_ARM in cmd_options,
+                )
 
-        elif command == ARM_NIGHT:
-            cmd_options = config_options.get(CONF_ARM_NIGHT, {})
-            await controller.arm_night(
-                partition_id,
-                force_bypass=CONF_FORCE_BYPASS in cmd_options,
-                no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
-                silent_arming=CONF_SILENT_ARM in cmd_options,
-            )
+            elif command == ARM_NIGHT:
+                cmd_options = config_options.get(CONF_ARM_NIGHT, {})
+                await controller.arm_night(
+                    partition_id,
+                    force_bypass=CONF_FORCE_BYPASS in cmd_options,
+                    no_entry_delay=CONF_NO_ENTRY_DELAY in cmd_options,
+                    silent_arming=CONF_SILENT_ARM in cmd_options,
+                )
 
-        else:
-            raise ServiceValidationError("Unsupported command.")
+            else:
+                raise ServiceValidationError("Unsupported command.")
 
-    except (pyadc.ServiceUnavailable, pyadc.UnexpectedResponse) as err:
-        raise InvalidStateError("Failed to disarm partition.") from err
+    except TimeoutError:
+        raise InvalidStateError(
+            "Alarm.com did not confirm the panel command in time. Check the panel before retrying."
+        ) from None
+    except (pyadc.ServiceUnavailable, pyadc.UnexpectedResponse, pyadc.UnsupportedOperation) as err:
+        raise InvalidStateError(f"Failed to execute partition command '{command}'.") from err
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -262,7 +277,7 @@ class AdcAlarmControlPanelEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], A
         """Update entity state."""
 
         if isinstance(message, pyadc.ResourceEventMessage):
-            self.alarm_state = self.entity_description.state_fn(self.hub, self.resource_id)
+            self._attr_alarm_state = self.entity_description.state_fn(self.hub, self.resource_id)
 
     async def async_alarm_disarm(self, code: str | None = None) -> None:
         """Send disarm command."""

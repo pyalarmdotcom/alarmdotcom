@@ -7,7 +7,7 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic
 
-import pyalarmdotcomajax as pyadc
+import _pyalarmdotcomajax as pyadc
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
@@ -19,14 +19,54 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .const import DATA_HUB, DOMAIN
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
 from .util import cleanup_orphaned_entities_and_devices
 
 if TYPE_CHECKING:
     from .hub import AlarmHub
 
+# Entities are updated via push (websocket events), not per-entity polling -
+# PARALLEL_UPDATES has no effect on update frequency here, but setting it
+# to 0 is still the correct, explicit signal for a push-based integration.
+PARALLEL_UPDATES = 0
+
 log = logging.getLogger(__name__)
+
+
+def _controller_resources(controller: Any) -> list[Any]:
+    """
+    Return a list of resources from a pyalarmdotcomajax controller.
+
+    Controllers vary across library versions:
+      - some look like dicts (values())
+      - some expose an attribute holding the resources
+      - some are iterable
+      - some only support .get(id) and have internal storage
+    This function tries common patterns and always returns a real list.
+    """
+    if controller is None:
+        return []
+
+    # Dict-like
+    if hasattr(controller, "values") and callable(controller.values):
+        try:
+            return list(controller.values())
+        except TypeError:
+            pass
+
+    # Common attribute patterns
+    for attr_name in ("doors", "garage_doors", "gates", "items", "resources"):
+        if hasattr(controller, attr_name):
+            try:
+                return list(getattr(controller, attr_name))
+            except TypeError:
+                pass
+
+    # Iterable controller
+    try:
+        return list(controller)
+    except TypeError:
+        return []
 
 
 async def async_setup_entry(
@@ -37,23 +77,28 @@ async def async_setup_entry(
 ) -> None:
     """Set up the cover platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.hub
+
+    garage_door_resources = _controller_resources(hub.api.garage_doors)
+    gate_resources = _controller_resources(hub.api.gates)
 
     # Log discovered devices for debugging
     log.debug(
         "Setting up cover platform. Found %d garage doors and %d gates.",
-        len(hub.api.garage_doors),
-        len(hub.api.gates),
+        len(garage_door_resources),
+        len(gate_resources),
     )
-    for device in hub.api.garage_doors:
-        log.debug("  - Garage door: %s (ID: %s)", device.name, device.id)
-    for device in hub.api.gates:
-        log.debug("  - Gate: %s (ID: %s)", device.name, device.id)
+    for device in garage_door_resources:
+        log.debug("  - Garage door: %s (ID: %s)", getattr(device, "name", "unknown"), getattr(device, "id", "unknown"))
+    for device in gate_resources:
+        log.debug("  - Gate: %s (ID: %s)", getattr(device, "name", "unknown"), getattr(device, "id", "unknown"))
+
+    all_resources = [*garage_door_resources, *gate_resources]
 
     entities = [
         AdcCoverEntity(hub=hub, resource_id=resource.id, description=entity_description)
         for entity_description in ENTITY_DESCRIPTIONS
-        for resource in hub.api.garage_doors + hub.api.gates
+        for resource in all_resources
         if entity_description.supported_fn(hub, resource.id)
     ]
 
@@ -117,9 +162,15 @@ def is_closed_fn(
 
 
 @callback
-def device_class_fn() -> CoverDeviceClass:
-    """Return the device class for the garage door."""
+def garage_device_class_fn() -> CoverDeviceClass:
+    """Return the device class for a garage door."""
     return CoverDeviceClass.GARAGE
+
+
+@callback
+def gate_device_class_fn() -> CoverDeviceClass:
+    """Return the device class for a gate."""
+    return CoverDeviceClass.GATE
 
 
 @callback
@@ -182,7 +233,7 @@ ENTITY_DESCRIPTIONS: list[AdcEntityDescription] = [
         controller_fn=lambda hub, _: hub.api.garage_doors,
         supported_fn=garage_door_supported_fn,
         is_closed_fn=is_closed_fn,
-        device_class_fn=device_class_fn,
+        device_class_fn=garage_device_class_fn,
         supported_features_fn=supported_features_fn,
         control_fn=control_fn,
     ),
@@ -191,7 +242,7 @@ ENTITY_DESCRIPTIONS: list[AdcEntityDescription] = [
         controller_fn=lambda hub, _: hub.api.gates,
         supported_fn=gate_supported_fn,
         is_closed_fn=is_closed_fn,
-        device_class_fn=device_class_fn,
+        device_class_fn=gate_device_class_fn,
         supported_features_fn=supported_features_fn,
         control_fn=control_fn,
     ),

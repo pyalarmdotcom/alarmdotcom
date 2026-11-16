@@ -7,7 +7,8 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic
 
-import pyalarmdotcomajax as pyadc
+import _pyalarmdotcomajax as pyadc
+from homeassistant.components.alarm_control_panel import CodeFormat
 from homeassistant.components.lock import (
     LockEntity,
     LockEntityDescription,
@@ -18,12 +19,17 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .const import DATA_HUB, DOMAIN
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
 from .util import cleanup_orphaned_entities_and_devices
 
 if TYPE_CHECKING:
+    from .activity_history import ActivityFeedTracker
     from .hub import AlarmHub
+
+# Entities are updated via push (websocket events), not per-entity polling -
+# PARALLEL_UPDATES has no effect on update frequency here, but setting it
+# to 0 is still the correct, explicit signal for a push-based integration.
+PARALLEL_UPDATES = 0
 
 log = logging.getLogger(__name__)
 
@@ -36,10 +42,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up the lock platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.hub
+    lock_activity_tracker: ActivityFeedTracker = config_entry.runtime_data.activity_feed_tracker
 
-    entities = [
-        AdcLockEntity(hub=hub, resource_id=device.id, description=entity_description)
+    entities: list[AdcLockEntity] = [
+        AdcLockEntity(
+            hub=hub,
+            resource_id=device.id,
+            description=entity_description,
+            lock_activity_tracker=lock_activity_tracker,
+        )
         for entity_description in ENTITY_DESCRIPTIONS
         for device in hub.api.locks
         if entity_description.supported_fn(hub, device.id)
@@ -116,21 +128,14 @@ async def control_fn(
 
 
 @callback
-def code_format_fn(hub: AlarmHub) -> str | None:
-    """Return the format of the code, if any."""
+def code_format_fn(hub: AlarmHub) -> CodeFormat | None:
+    """
+    Return the code format for the lock.
 
-    if arm_code := hub.config_entry.options.get("arm_code"):
-        import re
-
-        code_patterns = [
-            r"^\d+$",  # Only digits
-            r"^\w\D+$",  # Only alpha
-            r"^\w+$",  # Alphanumeric
-        ]
-        for pattern in code_patterns:
-            if re.fullmatch(pattern, arm_code):
-                return pattern
-        return "."  # All characters
+    Locks do not require a code to operate from Home Assistant by default.
+    The arm_code integration option applies to the alarm control panel only.
+    Returning None means HA will not prompt for a code on lock/unlock actions.
+    """
     return None
 
 
@@ -148,7 +153,7 @@ class AdcLockEntityDescription(
     """Return whether the lock is locking."""
     is_unlocking_fn: Callable[[AlarmHub, str], bool]
     """Return whether the lock is unlocking."""
-    code_format_fn: Callable[[AlarmHub], str | None]
+    code_format_fn: Callable[[AlarmHub], CodeFormat | None]
     """Return the format of the code, if any."""
     supported_features_fn: Callable[[AdcControllerT, str], LockEntityFeature]
     """Return the supported features for the lock."""
@@ -177,16 +182,59 @@ class AdcLockEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LockEntity):
 
     entity_description: AdcLockEntityDescription
 
-    def _validate_code(self, code: str | None) -> bool:
-        arm_code = (
-            self.hub.config_entry.options.get("arm_code")
-            if hasattr(self.hub, "config_entry")
-            else None
-        )
-        if arm_code in [None, ""] or code == arm_code:
-            return True
-        log.warning("Wrong code entered for lock %s.", self.resource_id)
-        return False
+    def __init__(
+        self,
+        hub: AlarmHub,
+        resource_id: str,
+        description: AdcLockEntityDescription,
+        lock_activity_tracker: ActivityFeedTracker,
+    ) -> None:
+        """Initialize the lock entity, additionally wiring in the lock activity tracker."""
+
+        self._lock_activity_tracker = lock_activity_tracker
+        super().__init__(hub=hub, resource_id=resource_id, description=description)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """
+        Return this entity's extra attributes, plus unlock attribution/method, if known.
+
+        Computed live (not set once in __init__) since new attribution
+        arrives on the lock activity tracker's own polling cadence, not
+        the resource-update events the rest of this entity's state
+        responds to. These are deliberately omitted entirely (not set to
+        None) when nothing has been tracked yet, rather than always
+        showing a possibly-stale or empty value.
+
+        last_unlock_method exists specifically because last_unlocked_by
+        alone isn't reliable for gating an automation on "was this a
+        keypad entry" (real user feedback, GitHub issue #79): not every
+        unlock method generates its own loggable Alarm.com event for
+        every lock model, so last_unlocked_by can remain stuck showing an
+        earlier keypad user's name well after a different, unattributed
+        unlock. last_unlock_method reflects whatever the most recent
+        tracked unlock actually was, independent of that staleness.
+        """
+
+        attrs = dict(self._attr_extra_state_attributes or {})
+        last_unlock = self._lock_activity_tracker.get_last_unlock(self.resource_id)
+        if last_unlock is not None:
+            attrs["last_unlocked_by"] = last_unlock["unlocked_by"]
+            attrs["last_unlock_method"] = last_unlock["unlock_method"]
+            attrs["last_unlocked_at"] = last_unlock["unlocked_at"].isoformat()
+        return attrs
+
+    async def async_added_to_hass(self) -> None:
+        """Subscribe to resource updates (via the base class) and lock activity attribution changes."""
+
+        await super().async_added_to_hass()
+        self.async_on_remove(self._lock_activity_tracker.add_listener(self._on_activity_change))
+
+    @callback
+    def _on_activity_change(self) -> None:
+        """Push updated state when the lock activity tracker finds new unlock attribution."""
+
+        self.async_write_ha_state()
 
     @callback
     def initiate_state(self) -> None:
@@ -225,16 +273,12 @@ class AdcLockEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LockEntity):
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Send lock command."""
-        code = kwargs.get("code")
-        if self._validate_code(code):
-            await self.entity_description.control_fn(
-                self.controller, self.resource_id, "lock"
-            )
+        await self.entity_description.control_fn(
+            self.controller, self.resource_id, "lock"
+        )
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Send unlock command."""
-        code = kwargs.get("code")
-        if self._validate_code(code):
-            await self.entity_description.control_fn(
-                self.controller, self.resource_id, "unlock"
-            )
+        await self.entity_description.control_fn(
+            self.controller, self.resource_id, "unlock"
+        )
