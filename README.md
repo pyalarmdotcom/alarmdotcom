@@ -1,8 +1,26 @@
-# Alarm.com for Home Assistant
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/466460/175781161-dd70c5b4-d45a-4cdb-bf57-d4fd7fbedb0b.png" width="125" alt="Alarm.com logo">
+</p>
+<h1 align="center">Alarm.com for Home Assistant</h1>
+<p align="center">An unofficial community project, not affiliated with Alarm.com.</p>
+<p align="center">
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/tests.yaml"><img alt="Tests" src="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/tests.yaml/badge.svg?branch=beta%2F2026-modernization"></a>
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/pre-commit.yaml"><img alt="Pre-commit" src="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/pre-commit.yaml/badge.svg?branch=beta%2F2026-modernization"></a>
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hassfest.yaml"><img alt="HACS and Hassfest" src="https://github.com/pyalarmdotcom/alarmdotcom/actions/workflows/hassfest.yaml/badge.svg?branch=beta%2F2026-modernization"></a>
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/commits/beta/2026-modernization"><img alt="Commit activity" src="https://img.shields.io/github/commit-activity/y/pyalarmdotcom/alarmdotcom"></a>
+  <a href="https://buymeacoffee.com/ibasebcast"><img alt="Buy Me a Coffee, support current maintenance" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support%20Maintenance-FFDD00?logo=buymeacoffee&amp;logoColor=black"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/hacs/integration"><img alt="HACS Default" src="https://img.shields.io/badge/HACS-Default-41BDF5"></a>
+  <img alt="HACS installs" src="https://img.shields.io/endpoint?url=https%3A%2F%2Flauwbier.nl%2Fhacs%2Falarmdotcom">
+  <a href="https://github.com/pyalarmdotcom/alarmdotcom/releases"><img alt="Latest stable GitHub release" src="https://img.shields.io/github/v/release/pyalarmdotcom/alarmdotcom?display_name=tag&amp;include_prereleases=false"></a>
+  <a href="LICENSE.md"><img alt="Original MIT license" src="https://img.shields.io/badge/Original%20Code-MIT-green"></a>
+  <a href="LICENSE"><img alt="Maintained contributions Apache 2.0 license" src="https://img.shields.io/badge/New%20Contributions-Apache--2.0-blue"></a>
+</p>
 
 > **Maintenance update, November 2026:** This project is being actively revived. [@ibasebcast](https://github.com/ibasebcast) has joined the [pyalarmdotcom](https://github.com/pyalarmdotcom) organization as an owner and is preparing the maintained v4 codebase for an official upstream release.
 >
-> **Important:** This branch is a modernization and compatibility-testing branch, **not a published stable or beta release**. The original v3.0.15 installation currently has known compatibility problems with modern Home Assistant. No existing user installation has been updated by this branch.
+> **Important:** This is the `2026.11.16b1` modernization beta **candidate**, not a published upstream release yet. The original v3.0.15 installation has known compatibility problems on modern Home Assistant. Existing users will not receive these branch changes unless they deliberately install a future beta release.
 
 ## Thank you to the original maintainers and contributors
 
@@ -18,7 +36,7 @@ The maintained integration built on the original **v4.0.1-beta.2** foundation ha
 
 Our priority is to verify existing v3/v4 configuration upgrades, entity IDs, devices, and automations before replacing the original published integration. **Users who switched to the maintained fork will not be forced to move back.**
 
-The project is **not abandoned**. We intend to maintain it going forward, review the existing issues respectfully, and publish upstream releases only when the compatibility work is ready. No release date is promised.
+The project is **not abandoned**. We intend to maintain it going forward, review the existing issues respectfully, and publish upstream releases only when compatibility work is ready. The first modernization beta candidate is `2026.11.16b1`; it is not published yet.
 
 This is an unofficial community project with no affiliation to Alarm.com.
 
@@ -67,7 +85,7 @@ Because this integration communicates with Alarm.com cloud services, functionali
 
 - **Original default-catalog installation:** The last published stable release is v3.0.15 and has known failures on current Home Assistant versions. Installing or updating from this **development branch** is not a supported recovery procedure.
 - **Maintained working distribution:** The independently published [maintained integration](https://github.com/ibasebcast/ha-alarmdotcom) remains available. Its [installation and migration guide](https://github.com/ibasebcast/ha-alarmdotcom#installation-and-setup) includes the verified Marketplace Repository Repair procedure for users switching repositories.
-- **Official upstream modernization:** This branch is preparing the maintained implementation for validation and eventual publication through the original repository. No official upstream modernization release has been published yet.
+- **Official upstream modernization:** The first beta candidate is `2026.11.16b1`, prepared in [`beta/2026-modernization`](https://github.com/pyalarmdotcom/alarmdotcom/tree/beta/2026-modernization). No official upstream modernization release has been published yet.
 
 Before testing any integration transition, **make a full Home Assistant backup** and verify that existing alarm entities and automations survive. Please do not delete your existing Alarm.com configuration entry simply to change the installed source repository.
 
