@@ -77,7 +77,7 @@ jobs:
               print("Waiting for:", ", ".join(pending))
               sys.exit(2)
           print("All six required checks passed on the release SHA.")
-          ' 
+          '
             result=$?
             set -e
             if [ "$result" -eq 0 ]; then
