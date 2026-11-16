@@ -20,7 +20,7 @@
 
 > **Maintenance update, November 2026:** This project is being actively revived. [@ibasebcast](https://github.com/ibasebcast) has joined the [pyalarmdotcom](https://github.com/pyalarmdotcom) organization as an owner and is preparing the maintained v4 codebase for an official upstream release.
 >
-> **Important:** This is the `2026.11.16b1` modernization beta **candidate**, not a published upstream release yet. The original v3.0.15 installation has known compatibility problems on modern Home Assistant. Existing users will not receive these branch changes unless they deliberately install a future beta release.
+> **Important:** `2026.11.16b1` is the first **opt-in modernization beta**. It is intended for volunteer testing, not production-stable use. The original v3.0.15 installation has known compatibility problems on modern Home Assistant. Check [GitHub Releases](https://github.com/pyalarmdotcom/alarmdotcom/releases) for published versions; branch commits alone are not installable releases.
 
 ## Thank you to the original maintainers and contributors
 
@@ -36,7 +36,7 @@ The maintained integration built on the original **v4.0.1-beta.2** foundation ha
 
 Our priority is to verify existing v3/v4 configuration upgrades, entity IDs, devices, and automations before replacing the original published integration. **Users who switched to the maintained fork will not be forced to move back.**
 
-The project is **not abandoned**. We intend to maintain it going forward, review the existing issues respectfully, and publish upstream releases only when compatibility work is ready. The first modernization beta candidate is `2026.11.16b1`; it is not published yet.
+The project is **not abandoned**. We intend to maintain it going forward, review the existing issues respectfully, and publish stable upstream releases only after compatibility work is ready. The first modernization beta is `2026.11.16b1`; volunteers can share findings in [the beta feedback issue (#567)](https://github.com/pyalarmdotcom/alarmdotcom/issues/567).
 
 This is an unofficial community project with no affiliation to Alarm.com.
 
@@ -85,7 +85,7 @@ Because this integration communicates with Alarm.com cloud services, functionali
 
 - **Original default-catalog installation:** The last published stable release is v3.0.15 and has known failures on current Home Assistant versions. Installing or updating from this **development branch** is not a supported recovery procedure.
 - **Maintained working distribution:** The independently published [maintained integration](https://github.com/ibasebcast/ha-alarmdotcom) remains available. Its [installation and migration guide](https://github.com/ibasebcast/ha-alarmdotcom#installation-and-setup) includes the verified Marketplace Repository Repair procedure for users switching repositories.
-- **Official upstream modernization:** The first beta candidate is `2026.11.16b1`, prepared in [`beta/2026-modernization`](https://github.com/pyalarmdotcom/alarmdotcom/tree/beta/2026-modernization). No official upstream modernization release has been published yet.
+- **Official upstream modernization:** The first optional beta, `2026.11.16b1`, is prepared from [`beta/2026-modernization`](https://github.com/pyalarmdotcom/alarmdotcom/tree/beta/2026-modernization). Use [GitHub Releases](https://github.com/pyalarmdotcom/alarmdotcom/releases) to find published builds. Report results in [issue #567](https://github.com/pyalarmdotcom/alarmdotcom/issues/567). The original stable v3.0.15 remains unchanged.
 
 Before testing any integration transition, **make a full Home Assistant backup** and verify that existing alarm entities and automations survive. Please do not delete your existing Alarm.com configuration entry simply to change the installed source repository.
 

@@ -8,13 +8,13 @@
 
 ---
 
-## 2026.11.16b1 (upstream modernization beta candidate)
+## 2026.11.16b1 (upstream modernization beta)
 
 - Prepared the maintained v4-derived implementation for voluntary compatibility testing in the original `pyalarmdotcom/alarmdotcom` repository.
 - Restored the original repository's familiar header and live development badges, updated the donation link to support current maintenance at https://buymeacoffee.com/ibasebcast, and retained thanks to Elhad Bar-Shai, Justin Wong (@uvjustin), and other contributors.
 - Preserved the full earlier maintained-development history below, as well as original upstream licensing.
 - Validation workflows now run on the modernization branch, with final Home Assistant 2026.11.x compatibility checks. A prerelease requires deliberate publication, not a branch push.
-- **Not published yet:** This entry describes the candidate. Existing v3 installations, device/entity identities, and automations still need real-world upgrade testing.
+- **Community testing:** This is an opt-in prerelease, not a stable rollout. Existing v3 installations, device/entity identities, and automations still need real-world upgrade testing. Please report findings in [original project issue #567](https://github.com/pyalarmdotcom/alarmdotcom/issues/567).
 
 ---
 
