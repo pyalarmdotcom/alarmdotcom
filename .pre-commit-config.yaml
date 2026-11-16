@@ -21,7 +21,7 @@ repos:
                 - pyproject.toml
             additional_dependencies:
                 - beautifulsoup4>=4.10.0
-                - homeassistant == 2026.11.0b0
+                - homeassistant == 2026.11.1
                 - mashumaro
                 - phonenumbers
                 - pyhumps
