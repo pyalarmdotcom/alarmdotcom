@@ -2,13 +2,13 @@
 
 **November 2026:** The original Alarm.com for Home Assistant integration is being actively revived. This modernization branch starts from the maintained v4 codebase developed by [@ibasebcast](https://github.com/ibasebcast) since March 2026, with the support of original maintainer [@elahd](https://github.com/elahd). We also thank [@uvjustin](https://github.com/uvjustin) for foundational development and all prior contributors.
 
-**Status:** Stable release candidate 2026.11.17 is prepared for the original distribution. Check GitHub Releases for published builds. Earlier stable and beta tags remain unchanged.
+**Status:** Stable release 2026.11.17 brings the maintained implementation to the original distribution. Check GitHub Releases for published builds. Earlier stable and beta tags remain unchanged.
 
 **History preservation:** Every entry following this note is reproduced from the maintained project's CHANGELOG without removing any release notes or earlier records. Relative issue and PR numbers in those development entries refer to [ibasebcast/ha-alarmdotcom](https://github.com/ibasebcast/ha-alarmdotcom/issues), unless a full repository is specified. The original project's earlier history and MIT notices are preserved in its Git commits and license files.
 
 ---
 
-## 2026.11.17 (stable release candidate)
+## 2026.11.17 (stable)
 
 - Prepare the maintained implementation for the original distribution's stable channel.
 - Combine the original README structure, screenshots and credits with current device support, feature examples, upgrade instructions and known issues.

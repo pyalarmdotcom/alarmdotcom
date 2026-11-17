@@ -1,7 +1,7 @@
 > [!IMPORTANT]
-> **Maintenance has resumed. Stable release candidate: `2026.11.17`.**
+> **Maintenance has resumed. Stable release: [`2026.11.17`](https://github.com/pyalarmdotcom/alarmdotcom/releases/tag/v2026.11.17).**
 >
-> This update brings the maintained v4-derived implementation back to the original repository. Check [Releases](https://github.com/pyalarmdotcom/alarmdotcom/releases) for published builds; a candidate branch is not a published stable release. See the [release notes](release-notes/2026.11.17.md) and [known issues](#known-issues-and-limitations) before upgrading.
+> This update brings the maintained v4-derived implementation back to the original repository. Install the latest stable update through HACS/Marketplace, or download it from [Releases](https://github.com/pyalarmdotcom/alarmdotcom/releases). See the [release notes](release-notes/2026.11.17.md) and [known issues](#known-issues-and-limitations) before upgrading.
 >
 > **Back up Home Assistant first and keep your existing Alarm.com configuration entry.** Community reports confirm upgrades from the original v4 beta, including operation on Home Assistant 2026.11.2. Direct v3 upgrades have not been verified on a live installation. Check your device/entity IDs, dashboards, and automations after upgrading.
 >
@@ -140,7 +140,7 @@ To help with a device, start with a model description and sanitized integration 
 
 Users of the maintained independent distribution can continue using it. If you choose to switch, back up first and change only the installed repository source. Do not delete your Alarm.com entry, and do not install both distributions in the same directory.
 
-If Marketplace reports that `custom_components/alarmdotcom` belongs to another repository, follow the [verified Marketplace Repository Repair procedure](https://github.com/ibasebcast/ha-alarmdotcom#switching-from-the-original-alarmcom-repository). The documented live test was from the original repository to the maintained distribution and back on earlier builds; it is not proof of v3 configuration compatibility. This candidate uses configuration schema 5. Before switching to another distribution or older release, confirm it supports schema 5, or restore your full pre-upgrade backup.
+If Marketplace reports that `custom_components/alarmdotcom` belongs to another repository, follow the [verified Marketplace Repository Repair procedure](https://github.com/ibasebcast/ha-alarmdotcom#switching-from-the-original-alarmcom-repository). The documented live test was from the original repository to the maintained distribution and back on earlier builds; it is not proof of v3 configuration compatibility. This release uses configuration schema 5. Before switching to another distribution or older release, confirm it supports schema 5, or restore your full pre-upgrade backup.
 
 ### Configuration
 
@@ -418,7 +418,7 @@ These reports remain open as of November 17, 2026. Links below point to the main
 | Area | Known behavior / What to do | Tracking |
 | --- | --- | --- |
 | Direct v3 upgrades | Automated configuration migration checks do not establish preservation of every live device/entity or v3-only control. Back up, keep the entry, and verify dashboards/automations after updating. | [Upstream upgrade feedback #567](https://github.com/pyalarmdotcom/alarmdotcom/issues/567) |
-| Slow sign-in / arming failures | Provider/network-dependent sign-in and declined commands remain under investigation. Compare with the same login in the official portal; do not repeatedly reinstall or create duplicate entries. The experimental sign-in branch is not included in this stable candidate. | [#157](https://github.com/ibasebcast/ha-alarmdotcom/issues/157) |
+| Slow sign-in / arming failures | Provider/network-dependent sign-in and declined commands remain under investigation. Compare with the same login in the official portal; do not repeatedly reinstall or create duplicate entries. The experimental sign-in branch is not included in this stable release. | [#157](https://github.com/ibasebcast/ha-alarmdotcom/issues/157) |
 | Water valve discovery | Some accounts report no valve entity. A discovery fix is under investigation; do not assume a valve is supported merely because its model appears in Alarm.com. | [#178](https://github.com/ibasebcast/ha-alarmdotcom/issues/178) |
 | Moen Flo valve state | Can show Closed while physically Open and while Alarm.com reports Open, including payloads with `has_state=False`. Do not use the displayed state as confirmation of flow or shutoff. Startup refresh does not resolve all cases. | [#189](https://github.com/ibasebcast/ha-alarmdotcom/issues/189) |
 | Camera analytics | Person/animal/vehicle sensors can activate together when the app labels only a vehicle. Opt-in debug logging records event type and recognized classes; a classification fix is not yet confirmed. | [#195](https://github.com/ibasebcast/ha-alarmdotcom/issues/195) |
