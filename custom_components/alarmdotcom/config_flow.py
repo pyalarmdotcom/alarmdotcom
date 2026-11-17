@@ -47,7 +47,8 @@ LegacyArmingOptions = Literal["home", "away", "true", "false"]
 class ADCFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle an Alarmdotcom config flow."""
 
-    VERSION = 4
+    # Match the final schema produced by async_migrate_entry.
+    VERSION = 5
 
     def __init__(self) -> None:
         """Initialize the Alarmdotcom flow."""

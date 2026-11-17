@@ -1,4 +1,4 @@
-name: Beta build validation (no release)
+name: Build validation (no release)
 
 # This workflow only tests and packages. It never creates tags or releases.
 # A new beta is published deliberately by tagging a validated commit,
@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - beta/2026-modernization
+      - master
   pull_request:
     branches:
       - master

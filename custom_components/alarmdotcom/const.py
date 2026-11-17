@@ -6,7 +6,7 @@ from homeassistant.const import Platform
 
 INTEGRATION_NAME = "Alarm.com"
 DOMAIN = "alarmdotcom"
-ISSUE_URL = "https://github.com/ibasebcast/ha-alarmdotcom/issues"
+ISSUE_URL = "https://github.com/pyalarmdotcom/alarmdotcom/issues"
 STARTUP_MESSAGE = f"""
 ===================================================================
 {DOMAIN}

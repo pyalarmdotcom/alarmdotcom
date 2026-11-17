@@ -1,37 +1,11 @@
 # Alarm.com for Home Assistant
 
-A maintained custom integration for Alarm.com security systems.
+An unofficial integration for Alarm.com security systems, cameras, locks, lights,
+garage doors/gates, thermostats, sensors, and supported water valves.
 
-## Supported Devices
+See [README.md](README.md) for setup, upgrades, supported devices, limitations,
+known issues, and the bundled WebRTC camera card. Camera resources are served at
+`/alarmdotcom/alarm-webrtc-card.js`; manual copying into `www/` is not required.
 
-| Device | Actions |
-|--------|---------|
-| Alarm Panel | Arm Away, Arm Stay, Arm Night, Disarm |
-| Garage Door / Gate | Open, Close |
-| Lock | Lock, Unlock |
-| Light | On, Off, Brightness |
-| Thermostat | Heat, Cool, Auto, Fan, Schedule |
-| Water Valve | Open, Close |
-| Sensor | Contact, Motion, Smoke, CO, Water, Glass Break, Freeze |
-| Camera | WebRTC live stream, Snapshot |
-
-## Camera Setup
-
-After installing, copy `www/alarm-webrtc-card.js` to your HA `www/` folder and add it as a Lovelace resource:
-
-```yaml
-url: /local/alarm-webrtc-card.js
-type: module
-```
-
-Then add to any dashboard:
-
-```yaml
-type: custom:alarm-webrtc-card
-entity: camera.your_camera_name
-```
-
-## Requirements
-
-- Home Assistant 2025.5.0 or newer
-- An active Alarm.com account with security system access
+Back up before upgrading and keep your existing Alarm.com configuration entry.
+See [release notes](release-notes/2026.11.17.md) for the stable release candidate.
