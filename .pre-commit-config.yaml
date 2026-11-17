@@ -1,11 +1,8 @@
 default_language_version:
-    python: python3.13
-ci:
-    skip:
-        - taplo-lint
+    python: python3.14
 repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.11.11
+      rev: v0.15.20
       hooks:
           - id: ruff
             name: Ruff
@@ -13,25 +10,29 @@ repos:
             args:
                 - --fix
     - repo: https://github.com/pre-commit/mirrors-mypy
-      rev: v1.15.0
+      rev: v2.2.0
       hooks:
           - id: mypy
             name: MyPy
             description: Run static type checking
+            exclude: ^tests/
             args:
                 - --config-file
                 - pyproject.toml
             additional_dependencies:
                 - beautifulsoup4>=4.10.0
-                - homeassistant >= 2025.5.3
-                - pyalarmdotcomajax>=0.6.0-beta.9
+                - homeassistant == 2026.11.1
+                - mashumaro
+                - phonenumbers
+                - pyhumps
+                - typer
                 - types-beautifulsoup4
                 - types-requests
                 - mypy_extensions
                 - typing_extensions
                 - types-PyYAML
     - repo: https://github.com/codespell-project/codespell
-      rev: v2.4.1
+      rev: v2.4.2
       hooks:
           - id: codespell
             additional_dependencies:
@@ -40,7 +41,7 @@ repos:
                 - --toml
                 - pyproject.toml
     - repo: https://github.com/adrienverge/yamllint
-      rev: v1.37.1
+      rev: v1.38.0
       hooks:
           - id: yamllint
             name: YAMLLint
@@ -59,8 +60,9 @@ repos:
       hooks:
           - id: taplo-format
           - id: taplo-lint
+            args: [--no-schema]
     - repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v5.0.0
+      rev: v6.0.0
       hooks:
           - id: check-json
           - id: check-yaml

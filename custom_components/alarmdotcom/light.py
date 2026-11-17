@@ -8,9 +8,11 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, Literal
 
-import pyalarmdotcomajax as pyadc
+import _pyalarmdotcomajax as pyadc
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
+    ATTR_COLOR_TEMP_KELVIN,
+    ATTR_RGB_COLOR,
     ColorMode,
     LightEntity,
     LightEntityDescription,
@@ -22,14 +24,23 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 from homeassistant.util.color import brightness_to_value, value_to_brightness
 
-from .const import DATA_HUB, DOMAIN
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
 from .util import cleanup_orphaned_entities_and_devices
 
 if TYPE_CHECKING:
+    from .auto_off import AutoOffManager
     from .hub import AlarmHub
 
 BRIGHTNESS_SCALE = (1, 99)
+# ADC reports white warmth as a percentage rather than physical Kelvin bounds.
+# Map that relative range onto HA's conventional white-light slider.
+MIN_COLOR_TEMP_KELVIN = 2700
+MAX_COLOR_TEMP_KELVIN = 6500
+
+# Entities are updated via push (websocket events), not per-entity polling -
+# PARALLEL_UPDATES has no effect on update frequency here, but setting it
+# to 0 is still the correct, explicit signal for a push-based integration.
+PARALLEL_UPDATES = 0
 
 log = logging.getLogger(__name__)
 
@@ -42,10 +53,13 @@ async def async_setup_entry(
 ) -> None:
     """Set up the light platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.hub
+    auto_off_manager: AutoOffManager = config_entry.runtime_data.auto_off_manager
 
-    entities = [
-        AdcLightEntity(hub=hub, resource_id=device.id, description=entity_description)
+    entities: list[AdcLightEntity] = [
+        AdcLightEntity(
+            hub=hub, resource_id=device.id, description=entity_description, auto_off_manager=auto_off_manager
+        )
         for entity_description in ENTITY_DESCRIPTIONS
         for device in hub.api.lights
         if entity_description.supported_fn(hub, device.id)
@@ -62,7 +76,7 @@ def is_on_fn(hub: AlarmHub, light_id: str) -> bool:
     """Return whether the light is on."""
 
     resource = hub.api.lights[light_id]
-    return resource.attributes.state == pyadc.light.LightState.ON
+    return resource.attributes.state in (pyadc.light.LightState.ON, pyadc.light.LightState.LEVEL_CHANGE)
 
 
 @callback
@@ -90,7 +104,12 @@ def color_mode_fn(hub: AlarmHub, light_id: str) -> ColorMode:
     if resource is None:
         return ColorMode.UNKNOWN
 
-    return ColorMode.BRIGHTNESS if resource.attributes.is_dimmer else ColorMode.ONOFF
+    if resource.attributes.light_color_format == pyadc.light.LightColorFormat.WARM_TO_COOL and resource.attributes.supports_white_light_color_control:
+        return ColorMode.COLOR_TEMP
+    modes = supported_color_modes_fn(hub.api.lights, light_id)
+    if ColorMode.RGB in modes:
+        return ColorMode.RGB
+    return next(iter(modes))
 
 
 @callback
@@ -101,7 +120,12 @@ def supported_color_modes_fn(controller: pyadc.LightController, light_id: str) -
     if resource is None:
         return {ColorMode.UNKNOWN}
 
-    return {ColorMode.BRIGHTNESS} if resource.attributes.is_dimmer else {ColorMode.ONOFF}
+    modes = set()
+    if resource.attributes.supports_rgb_color_control:
+        modes.add(ColorMode.RGB)
+    if resource.attributes.supports_white_light_color_control:
+        modes.add(ColorMode.COLOR_TEMP)
+    return modes or ({ColorMode.BRIGHTNESS} if resource.attributes.is_dimmer else {ColorMode.ONOFF})
 
 
 @callback
@@ -117,10 +141,18 @@ async def control_fn(
 
     try:
         if command == "turn_on":
+            if brightness == 0:
+                await controller.turn_off(light_id)
+                return
             if brightness is not None:
                 await controller.set_brightness(light_id, math.ceil(brightness_to_value(BRIGHTNESS_SCALE, brightness)))
             else:
                 await controller.turn_on(light_id)
+            if (rgb := options.get(ATTR_RGB_COLOR)) is not None:
+                await controller.set_color(light_id, hex_color="#{:02X}{:02X}{:02X}".format(*rgb))
+            elif (kelvin := options.get(ATTR_COLOR_TEMP_KELVIN)) is not None:
+                fraction = (MAX_COLOR_TEMP_KELVIN - kelvin) / (MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN)
+                await controller.set_color(light_id, percent_warmth=round(max(0, min(1, fraction)) * 100))
         elif command == "turn_off":
             await controller.turn_off(light_id)
         else:
@@ -172,6 +204,55 @@ class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
     """Base Alarm.com light entity."""
 
     entity_description: AdcLightEntityDescription
+    _attr_min_color_temp_kelvin = MIN_COLOR_TEMP_KELVIN
+    _attr_max_color_temp_kelvin = MAX_COLOR_TEMP_KELVIN
+
+    @property
+    def rgb_color(self) -> tuple[int, int, int] | None:
+        """Decode the current RGB hex value without discarding invalid updates."""
+        value = self.controller[self.resource_id].attributes.hex_color
+        if not isinstance(value, str) or len(value.lstrip("#")) != 6:
+            return None
+        try:
+            return tuple(bytes.fromhex(value.lstrip("#")))
+        except ValueError:
+            return None
+
+    @property
+    def color_temp_kelvin(self) -> int | None:
+        """Represent ADC's relative white warmth on the HA slider."""
+        warmth = self.controller[self.resource_id].attributes.percent_warmth
+        return round(MAX_COLOR_TEMP_KELVIN - max(0, min(100, warmth)) / 100 * (MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN))
+
+    def __init__(
+        self,
+        hub: AlarmHub,
+        resource_id: str,
+        description: AdcLightEntityDescription,
+        auto_off_manager: AutoOffManager,
+    ) -> None:
+        """Initialize the light entity, additionally wiring in the auto-off manager."""
+
+        self._auto_off_manager = auto_off_manager
+        super().__init__(hub=hub, resource_id=resource_id, description=description)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """
+        Return this entity's extra attributes, plus a live auto_off_at if a timer is pending.
+
+        auto_off_at is deliberately computed live here (not set once in
+        __init__ like the rest of this entity's state) since it needs to
+        reflect whatever the auto-off manager currently has scheduled,
+        which can change at any time via the set_auto_off/cancel_auto_off
+        services - not just on the resource-update events the rest of this
+        entity's state responds to.
+        """
+
+        attrs = dict(self._attr_extra_state_attributes or {})
+        if self.entity_id and (off_at := self._auto_off_manager.get_off_at(self.entity_id)) is not None:
+            attrs["auto_off_at"] = off_at.isoformat()
+        return attrs
 
     @callback
     def initiate_state(self) -> None:
@@ -195,6 +276,12 @@ class AdcLightEntity(AdcEntity[AdcManagedDeviceT, AdcControllerT], LightEntity):
             self._attr_is_on = self.entity_description.is_on_fn(self.hub, self.resource_id)
             self._attr_brightness = self.entity_description.brightness_fn(self.hub, self.resource_id)
             self._attr_color_mode = self.entity_description.color_mode_fn(self.hub, self.resource_id)
+
+            # entity_id is only set once this entity has actually been added
+            # to hass - not during the initial initiate_state() call inside
+            # __init__, which is why this lives here and not there.
+            if self.entity_id:
+                self._auto_off_manager.notify_state_changed_externally(self.entity_id, is_on=self._attr_is_on)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""

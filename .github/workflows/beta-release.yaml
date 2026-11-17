@@ -1,0 +1,72 @@
+name: Build validation (no release)
+
+# This workflow only tests and packages. It never creates tags or releases.
+# A new beta is published deliberately by tagging a validated commit,
+# which triggers the separate release.yml workflow.
+on:
+  push:
+    branches:
+      - beta/2026-modernization
+      - master
+  pull_request:
+    branches:
+      - master
+      - beta/2026-modernization
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Check version, camera card, and ZIP package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Validate release metadata without publishing
+        run: |
+          python - <<'PY'
+          import ast
+          import json
+          import re
+          from pathlib import Path
+
+          root = Path("custom_components/alarmdotcom")
+          version = json.loads((root / "manifest.json").read_text())["version"]
+          if not re.fullmatch(r"\d{4}\.\d{1,2}\.\d{1,2}(\.\d+|b\d+)?", version):
+              raise SystemExit(f"Unexpected integration version: {version}")
+          parsed = ast.parse((root / "_pyalarmdotcomajax/_version.py").read_text())
+          bundled = next(
+              ast.literal_eval(node.value)
+              for node in parsed.body
+              if isinstance(node, ast.Assign)
+              and any(
+                  isinstance(target, ast.Name) and target.id == "__version__"
+                  for target in node.targets
+              )
+          )
+          if bundled != version:
+              raise SystemExit(f"Version mismatch: manifest={version}, library={bundled}")
+          notes = Path(f"release-notes/{version}.md")
+          if not notes.is_file():
+              raise SystemExit(f"Missing release notes: {notes}")
+          print(f"Package metadata validated for {version}. No release will be published.")
+          PY
+      - name: Camera card regression tests
+        run: node --test tests/test_webrtc_card.cjs
+      - name: Build package (not a release)
+        run: |
+          cd custom_components
+          zip -rq ../alarmdotcom.zip alarmdotcom -x '*__pycache__*' '*.pyc'
+      - name: Check package contents
+        run: |
+          unzip -tq alarmdotcom.zip
+          unzip -Z -1 alarmdotcom.zip | grep -qx 'alarmdotcom/manifest.json'
+          unzip -Z -1 alarmdotcom.zip | grep -qx 'alarmdotcom/__init__.py'
+          unzip -Z -1 alarmdotcom.zip | grep -qx 'alarmdotcom/_pyalarmdotcomajax/__init__.py'

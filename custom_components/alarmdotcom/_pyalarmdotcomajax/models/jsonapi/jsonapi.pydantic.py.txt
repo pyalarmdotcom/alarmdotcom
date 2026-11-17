@@ -1,0 +1,332 @@
+"""Representations of API objects."""
+
+
+
+import contextlib
+import re
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, UrlConstraints
+from pydantic.alias_generators import to_snake
+from pydantic_core import Url
+
+###########################
+# SCHEMA HELPER FUNCTOINS #
+###########################
+
+
+def page_number_from_link(link: Link | None | str) -> int | None:
+    """
+    Extract page number from links in a JSON:API response object.
+
+    Returns page number if present, otherwise returns None.
+    """
+
+    return int(match.group(1)) if link and (match := re.search(r"page\[number\]=(\d+)", str(link))) else None
+
+
+########################
+# JSON:API BASE ENTITY #
+########################
+
+
+class JsonApiBaseElement(BaseModel):
+    """Base class for JSON:API elements."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_snake,
+        validate_assignment=True,
+        coerce_numbers_to_str=True,  # Identity endpoint returns IDs as int.
+    )
+
+
+########################
+# JSON:API CORE MODELS #
+########################
+
+# fmt: off
+# https://www.iana.org/assignments/link-relations/link-relations.xhtml
+LinkRelation = Literal["about","acl","alternate","amphtml","appendix","apple-touch-icon","apple-touch-startup-image","archives","author","blocked-by","bookmark","canonical","chapter","cite-as","collection","contents","convertedfrom","copyright","create-form","current","describedby","describes","disclosure","dns-prefetch","duplicate","edit","edit-form","edit-media","enclosure","external","first","glossary","help","hosts","hub","icon","index","intervalafter","intervalbefore","intervalcontains","intervaldisjoint","intervalduring","intervalequals","intervalfinishedby","intervalfinishes","intervalin","intervalmeets","intervalmetby","intervaloverlappedby","intervaloverlaps","intervalstartedby","intervalstarts","item","last","latest-version","license","linkset","lrdd","manifest","mask-icon","me","media-feed","memento","micropub","modulepreload","monitor","monitor-group","next","next-archive","nofollow","noopener","noreferrer","opener","openid2.local_id","openid2.provider","original","p3pv1","payment","pingback","preconnect","predecessor-version","prefetch","preload","prerender","prev","preview","previous","prev-archive","privacy-policy","profile","publication","related","restconf","replies","ruleinput","search","section","self","service","service-desc","service-doc","service-meta","sip-trunking-capability","sponsored","start","status","stylesheet","subsection","successor-version","sunset","tag","terms-of-service","timegate","timemap","type","ugc","up","version-history","via","webmention","working-copy","working-copy-of"]
+# https://datatracker.ietf.org/doc/html/rfc8288#section-2.1
+LinkLang = Literal["af", "af-ZA", "ar", "ar-AE", "ar-BH", "ar-DZ", "ar-EG", "ar-IQ", "ar-JO", "ar-KW", "ar-LB", "ar-LY", "ar-MA", "ar-OM", "ar-QA", "ar-SA", "ar-SY", "ar-TN", "ar-YE", "az", "az-AZ", "az-Cyrl-AZ", "be", "be-BY", "bg", "bg-BG", "bs-BA", "ca", "ca-ES", "cs", "cs-CZ", "cy", "cy-GB", "da", "da-DK", "de", "de-AT", "de-CH", "de-DE", "de-LI", "de-LU", "dv", "dv-MV", "el", "el-GR", "en", "en-AU", "en-BZ", "en-CA", "en-CB", "en-GB", "en-IE", "en-JM", "en-NZ", "en-PH", "en-TT", "en-US", "en-ZA", "en-ZW", "eo", "es", "es-AR", "es-BO", "es-CL", "es-CO", "es-CR", "es-DO", "es-EC", "es-ES", "es-GT", "es-HN", "es-MX", "es-NI", "es-PA", "es-PE", "es-PR", "es-PY", "es-SV", "es-UY", "es-VE", "et", "et-EE", "eu", "eu-ES", "fa", "fa-IR", "fi", "fi-FI", "fo", "fo-FO", "fr", "fr-BE", "fr-CA", "fr-CH", "fr-FR", "fr-LU", "fr-MC", "gl", "gl-ES", "gu", "gu-IN", "he", "he-IL", "hi", "hi-IN", "hr", "hr-BA", "hr-HR", "hu", "hu-HU", "hy", "hy-AM", "id", "id-ID", "is", "is-IS", "it", "it-CH", "it-IT", "ja", "ja-JP", "ka", "ka-GE", "kk", "kk-KZ", "kn", "kn-IN", "ko", "ko-KR", "kok", "kok-IN", "ky", "ky-KG", "lt", "lt-LT", "lv", "lv-LV", "mi", "mi-NZ", "mk", "mk-MK", "mn", "mn-MN", "mr", "mr-IN", "ms", "ms-BN", "ms-MY", "mt", "mt-MT", "nb", "nb-NO", "nl", "nl-BE", "nl-NL", "nn-NO", "ns", "ns-ZA", "pa", "pa-IN", "pl", "pl-PL", "ps", "ps-AR", "pt", "pt-BR", "pt-PT", "qu", "qu-BO", "qu-EC", "qu-PE", "ro", "ro-RO", "ru", "ru-RU", "sa", "sa-IN", "se", "se-FI", "se-NO", "se-SE", "sk", "sk-SK", "sl", "sl-SI", "sq", "sq-AL", "sr-BA", "sr-Cyrl-BA", "sr-SP", "sr-Cyrl-SP", "sv", "sv-FI", "sv-SE", "sw", "sw-KE", "syr", "syr-SY", "ta", "ta-IN", "te", "te-IN", "th", "th-TH", "tl", "tl-PH", "tn", "tn-ZA", "tr", "tr-TR", "tt", "tt-RU", "ts", "uk", "uk-UA", "ur", "ur-PK", "uz", "uz-UZ", "uz-Cyrl-UZ", "vi", "vi-VN", "xh", "xh-ZA", "zh", "zh-CN", "zh-HK", "zh-MO", "zh-SG", "zh-TW", "zu", "zu-ZA"] # sp
+# fmt: on
+
+
+class Meta(JsonApiBaseElement):
+    """
+    Represent non-standard meta-information that cannot be represented as an attribute or relationship.
+
+    This meta-information can be used to include any additional information that does not fit within the standard JSON:API specification fields.
+    """
+
+
+class Link(JsonApiBaseElement):
+    """
+    Define a detailed link object with href and optional meta-information.
+
+    The link object is used to represent hyperlinks. The `href` attribute holds the URL of the link, and `meta` provides additional meta-information about the link.
+
+    This also allows for a string to be used as a link. Strings will be inserted into the href attribute.
+    """
+
+    href: Annotated[
+        Url,
+        UrlConstraints(allowed_schemes=["http", "https"]),
+    ]
+    meta: Annotated[Meta | None, Field(default=None)]
+    rel: Annotated[LinkRelation | None, Field(default=None)]
+    describedby: Annotated[Link | None, Field(default=None)]
+    title: Annotated[str | None, Field(default=None)]
+    hreflang: Annotated[LinkLang | None, Field(default=None)]
+
+
+# Link = str | Link
+
+Attributes = dict[str, Any]
+
+
+class ResourceIdentifier(JsonApiBaseElement):
+    """
+    Define resource identifier to non-empty members in a relationship object.
+
+    Resource identifier in a compound document allows resources to link in a standard way. Each resource identifier contains `type` and `id` members to identify linked resources uniquely.
+    """
+
+    id: str
+    type: str
+    meta: Meta | None = None
+
+
+class Jsonapi(JsonApiBaseElement):
+    """
+    Describe the server's implementation of the JSON:API specification.
+
+    This object includes information about the JSON:API version used by the server and any additional meta-information.
+    """
+
+    version: Annotated[str | None, Field(default=None)]
+    meta: Annotated[Meta | None, Field(default=None)]
+
+
+class Source(JsonApiBaseElement):
+    """
+    Identify the source of a problem in an error response.
+
+    `pointer` is a JSON Pointer to the associated entity in the request document. `parameter` indicates which URI query parameter caused the error.
+    """
+
+    pointer: Annotated[str | None, Field(default=None)]
+    parameter: Annotated[str | None, Field(default=None)]
+
+
+class RelatedLinks(JsonApiBaseElement):
+    """
+    Provide links to related resources.
+
+    Relationships may reference other resource objects and are specified in a resource's links object. This class includes `self` and `related` links to manage the relationships.
+    """
+
+    self: Annotated[Link | None, Field(default=None)]
+    related: Annotated[Link | None, Field(default=None)]
+    describedby: Annotated[Link | None, Field(default=None)]
+
+
+class PaginatedLinks(RelatedLinks):
+    """
+    Provide relationship and pagination links for a document.
+
+    Pagination is essential for handling large sets of data. This class includes `first`, `last`, `prev`, and `next` links to navigate through the data pages.
+    """
+
+    first: Annotated[Link | None, Field(default=None)]
+    last: Annotated[Link | None, Field(default=None)]
+    prev: Annotated[Link | None, Field(default=None)]
+    next: Annotated[Link | None, Field(default=None)]
+
+
+# Links = dict[str, Link] | None
+
+ResourceLinkage_HasOne = None | ResourceIdentifier
+
+ResourceLinkage_HasMany = list[ResourceIdentifier]
+
+
+class Error(JsonApiBaseElement):
+    """
+    Represent an error that occurred during a request.
+
+    This class captures details about errors in a standardized format, including a unique ID, status code, error code, human-readable title and detail, source of the error, and any additional meta-information.
+    """
+
+    id: Annotated[str | None, Field(default=None)]
+    links: Annotated[RelatedLinks | None, Field(default=None)]
+    status: Annotated[str | None, Field(default=None)]
+    code: Annotated[str | None, Field(default=None)]
+    title: Annotated[str | None, Field(default=None)]
+    detail: Annotated[str | None, Field(default=None)]
+    source: Annotated[Source | None, Field(default=None)]
+    meta: Annotated[Meta | None, Field(default=None)]
+
+
+class Relationship(JsonApiBaseElement):
+    """
+    Represents a relationship object in a resource.
+
+    Must have at least one of data, links, or meta.
+    """
+
+    # TODO: Paginated links can only be present when data is of type ResourceLinkage_HasMany
+
+    data: Annotated[ResourceLinkage_HasOne | ResourceLinkage_HasMany | None, Field(default=None)]
+    links: Annotated[RelatedLinks | PaginatedLinks | None, Field(default=None)]
+    meta: Annotated[Meta | None, Field(default=None)]
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class DataRelationship(Relationship):
+    """Relationship variant with a mandatory data field."""
+
+    data: ResourceLinkage_HasOne | ResourceLinkage_HasMany
+    links: Annotated[RelatedLinks | PaginatedLinks | None, Field(default=None)]
+    meta: Annotated[Meta | None, Field(default=None)]
+
+
+class MetaRelationship(Relationship):
+    """Relationship variant with a mandatory meta field."""
+
+    meta: Meta
+    links: Annotated[RelatedLinks | PaginatedLinks | None, Field(default=None)]
+    data: Annotated[ResourceLinkage_HasOne | ResourceLinkage_HasMany | None, Field(default=None)]
+
+
+class LinksRelationship(Relationship):
+    """Relationship variant with a mandatory links field."""
+
+    links: RelatedLinks | PaginatedLinks
+    data: Annotated[ResourceLinkage_HasOne | ResourceLinkage_HasMany | None, Field(default=None)]
+    meta: Annotated[Meta | None, Field(default=None)]
+
+
+AllRelationshipTypes = DataRelationship | MetaRelationship | LinksRelationship
+
+Relationships = dict[str, AllRelationshipTypes]
+
+
+class Resource(ResourceIdentifier):
+    """
+    Represent a single resource object in a JSON:API document.
+
+    Resource objects are key constructs in JSON:API. They include a type, id, optional attributes, relationships, links, and meta-information.
+    """
+
+    links: Annotated[RelatedLinks | None, Field(default=None)]
+    relationships: Annotated[Relationships | None, Field(default=None)]
+    attributes: dict[str, Any]
+
+    # Too annoying to validate types for the entire self.relationships object chain. Instead,
+    # we'll just suppress errors and return None/[] if incorrect types are encountered.
+
+    def has_many(self, key: str) -> list[ResourceIdentifier]:
+        """Return relationships that are of a specific type or have a specific key."""
+
+        with contextlib.suppress(KeyError, TypeError, AttributeError):
+            return [
+                linkage
+                for linkage in self.relationships[key].data  # type: ignore
+                if isinstance(linkage, ResourceIdentifier)
+            ]
+
+        return []
+
+    def has_one(self, key: str) -> ResourceIdentifier | None:
+        """Return a single resource identifier within a specific relationship key."""
+
+        with contextlib.suppress(KeyError, TypeError, AttributeError):
+            if isinstance(resource := self.relationships[key].data, ResourceIdentifier):  # type: ignore
+                return resource
+
+        return None
+
+    def all_related_ids(self) -> set[str]:
+        """Return resource IDs for all related resources."""
+
+        if not self.relationships:
+            return set()
+
+        results = set()
+        for value in self.relationships.values():
+            if isinstance(value, Relationship):
+                if isinstance(value.data, list):
+                    results.update([item.id for item in value.data])
+                elif isinstance(value.data, ResourceIdentifier):
+                    results.add(value.data.id)
+
+        return results
+
+
+class Document(JsonApiBaseElement):
+    """JSON:API primary response object."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
+SuccessDocumentData = Resource | list[Resource] | ResourceIdentifier | list[ResourceIdentifier]
+
+
+class SuccessDocument(Document):
+    """
+    Represent a successful response in the JSON:API format.
+
+    A successful response includes the primary data (either a single resource or a list of resources), optional included resources, meta-information, links, and JSON:API details.
+    """
+
+    # fmt: off
+    data: SuccessDocumentData
+    included: Annotated[list[Resource] | list[ResourceIdentifier] | None, Field(default=None)]
+    meta: Annotated[Meta | None, Field(default=None)]
+    links: Annotated[PaginatedLinks | None, Field(default=None)]
+    jsonapi: Annotated[Jsonapi | None, Field(default=None)]
+    # fmt: on
+
+    def get_included(self, type: str | None) -> list[Resource]:
+        """
+        Return a list of included resources of a specific type.
+
+        Will return all included resources if no type is specified.
+        """
+
+        return [
+            resource
+            for resource in (self.included or [])
+            if (resource.type == type or not type) and isinstance(resource, Resource)
+        ]
+
+
+class FailureDocument(Document):
+    """
+    Represent a failure response in the JSON:API format.
+
+    A failure response typically contains a list of errors, meta-information, JSON:API object details, and links related to the error or failure.
+    """
+
+    errors: list[Error]
+    meta: Annotated[Meta | None, Field(default=None)]
+    jsonapi: Annotated[Jsonapi | None, Field(default=None)]
+    links: Annotated[PaginatedLinks | None, Field(default=None)]
+
+
+class MetaDocument(Document):
+    """
+    Represent informational data in the JSON:API format.
+
+    This class can be used for responses that primarily convey meta-information and JSON:API details, possibly with additional links.
+    """
+
+    meta: Meta
+    links: Annotated[PaginatedLinks | None, Field(default=None)]
+    jsonapi: Annotated[Jsonapi | None, Field(default=None)]
+
+
+AllDocumentTypes = SuccessDocument | FailureDocument | MetaDocument

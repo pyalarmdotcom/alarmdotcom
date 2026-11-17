@@ -1,0 +1,137 @@
+bypass_sensor:
+  name: Bypass sensor
+  description: Bypass a supported Alarm.com sensor.
+  fields:
+    resource_id:
+      name: Resource ID
+      description: >-
+        Alarm.com resource ID for the sensor to bypass. Find this in the
+        "resource_id" attribute on the sensor's entity (Settings -> Devices &
+        Services -> Alarm.com -> your device -> the sensor entity -> Attributes).
+      required: true
+      example: "110353471-11"
+      selector:
+        text:
+    partition_id:
+      name: Partition ID
+      description: Optional Alarm.com partition resource ID. If omitted, the first partition on the same system is used.
+      required: false
+      example: "20392030"
+      selector:
+        text:
+unbypass_sensor:
+  name: Unbypass sensor
+  description: Remove bypass from a supported Alarm.com sensor.
+  fields:
+    resource_id:
+      name: Resource ID
+      description: >-
+        Alarm.com resource ID for the sensor to unbypass. Find this in the
+        "resource_id" attribute on the sensor's entity (Settings -> Devices &
+        Services -> Alarm.com -> your device -> the sensor entity -> Attributes).
+      required: true
+      example: "110353471-11"
+      selector:
+        text:
+    partition_id:
+      name: Partition ID
+      description: Optional Alarm.com partition resource ID. If omitted, the first partition on the same system is used.
+      required: false
+      example: "20392030"
+      selector:
+        text:
+set_auto_off:
+  name: Set auto-off timer
+  description: >-
+    Schedule one or more Alarm.com lights to turn off after a duration.
+    Unlike a plain automation using a "wait then turn off" action, this
+    survives a Home Assistant restart (a timer whose time already passed
+    while Home Assistant was offline fires immediately on startup; one
+    still pending is rescheduled for its remaining time) and exposes the
+    scheduled off-time as an "auto_off_at" attribute on the light itself.
+  target:
+    entity:
+      domain: light
+      integration: alarmdotcom
+  fields:
+    duration:
+      name: Duration
+      description: How long to wait before turning the light off.
+      required: true
+      example: "00:30:00"
+      selector:
+        duration:
+cancel_auto_off:
+  name: Cancel auto-off timer
+  description: Cancel a pending auto-off timer for one or more Alarm.com lights, if one is active.
+  target:
+    entity:
+      domain: light
+      integration: alarmdotcom
+set_temporary_access:
+  name: Set temporary user access
+  description: >-
+    Set UTC or offset-aware start and end dates for an existing user's access.
+    Requires a Home Assistant administrator when called by a user.
+    Preserves the existing PIN. Weekly schedules and access plans are unsupported.
+    Saving does not confirm that all panels and locks have synchronized.
+  fields:
+    config_entry_id:
+      name: Alarm.com account
+      required: true
+      selector:
+        config_entry:
+          integration: alarmdotcom
+    system_id:
+      name: System ID
+      description: Alarm.com system ID belonging to the selected account.
+      required: true
+      selector:
+        text:
+    user_id:
+      name: User ID
+      description: Existing Alarm.com user ID from the portal user page URL.
+      required: true
+      selector:
+        text:
+    begin:
+      name: Access start
+      description: ISO 8601 date and time including Z or an explicit UTC offset.
+      required: true
+      example: "2027-01-05T12:00:00-05:00"
+      selector:
+        text:
+    end:
+      name: Access end
+      description: ISO 8601 date and time including Z or an explicit UTC offset, after the start.
+      required: true
+      example: "2027-01-10T12:00:00-05:00"
+      selector:
+        text:
+
+get_temporary_user_schedule:
+  name: Get temporary user schedule
+  description: >-
+    Read the saved temporary schedule and Alarm.com's numeric credential status.
+    Returns response data without a PIN. A null schedule means no temporary
+    schedule is saved, not that access is unrestricted. Reading does not confirm
+    that every panel or lock has synchronized.
+  fields:
+    config_entry_id:
+      name: Alarm.com account
+      required: true
+      selector:
+        config_entry:
+          integration: alarmdotcom
+    system_id:
+      name: System ID
+      description: Alarm.com system ID belonging to the selected account.
+      required: true
+      selector:
+        text:
+    user_id:
+      name: User ID
+      description: Existing Alarm.com user ID from the portal user page URL.
+      required: true
+      selector:
+        text:

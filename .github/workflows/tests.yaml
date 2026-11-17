@@ -1,0 +1,57 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - master
+      - beta/2026-modernization
+  pull_request:
+    branches:
+      - master
+      - beta/2026-modernization
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    name: Python regression tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install test dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip install beautifulsoup4 mashumaro phonenumbers pyhumps typer click rich
+      - name: Run regression tests
+        run: python -m pytest tests/ -q
+
+  november-compatibility:
+    name: HA Core ${{ matrix.core }} compatibility
+    strategy:
+      fail-fast: false
+      matrix:
+        core: ["2026.11.0", "2026.11.1", "2026.11.2"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install final November Core and test dependencies
+        run: >-
+          python -m pip install "homeassistant==${{ matrix.core }}" "pytest==9.0.3"
+          "PyTurboJPEG==2.6.1" beautifulsoup4 mashumaro phonenumbers pyhumps typer click rich
+      - name: Check real November Core APIs
+        env:
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+        run: >-
+          python -c 'import homeassistant; import pytest;
+          raise SystemExit(pytest.main(["--noconftest", "-c", "/dev/null",
+          "tests/test_core_compatibility.py", "-v",
+          "-W", "error::DeprecationWarning:custom_components"]))'

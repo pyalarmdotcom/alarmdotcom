@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible problem with the Alarm.com Home Assistant integration
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. **Do not include credentials, MFA codes, cookies, tokens, account IDs, addresses, or unredacted logs.** Report security vulnerabilities privately as described in SECURITY.md.
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.11.0"
+    validations:
+      required: true
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration version
+      placeholder: "2026.11.04.3"
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Affected area
+      options:
+        - Login / MFA / setup
+        - Alarm panel / partition
+        - Sensors
+        - Locks
+        - Lights / switches
+        - Cameras / image sensors
+        - Scenes
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Describe what you did and what happened.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized logs or diagnostics (optional)
+      description: Review every line and attachment for private data before submitting.
+      render: text
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched existing issues and removed all credentials, tokens, account identifiers, and other private information from my report.
+          required: true

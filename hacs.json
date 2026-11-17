@@ -1,5 +1,6 @@
 {
-    "homeassistant": "2025.5.0",
-    "name": "Alarm.com",
-    "render_readme": true
+  "name": "Alarm.com",
+  "render_readme": true,
+  "homeassistant": "2025.5.0",
+  "content_in_root": false
 }

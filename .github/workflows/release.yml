@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate release metadata
+        id: metadata
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import ast
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          root = Path("custom_components/alarmdotcom")
+          version = json.loads((root / "manifest.json").read_text())["version"]
+          if not re.fullmatch(r"\d{4}\.\d{1,2}\.\d{1,2}(\.\d+|b\d+)?", version):
+              raise SystemExit("Invalid release version")
+          if os.environ["RELEASE_TAG"] != f"v{version}":
+              raise SystemExit("Release tag and manifest must match")
+          assignments = ast.parse((root / "_pyalarmdotcomajax/_version.py").read_text()).body
+          bundled = next(ast.literal_eval(item.value) for item in assignments
+                         if isinstance(item, ast.Assign)
+                         and any(isinstance(target, ast.Name) and target.id == "__version__"
+                                 for target in item.targets))
+          if bundled != version:
+              raise SystemExit("Bundled library and manifest must match")
+          if not Path(f"release-notes/{version}.md").is_file():
+              raise SystemExit("Version-specific release notes are required")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"version={version}\n")
+              output.write(f"prerelease={'true' if 'b' in version else 'false'}\n")
+          PY
+      - name: Package integration
+        run: |
+          cd custom_components
+          zip -r ../alarmdotcom.zip alarmdotcom -x '*__pycache__*' '*.pyc'
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Alarm.com ${{ steps.metadata.outputs.version }}
+          prerelease: ${{ steps.metadata.outputs.prerelease == 'true' }}
+          make_latest: ${{ steps.metadata.outputs.prerelease == 'false' }}
+          body_path: release-notes/${{ steps.metadata.outputs.version }}.md
+          files: alarmdotcom.zip

@@ -1,20 +1,30 @@
 name: HACS Validation
 
 on:
-    pull_request:
-    workflow_dispatch:
-    schedule:
-        - cron: "0 0 * * *"
+  push:
+    branches:
+      - master
+      - beta/2026-modernization
+  pull_request:
+    branches:
+      - master
+      - beta/2026-modernization
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: read
 
 jobs:
-    validate:
-        name: HASS and Hassfest Validation
-        runs-on: "ubuntu-latest"
-        steps:
-            - uses: "actions/checkout@v3"
-            - name: HACS Action
-              uses: hacs/action@main
-              with:
-                  category: "integration"
-            - name: Hassfest validation
-              uses: "home-assistant/actions/hassfest@master"
+  validate:
+    name: HACS and Hassfest validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+      - name: Hassfest validation
+        uses: home-assistant/actions/hassfest@master

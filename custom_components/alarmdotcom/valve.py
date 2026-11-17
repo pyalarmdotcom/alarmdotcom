@@ -7,7 +7,7 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic
 
-import pyalarmdotcomajax as pyadc
+import _pyalarmdotcomajax as pyadc
 from homeassistant.components.valve import (
     ValveDeviceClass,
     ValveEntity,
@@ -19,12 +19,16 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import DiscoveryInfoType
 
-from .const import DATA_HUB, DOMAIN
 from .entity import AdcControllerT, AdcEntity, AdcEntityDescription, AdcManagedDeviceT
 from .util import cleanup_orphaned_entities_and_devices
 
 if TYPE_CHECKING:
     from .hub import AlarmHub
+
+# Entities are updated via push (websocket events), not per-entity polling -
+# PARALLEL_UPDATES has no effect on update frequency here, but setting it
+# to 0 is still the correct, explicit signal for a push-based integration.
+PARALLEL_UPDATES = 0
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +41,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up the valve platform."""
 
-    hub: AlarmHub = hass.data[DOMAIN][config_entry.entry_id][DATA_HUB]
+    hub: AlarmHub = config_entry.runtime_data.hub
 
     entities = [
         AdcValveEntity(hub=hub, resource_id=resource.id, description=entity_description)
@@ -60,7 +64,7 @@ async def async_setup_entry(
 def is_closed_fn(controller: pyadc.WaterValveController, valve_id: str) -> bool | None:
     """Return whether the valve is closed."""
     resource = controller.get(valve_id)
-    if resource is None:
+    if resource is None or resource.attributes.state == pyadc.water_valve.WaterValveState.UNKNOWN:
         return None
     return resource.attributes.state == pyadc.water_valve.WaterValveState.CLOSED
 

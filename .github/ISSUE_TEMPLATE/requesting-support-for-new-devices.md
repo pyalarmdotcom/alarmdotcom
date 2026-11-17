@@ -1,44 +1,81 @@
 ---
+
 name: Request support for a new device
-about: Help us support new Alarm.com devices
+about: Request support for an Alarm.com device not currently supported
 title: ""
-labels: new device
+labels: new-device
 assignees: ""
+-------------
+
+## Device Information
+
+Device name:
+
+Manufacturer / model:
+
+Product page (if available):
+
 ---
 
-The alarmdotcom maintainers don't have direct access to all Alarm.com devices. We need your help to support new devices.
+## Device Category
 
-Please open one issue per device.
+Where does this device appear in the Alarm.com mobile app?
 
-**Which device would you like us to support?**
-Provide the device name and a link to a page with device details.
-(E.g.: Intelligent Thermostat: https://suretyhome.com/product/intelligent-thermostat/)
+Examples:
 
-**Where does this device appear in the Alarm.com mobile app?**
-Security System, Images, Locks, Garage Doors, etc.
+* Security System
+* Locks
+* Garage Doors
+* Lights
+* Thermostats
+* Sensors
+* Cameras
+* Other
 
-**What types of actions does this device support?**
-E.g.: Garage doors support opening and closing. Alarm systems support arming (home, away, and night modes) and disarming.
+---
 
-**Which provider do you use?**
-E.g.: Alarm Net, ADT, Surety Home, etc.
+## Device Capabilities
 
-**Include pyalarmdotcomajax Server Output**
-This is an important step. It's helpful for us to see how this device is represented on the Alarm.com server. We have a tool for dumping this data via the command line.
+What actions does the device support?
 
-1. Install the `adc` command line tool using the instructions at https://github.com/pyalarmdotcom/alarmdotcom/wiki/How-to-Test-&-Debug#install-the-adc-command-line-tool.
-2. Run the `Unsupported Devices` command template in the table on the adc instructions page.
-3. Copy & paste here the relevant data from the output of the Unsupported Devices command.
+Examples:
 
-**Heads Up!** The above command dumps server data for all devices that are known to ADC developers, including a few devices that are currently unsupported. This command may leak sensitive information. It does _not_ dump your email address, address, or any other account information, but it may output coordinates from GPS devices (like an Alarm.com car sensor) and names of family members (e.g.: Michael's Room Window Sensor). Be sure to review the data before posting to scrub anything that you're not comfortable posting online.
+* Lock / unlock
+* Open / close
+* On / off
+* Arm / disarm
+* Temperature control
 
-**Include Action Endpoints**
-This is a more technical than the last step, but in order to support actions for devices we need you to use your browser's developer tools to tell us which endpoints the Alarm.com app uses to control these devices. For example, for a garage door, we would need the following information:
+---
 
-> Base URL: `https://www.alarm.com/web/api/devices/garageDoors/`
-> Open Suffix: `open`
-> Close Suffix: `close`
+## Alarm.com Provider
 
-(Opening a garage door requires submitting a request to `https://www.alarm.com/web/api/devices/garageDoors/open`.)
+Which Alarm.com service provider do you use?
 
-Basic instructions for capturing action data in Chrome are available at https://github.com/pyalarmdotcom/alarmdotcom/wiki/How-to-Test-&-Debug#capturing-post-data-in-chrome. Be sure to post both request body data and request URL data.
+Examples:
+
+* ADT
+* Surety
+* AlarmNet
+* Local security provider
+
+---
+
+## Screenshots
+
+Please include screenshots of the device in the Alarm.com mobile app.
+
+Screenshots help identify device types and capabilities.
+
+---
+
+## Optional: Advanced Debug Data
+
+If you are comfortable providing debug information:
+
+1. Enable debug logging for the integration.
+2. Reproduce the interaction with the device.
+3. Provide the relevant log entries.
+
+**Important:**
+Review logs before posting to ensure no personal information is included.

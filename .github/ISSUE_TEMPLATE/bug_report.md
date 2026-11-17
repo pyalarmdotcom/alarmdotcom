@@ -1,31 +1,64 @@
 ---
+
 name: Bug report
-about: Report a problem with the integration
+about: Report a problem with the Alarm.com Home Assistant integration
 title: ""
 labels: bug
 assignees: ""
+-------------
+
+## Describe the issue
+
+Provide a clear and concise description of the problem.
+
 ---
 
-Please provide as much detail as possible. It's helpful to include Home Assistant debug logs from this integration. Instructions for enabling debugging are available at https://github.com/pyalarmdotcom/alarmdotcom/wiki/How-to-Test-&-Debug#enable-code-debugging. (Alarmdotcom debug logs are verbose, so don't forget to disable debug logging when you're done!)
+## Steps to reproduce
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+1. Go to ...
+2. Click on ...
+3. Perform action ...
+4. Observe the issue
 
-**To Reproduce**
-Steps to reproduce the behavior:
+---
 
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+## Expected behavior
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+Describe what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+---
 
-**Home Assistant Version:**
+## Home Assistant Information
 
-**Additional context**
-Add any other context about the problem here.
+Home Assistant Version:
+
+Integration Version:
+
+Installation Method:
+(HACS / Manual)
+
+---
+
+## Logs
+
+Please include relevant Home Assistant logs.
+
+To enable debug logging for this integration, add the following to your `configuration.yaml`:
+
+```
+logger:
+  logs:
+    custom_components.alarmdotcom: debug
+```
+
+Restart Home Assistant and reproduce the issue.
+
+Attach the relevant logs from **Settings → System → Logs**.
+
+After collecting logs you should remove debug logging.
+
+---
+
+## Additional context
+
+Add any additional information, screenshots, or environment details that may help diagnose the issue.
