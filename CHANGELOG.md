@@ -8,6 +8,13 @@
 
 ---
 
+## Unreleased
+
+- Credit kjjohnsen's earlier Alarm.com WebRTC card implementation in the README and both card sources. Its first public commit was February 14, 2026; this project's initial card commit was March 20, 2026.
+- Retain `Copyright (c) 2026 kjjohnsen` and the complete MIT notice in both distributed card files. This is an attribution update with no camera behavior changes.
+
+See [next-release notes](release-notes/unreleased.md).
+
 ## 2026.11.17 (stable)
 
 - Prepare the maintained implementation for the original distribution's stable channel.

@@ -442,6 +442,8 @@ Remove passwords, verification codes, session cookies, authentication headers, t
 
 Thanks to **Elhad Bar-Shai ([@elahd](https://github.com/elahd))**, **Justin Wong ([@uvjustin](https://github.com/uvjustin))**, and all original contributors for the foundation of this project. Current maintenance and modernization are led by [@ibasebcast](https://github.com/ibasebcast), building on the original v4 work and the maintained distribution developed since March 2026.
 
+We also credit **[kjjohnsen](https://github.com/kjjohnsen)** for the earlier [Alarm.com WebRTC camera integration and card](https://github.com/kjjohnsen/HomeAssistantADCCameraIntegration). Its card was [first committed on February 14, 2026](https://github.com/kjjohnsen/HomeAssistantADCCameraIntegration/commit/ceea6e9880310a1e41fd0700f2ea507fc1c0997e), before [this project's initial camera-card commit on March 20, 2026](https://github.com/ibasebcast/ha-alarmdotcom/commit/a1bba5484d4b65e6857b3cf0e09e05dce7406948). The early implementations share the card's foundation; the current card includes substantial later integration, security, transport, and recovery work. The original `Copyright (c) 2026 kjjohnsen` and MIT license notice are retained in both distributed card files.
+
 The original repository history, screenshots, contributor credits, and license notices remain preserved. See [CHANGELOG.md](CHANGELOG.md) for the full maintained development history and [release-notes/](release-notes/) for individual release notes. Older unqualified issue numbers there refer to the maintained repository unless stated otherwise.
 
 If this work helps you, [Buy Me a Coffee](https://buymeacoffee.com/ibasebcast) supports ongoing maintenance.
@@ -449,3 +451,5 @@ If this work helps you, [Buy Me a Coffee](https://buymeacoffee.com/ibasebcast) s
 ## License
 
 Original integration and library code retain their MIT notices in [LICENSE.md](LICENSE.md) and [LICENSE-upstream](LICENSE-upstream). Maintained contributions are distributed under the terms documented in [LICENSE](LICENSE) (Apache-2.0), subject to those retained upstream MIT notices.
+
+The WebRTC card also retains kjjohnsen's MIT copyright and permission notice for its shared portions, directly in the JavaScript source. This attribution supplements the original project and library notices above.
