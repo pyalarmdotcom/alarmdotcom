@@ -15,8 +15,15 @@ existing acknowledgements for Elhad Bar-Shai, Justin Wong, and other contributor
 The current card also includes the later integration, security, transport and
 recovery improvements developed in the maintained project.
 
-This update changes attribution only, with no camera behavior changes.
+This update changes attribution and maintenance documentation, with no camera behavior changes.
 It is staged for the next release; published releases and tags are unchanged.
+
+## Maintenance cleanup
+
+- Point the original repository's security-reporting link to its own Security tab.
+- Document the branch audit and preserve active investigations, dependency PRs, and legacy source history.
+- See the [cleanup record](../docs/maintenance/branch-cleanup-2026-11-17.md) for removed branch heads, merged PRs, and retained work.
+- Prepare matching migration and attribution guidance on the maintained distribution's credit branch. Existing users can stay on their current distribution; schema 5 entries require compatible code or a full backup restore when rolling back.
 
 ### Source history
 
