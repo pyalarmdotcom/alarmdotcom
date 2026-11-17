@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - master
-      - beta/2026-modernization
   pull_request:
     branches:
       - master
-      - beta/2026-modernization
 
 permissions:
   contents: read

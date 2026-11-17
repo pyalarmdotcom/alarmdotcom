@@ -5,7 +5,7 @@ about: Request support for an Alarm.com device not currently supported
 title: ""
 labels: new-device
 assignees: ""
--------------
+---
 
 ## Device Information
 

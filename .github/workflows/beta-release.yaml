@@ -6,12 +6,10 @@ name: Build validation (no release)
 on:
   push:
     branches:
-      - beta/2026-modernization
       - master
   pull_request:
     branches:
       - master
-      - beta/2026-modernization
 
 permissions:
   contents: read
