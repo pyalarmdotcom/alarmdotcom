@@ -9,7 +9,7 @@ pathspec >= 1.1.1
 gitpython >= 3.2.1
 homeassistant == 2026.10.4
 pytest == 9.0.3
-pytest-asyncio >= 1.4.0
+pytest-asyncio >= 1.5.0
 # pytest-homeassistant-custom-component's version tracks Home Assistant core
 # closely - when bumping the homeassistant pin above, check this package's
 # releases for a matching version, or tests may break due to API drift
